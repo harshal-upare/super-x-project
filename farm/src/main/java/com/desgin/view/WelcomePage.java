@@ -91,8 +91,8 @@ public class WelcomePage extends Application {
 
         getStarted.setOnAction(event -> {
 
-            //Authentication obj = new Authentication();
-            //welcomePageStage.setScene(obj.getAuthenticationScene());
+            Authentication obj = new Authentication();
+            welcomePageStage.setScene(obj.getAuthenticationScene());
         });
 
         VBox leftVBox = new VBox(18,welcomeText,farmEquipText,subtitleText,descriptionText,getStarted);
