@@ -80,7 +80,7 @@ public class Authentication {
         registerText.setOnMouseClicked(null);
 
         registerText.setOnMouseClicked(event ->{
-          // RegisterPage registerPage = new RegisterPage();
+          RegisterPage registerPage = new RegisterPage();
 
             Runnable backToLogin = new Runnable() {
                 public void run(){
@@ -90,7 +90,7 @@ public class Authentication {
                 }
             };
 
-       //   WelcomePage.welcomePageStage.setScene(registerPage.getRegisterPageScene(backToLogin));
+        WelcomePage.welcomePageStage.setScene(registerPage.getRegisterPageScene(backToLogin));
         });
         
 
