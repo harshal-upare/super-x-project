@@ -75,9 +75,9 @@ public class Authentication {
         loginButton.setFocusTraversable(false);
         
         Text noAccText = new Text("Don't have an account?");
-        noAccText.setStyle("-fx-underline: true; -fx-fill : #fff;");
+        noAccText.setStyle("-fx-underline: true; -fx-fill : #000;");
         Text registerText = new Text("Register");
-        registerText.setStyle("-fx-underline: true; -fx-fill : #fff");
+        registerText.setStyle("-fx-underline: true; -fx-fill : #000");
         registerText.setOnMouseClicked(null);
 
         registerText.setOnMouseClicked(event ->{
@@ -102,7 +102,10 @@ public class Authentication {
         VBox loginVBox = new VBox(25,primaryVBox,secondaryVBox,loginButton,ternaryVBox);
        
         //loginVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");// -fx-alignment:center");
-        loginVBox.setStyle("-fx-padding:30px; -fx-background-color:transparent;");
+        //loginVBox.setStyle("-fx-padding:30px; -fx-background-color:transparent;");
+        
+        loginVBox.setStyle("-fx-background-color: rgba(255,255,255,0.58);" +"-fx-background-radius: 22;");
+
         loginVBox.setAlignment(Pos.TOP_CENTER);
         loginVBox.setPrefSize(450, 500);
         loginVBox.setMaxSize(450, 500);
