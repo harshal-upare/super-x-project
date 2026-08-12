@@ -1,4 +1,6 @@
 package com.desgin.view.handling_start;
+import com.desgin.view.farmer.FarmerDashboard;
+
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -132,11 +134,13 @@ public class RegisterPage {
 
         // Add all radio buttons to same group
         farmerRadio.setToggleGroup(roleGroup);
+        farmerRadio.setFocusTraversable(false);
         providerRadio.setToggleGroup(roleGroup);
+        providerRadio.setFocusTraversable(false);
         ownerRadio.setToggleGroup(roleGroup);
+        ownerRadio.setFocusTraversable(false);
 
         // Farmer selected by default
-        farmerRadio.setSelected(true);
 
         // Put radio buttons in HBox
         HBox roleHBox = new HBox(
@@ -161,6 +165,18 @@ public class RegisterPage {
         Button registerButton = new Button("Register");
 
         registerButton.setStyle("-fx-background-color: #388E3C; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 15px;  -fx-font-weight: bold;");
+
+        registerButton.setOnAction(event -> {
+
+            RadioButton valRadioButton = (RadioButton) roleGroup.getSelectedToggle();
+            String redirect = valRadioButton.getText();
+            if(redirect.equals("Farmer")) {
+
+                FarmerDashboard obj = new FarmerDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                
+            }
+        });
 
         registerButton.setPrefHeight(42);
         registerButton.setMaxWidth(250);
