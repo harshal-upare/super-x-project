@@ -1,4 +1,4 @@
-package com.desgin.view;
+package com.desgin.view.handling_start;
 
 
 import javafx.geometry.Pos;
@@ -29,7 +29,7 @@ public class Authentication {
 
         BorderPane borderPane = new BorderPane();
 
-        Image img = new Image("assets/Images/logo.png");
+        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.png");
         ImageView loginPageImageView = new ImageView(img);
         loginPageImageView.setFitWidth(60);
         loginPageImageView.setFitHeight(60);

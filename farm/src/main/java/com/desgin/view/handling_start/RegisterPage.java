@@ -1,4 +1,4 @@
-package com.desgin.view;
+package com.desgin.view.handling_start;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -25,7 +25,7 @@ public class RegisterPage {
 
         // ================= LOGO =================
 
-        Image img = new Image("assets/Images/logo.png");
+        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.png");
 
         ImageView registrationPageImageView = new ImageView(img);
 
