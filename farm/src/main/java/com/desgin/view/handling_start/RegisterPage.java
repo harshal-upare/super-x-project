@@ -1,5 +1,6 @@
 package com.desgin.view.handling_start;
 import com.desgin.view.farmer.FarmerDashboard;
+import com.desgin.view.operator.OperatorDashboard;
 
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -127,7 +128,7 @@ public class RegisterPage {
 
         RadioButton farmerRadio = new RadioButton("Farmer");
         RadioButton providerRadio = new RadioButton("Provider");
-        RadioButton ownerRadio = new RadioButton("Owner");
+        RadioButton operatorRadio = new RadioButton("Operator");
 
         // Create ToggleGroup
         ToggleGroup roleGroup = new ToggleGroup();
@@ -137,8 +138,8 @@ public class RegisterPage {
         farmerRadio.setFocusTraversable(false);
         providerRadio.setToggleGroup(roleGroup);
         providerRadio.setFocusTraversable(false);
-        ownerRadio.setToggleGroup(roleGroup);
-        ownerRadio.setFocusTraversable(false);
+        operatorRadio.setToggleGroup(roleGroup);
+        operatorRadio.setFocusTraversable(false);
 
         // Farmer selected by default
 
@@ -147,7 +148,7 @@ public class RegisterPage {
                 15,
                 farmerRadio,
                 providerRadio,
-                ownerRadio
+                operatorRadio
         );
 
         roleHBox.setAlignment(Pos.CENTER_LEFT);
@@ -175,6 +176,10 @@ public class RegisterPage {
                 FarmerDashboard obj = new FarmerDashboard();
                 WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
                 
+            }
+            else if(redirect.equals("Operator")){
+                OperatorDashboard op = new OperatorDashboard();
+                WelcomePage.welcomePageStage.setScene(op.getOperatorDashboardScene());
             }
         });
 
