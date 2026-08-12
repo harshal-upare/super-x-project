@@ -4,10 +4,13 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -112,12 +115,40 @@ public class RegisterPage {
         confirmPasswordTextField.setFocusTraversable(false);
 
         confirmPasswordTextField.setStyle( "-fx-background-color : #F8FAF7; -fx-border-color : #D6DDD2; -fx-border-radius: 8px;");
+        
+        // === select role ===
 
+        Label roleLabel = new Label("Select Role");
+
+        RadioButton farmerRadio = new RadioButton("Farmer");
+        RadioButton providerRadio = new RadioButton("Provider");
+        RadioButton ownerRadio = new RadioButton("Owner");
+
+        // Create ToggleGroup
+        ToggleGroup roleGroup = new ToggleGroup();
+
+        // Add all radio buttons to same group
+        farmerRadio.setToggleGroup(roleGroup);
+        providerRadio.setToggleGroup(roleGroup);
+        ownerRadio.setToggleGroup(roleGroup);
+
+        // Farmer selected by default
+        farmerRadio.setSelected(true);
+
+        // Put radio buttons in HBox
+        HBox roleHBox = new HBox(
+                15,
+                farmerRadio,
+                providerRadio,
+                ownerRadio
+        );
+
+        roleHBox.setAlignment(Pos.CENTER_LEFT);
 
         // ================= INPUT SECTION =================
 
         VBox secondaryVBox = new VBox(5,label1,nameTextField,label2,emailTextField,label3,
-            mobileTextField,label4,passwordTextField,label5,confirmPasswordTextField);
+            mobileTextField,label4,passwordTextField,label5,confirmPasswordTextField ,roleLabel,roleHBox);
 
         secondaryVBox.setMaxWidth(250);
 
