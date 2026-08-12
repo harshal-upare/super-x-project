@@ -11,6 +11,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -172,7 +173,7 @@ public class RegisterPage {
 
         Text loginText = new Text("Login");
 
-        loginText.setStyle("-fx-underline: true; -fx-fill : #2E7D32");
+        loginText.setStyle("-fx-underline: true; -fx-fill : #000");
         loginText.setOnMouseClicked(event ->{
 
             backToLogin.run();
@@ -189,7 +190,8 @@ public class RegisterPage {
 
         VBox registrationVBox = new VBox(20,primaryVBox,secondaryVBox,registerButton,ternaryVBox);
 
-        registrationVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");
+        //registrationVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");
+        registrationVBox.setStyle("-fx-background-color: rgba(255,255,255,0.58);" +"-fx-background-radius: 22;");
 
         registrationVBox.setAlignment(Pos.TOP_CENTER);
 
@@ -202,15 +204,26 @@ public class RegisterPage {
 
         borderPane.setCenter(registrationVBox);
 
-        borderPane.setStyle("-fx-background-color : #F8F7F2;");
+        borderPane.setStyle("-fx-background-color : transparent;");
+
+        Image backgroundImage = new Image("/assets/Images/background.jpeg");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setPreserveRatio(false);
+        backgroundImageView.setSmooth(true); 
+        backgroundImageView.setMouseTransparent(true);
+
+        StackPane root = new StackPane();
+        root.getChildren().addAll(backgroundImageView,borderPane);
+
+        backgroundImageView.fitWidthProperty().bind(root.widthProperty());
+        backgroundImageView.fitHeightProperty().bind(root.heightProperty());
 
 
-        Scene sc = new Scene(borderPane,1500,750);
+        Scene sc = new Scene(root);
         registerScene = sc;
         
         return registerScene;
-
-        
 
     }
     
