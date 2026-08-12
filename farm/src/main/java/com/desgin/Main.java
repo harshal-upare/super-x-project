@@ -1,6 +1,6 @@
 package com.desgin;
 
-import com.desgin.view.WelcomePage;
+import com.desgin.view.handling_start.WelcomePage;
 
 import javafx.application.Application;
 
