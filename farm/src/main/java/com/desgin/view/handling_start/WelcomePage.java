@@ -114,7 +114,7 @@ public class WelcomePage extends Application {
         centerHBox.setAlignment(Pos.CENTER_LEFT);
         centerHBox.setPadding(new Insets(0,0,0,100));
 
-        // VERY IMPORTANT:
+        // VERY IMPORTANT:     
         // Keep center transparent.
         centerHBox.setStyle("-fx-background-color: transparent;");
         borderPane.setCenter(centerHBox);
@@ -152,7 +152,7 @@ public class WelcomePage extends Application {
         welcomePageScene = new Scene(root);
         
         welcomePageStage.setScene(welcomePageScene);
-        welcomePageStage.setTitle("Farm Equipment Rental Platform (FarmEquip)");
+        welcomePageStage.setTitle("Agriculture Equipment Rental Platform (FarmEquip) ");
         welcomePageStage.setMaximized(true);
         welcomePageStage.show();
     }

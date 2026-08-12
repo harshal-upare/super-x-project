@@ -4,10 +4,14 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -111,12 +115,40 @@ public class RegisterPage {
         confirmPasswordTextField.setFocusTraversable(false);
 
         confirmPasswordTextField.setStyle( "-fx-background-color : #F8FAF7; -fx-border-color : #D6DDD2; -fx-border-radius: 8px;");
+        
+        // === select role ===
 
+        Label roleLabel = new Label("Select Role");
+
+        RadioButton farmerRadio = new RadioButton("Farmer");
+        RadioButton providerRadio = new RadioButton("Provider");
+        RadioButton ownerRadio = new RadioButton("Owner");
+
+        // Create ToggleGroup
+        ToggleGroup roleGroup = new ToggleGroup();
+
+        // Add all radio buttons to same group
+        farmerRadio.setToggleGroup(roleGroup);
+        providerRadio.setToggleGroup(roleGroup);
+        ownerRadio.setToggleGroup(roleGroup);
+
+        // Farmer selected by default
+        farmerRadio.setSelected(true);
+
+        // Put radio buttons in HBox
+        HBox roleHBox = new HBox(
+                15,
+                farmerRadio,
+                providerRadio,
+                ownerRadio
+        );
+
+        roleHBox.setAlignment(Pos.CENTER_LEFT);
 
         // ================= INPUT SECTION =================
 
         VBox secondaryVBox = new VBox(5,label1,nameTextField,label2,emailTextField,label3,
-            mobileTextField,label4,passwordTextField,label5,confirmPasswordTextField);
+            mobileTextField,label4,passwordTextField,label5,confirmPasswordTextField ,roleLabel,roleHBox);
 
         secondaryVBox.setMaxWidth(250);
 
@@ -141,7 +173,7 @@ public class RegisterPage {
 
         Text loginText = new Text("Login");
 
-        loginText.setStyle("-fx-underline: true; -fx-fill : #2E7D32");
+        loginText.setStyle("-fx-underline: true; -fx-fill : #000");
         loginText.setOnMouseClicked(event ->{
 
             backToLogin.run();
@@ -158,28 +190,40 @@ public class RegisterPage {
 
         VBox registrationVBox = new VBox(20,primaryVBox,secondaryVBox,registerButton,ternaryVBox);
 
-        registrationVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");
+        //registrationVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");
+        registrationVBox.setStyle("-fx-background-color: rgba(255,255,255,0.58);" +"-fx-background-radius: 22;");
 
         registrationVBox.setAlignment(Pos.TOP_CENTER);
 
-        registrationVBox.setPrefSize(450,650);
+        registrationVBox.setPrefSize(450,700);
 
-        registrationVBox.setMaxSize(450,650);
+        registrationVBox.setMaxSize(450,700);
 
 
-        // ================= BORDER PANE =================
+        // ================= BORDER PANE.  =================
 
         borderPane.setCenter(registrationVBox);
 
-        borderPane.setStyle("-fx-background-color : #F8F7F2;");
+        borderPane.setStyle("-fx-background-color : transparent;");
+
+        Image backgroundImage = new Image("/assets/Images/background.jpeg");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setPreserveRatio(false);
+        backgroundImageView.setSmooth(true); 
+        backgroundImageView.setMouseTransparent(true);
+
+        StackPane root = new StackPane();
+        root.getChildren().addAll(backgroundImageView,borderPane);
+
+        backgroundImageView.fitWidthProperty().bind(root.widthProperty());
+        backgroundImageView.fitHeightProperty().bind(root.heightProperty());
 
 
-        Scene sc = new Scene(borderPane,1500,750);
+        Scene sc = new Scene(root);
         registerScene = sc;
         
         return registerScene;
-
-        
 
     }
     

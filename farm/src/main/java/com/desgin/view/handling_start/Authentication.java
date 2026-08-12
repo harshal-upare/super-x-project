@@ -10,6 +10,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
@@ -74,9 +75,9 @@ public class Authentication {
         loginButton.setFocusTraversable(false);
         
         Text noAccText = new Text("Don't have an account?");
-        noAccText.setStyle("-fx-underline: true;");
+        noAccText.setStyle("-fx-underline: true; -fx-fill : #000;");
         Text registerText = new Text("Register");
-        registerText.setStyle("-fx-underline: true; -fx-fill : #2E7D32");
+        registerText.setStyle("-fx-underline: true; -fx-fill : #000");
         registerText.setOnMouseClicked(null);
 
         registerText.setOnMouseClicked(event ->{
@@ -90,7 +91,7 @@ public class Authentication {
                 }
             };
 
-        WelcomePage.welcomePageStage.setScene(registerPage.getRegisterPageScene(backToLogin));
+            WelcomePage.welcomePageStage.setScene(registerPage.getRegisterPageScene(backToLogin));
         });
         
 
@@ -100,15 +101,32 @@ public class Authentication {
 
         VBox loginVBox = new VBox(25,primaryVBox,secondaryVBox,loginButton,ternaryVBox);
        
-        loginVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");// -fx-alignment:center");
+        //loginVBox.setStyle("-fx-border-color : #D6DDD2; -fx-padding:30px; -fx-border-radius : 16px; -fx-background-color : #FFFFFF; -fx-background-radius : 16px;");// -fx-alignment:center");
+        //loginVBox.setStyle("-fx-padding:30px; -fx-background-color:transparent;");
+        
+        loginVBox.setStyle("-fx-background-color: rgba(255,255,255,0.58);" +"-fx-background-radius: 22;");
+
         loginVBox.setAlignment(Pos.TOP_CENTER);
         loginVBox.setPrefSize(450, 500);
         loginVBox.setMaxSize(450, 500);
 
         borderPane.setCenter(loginVBox);
-        borderPane.setStyle("-fx-background-color : #F8F7F2;");
+        borderPane.setStyle("-fx-background-color : transparent;");
 
-        authenticationScene = new Scene(borderPane,1500,750);
+        Image backgroundImage = new Image("/assets/Images/background.jpeg");
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+
+        backgroundImageView.setPreserveRatio(false);
+        backgroundImageView.setSmooth(true); 
+        backgroundImageView.setMouseTransparent(true);
+
+        StackPane root = new StackPane();
+        root.getChildren().addAll(backgroundImageView,borderPane);
+
+        backgroundImageView.fitWidthProperty().bind(root.widthProperty());
+        backgroundImageView.fitHeightProperty().bind(root.heightProperty());
+
+        authenticationScene = new Scene(root);
 
         return authenticationScene;
     }
