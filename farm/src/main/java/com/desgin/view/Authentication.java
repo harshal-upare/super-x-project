@@ -29,12 +29,13 @@ public class Authentication {
 
         BorderPane borderPane = new BorderPane();
 
-        Image img = new Image("file:agriculture/src/main/resources/assets/Icons/finalLogo.png");
+        Image img = new Image("assets/Images/logo.png");
         ImageView loginPageImageView = new ImageView(img);
         loginPageImageView.setFitWidth(60);
         loginPageImageView.setFitHeight(60);
         loginPageImageView.setPreserveRatio(false);
         loginPageImageView.setSmooth(true);
+        //loginPageImageView.setStyle("-fx-setPadding:5px");
         
 
         Text wlcBack = new Text("Welcome Back");

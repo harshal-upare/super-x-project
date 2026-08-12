@@ -25,7 +25,7 @@ public class RegisterPage {
 
         // ================= LOGO =================
 
-        Image img = new Image("file:agriculture/src/main/resources/assets/Icons/finalLogo.png");
+        Image img = new Image("assets/Images/logo.png");
 
         ImageView registrationPageImageView = new ImageView(img);
 
@@ -33,6 +33,7 @@ public class RegisterPage {
         registrationPageImageView.setFitHeight(60);
         registrationPageImageView.setPreserveRatio(false);
         registrationPageImageView.setSmooth(true);
+        
 
 
         // ================= HEADING =================
@@ -49,7 +50,9 @@ public class RegisterPage {
 
         VBox primaryVBox = new VBox(10,registrationPageImageView, createAccount,joinFarmEquip );
 
-        primaryVBox.setStyle( "-fx-alignment:center");
+
+        primaryVBox.setStyle( "-fx-alignment:center; ");
+
 
 
         // ================= NAME =================
