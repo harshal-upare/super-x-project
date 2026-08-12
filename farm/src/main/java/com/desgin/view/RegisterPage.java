@@ -195,9 +195,9 @@ public class RegisterPage {
 
         registrationVBox.setAlignment(Pos.TOP_CENTER);
 
-        registrationVBox.setPrefSize(450,650);
+        registrationVBox.setPrefSize(450,700);
 
-        registrationVBox.setMaxSize(450,650);
+        registrationVBox.setMaxSize(450,700);
 
 
         // ================= BORDER PANE.  =================
