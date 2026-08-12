@@ -1,4 +1,4 @@
-package com.desgin.view;
+package com.desgin.view.handling_start;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
