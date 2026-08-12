@@ -114,7 +114,7 @@ public class WelcomePage extends Application {
         centerHBox.setAlignment(Pos.CENTER_LEFT);
         centerHBox.setPadding(new Insets(0,0,0,100));
 
-        // VERY IMPORTANT:
+        // VERY IMPORTANT:     
         // Keep center transparent.
         centerHBox.setStyle("-fx-background-color: transparent;");
         borderPane.setCenter(centerHBox);
