@@ -152,7 +152,7 @@ public class WelcomePage extends Application {
         welcomePageScene = new Scene(root);
         
         welcomePageStage.setScene(welcomePageScene);
-        welcomePageStage.setTitle("Farn Equipment Rental Platform (FarmEquip) ");
+        welcomePageStage.setTitle("Agriculture Equipment Rental Platform (FarmEquip) ");
         welcomePageStage.setMaximized(true);
         welcomePageStage.show();
     }
