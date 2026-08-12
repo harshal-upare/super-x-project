@@ -200,7 +200,7 @@ public class RegisterPage {
         registrationVBox.setMaxSize(450,650);
 
 
-        // ================= BORDER PANE =================
+        // ================= BORDER PANE.  =================
 
         borderPane.setCenter(registrationVBox);
 
