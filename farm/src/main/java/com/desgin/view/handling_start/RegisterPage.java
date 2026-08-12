@@ -1,7 +1,7 @@
 package com.desgin.view.handling_start;
 import java.security.Provider;
 
-import com.desgin.view.provider.ProviderDashboard;
+import com.desgin.view.Provider.ProviderDashboard;
 import com.desgin.view.farmer.FarmerDashboard;
 import com.desgin.view.operator.OperatorDashboard;
 

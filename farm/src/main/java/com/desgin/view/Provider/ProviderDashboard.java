@@ -1,4 +1,5 @@
-package com.desgin.view.provider;
+package com.desgin.view.Provider;
+
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
