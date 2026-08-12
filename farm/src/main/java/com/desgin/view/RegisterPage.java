@@ -22,7 +22,7 @@ public class RegisterPage {
 
         // ================= LOGO =================
 
-        Image img = new Image("file:agriculture/src/main/resources/assets/Icons/finalLogo.png");
+        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
 
         ImageView registrationPageImageView = new ImageView(img);
 

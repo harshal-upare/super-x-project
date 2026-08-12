@@ -29,7 +29,7 @@ public class Authentication {
 
         BorderPane borderPane = new BorderPane();
 
-        Image img = new Image("file:agriculture/src/main/resources/assets/Icons/finalLogo.png");
+        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
         ImageView loginPageImageView = new ImageView(img);
         loginPageImageView.setFitWidth(60);
         loginPageImageView.setFitHeight(60);
