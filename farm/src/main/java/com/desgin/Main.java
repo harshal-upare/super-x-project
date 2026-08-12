@@ -9,5 +9,6 @@ public class Main {
         System.out.print(args);
 
         Application.launch(WelcomePage.class,args);
-    }
+    } 
+
 }
