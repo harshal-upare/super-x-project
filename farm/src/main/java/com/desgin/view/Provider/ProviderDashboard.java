@@ -1,6 +1,5 @@
 package com.desgin.view.Provider;
 
-import com.desgin.view.farmer.LeftSideBar;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
