@@ -177,7 +177,8 @@ public class RegisterPage {
             if(redirect.equals("Farmer")) {
 
                 FarmerDashboard obj = new FarmerDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
                 
             }
             else if(redirect.equals("Operator")){
@@ -258,5 +259,6 @@ public class RegisterPage {
         return registerScene;
 
     }
+   
     
 }

@@ -22,7 +22,7 @@ public class FarmerDashboard {
 
     private Scene farmerDashboardScene;
 
-    public Scene getfarmerDashboardScene() {
+    public Scene getfarmerDashboardScene(Runnable ref) {
 
         
         StackPane root = new StackPane();
@@ -30,7 +30,7 @@ public class FarmerDashboard {
         
         //Side Bar
         LeftSideBar objLeftSideBar = new LeftSideBar();
-        VBox leftVB = objLeftSideBar.getSideBar();
+        VBox leftVB = objLeftSideBar.getSideBar(ref);
         
         BorderPane borderPane = new BorderPane();
         borderPane.setPadding(Insets.EMPTY);
