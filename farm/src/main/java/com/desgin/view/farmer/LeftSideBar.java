@@ -48,7 +48,7 @@ public class LeftSideBar {
         
         //styleMenuButton(notificationBtn1);
 
-        Button reviewBtn1 = new Button("⭐  Reviews");
+        Button reviewBtn1 = new Button(" ☺️ Feedback ");
         HBox btnBox6 = new HBox(5, reviewBtn1);
         styleMenuButton(reviewBtn1);
 
