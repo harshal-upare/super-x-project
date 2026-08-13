@@ -1,6 +1,9 @@
 package com.desgin.view.Provider;
 
+<<<<<<< HEAD
 import java.io.File;
+=======
+>>>>>>> 970de1e0cf76ee65aff25453d26ff9379772fe25
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
