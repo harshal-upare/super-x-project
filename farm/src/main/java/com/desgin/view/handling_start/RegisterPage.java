@@ -1,10 +1,8 @@
 package com.desgin.view.handling_start;
-import java.security.Provider;
-
 import com.desgin.view.Provider.ProviderDashboard;
-import com.desgin.view.farmer.FarmerDashboard;
+import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.operator.OperatorDashboard;
-
+    
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -184,18 +182,15 @@ public class RegisterPage {
             else if(redirect.equals("Operator")){
                 OperatorDashboard op = new OperatorDashboard();
                 WelcomePage.welcomePageStage.setScene(op.getOperatorDashboardScene());
-            }
-            else if(redirect.equals("Provider")){
+            } else if(redirect.equals("Provider")){
                 ProviderDashboard op = new ProviderDashboard();
                 WelcomePage.welcomePageStage.setScene(op.getproviderDashboardScene());
             }
 
         });
-
         registerButton.setPrefHeight(42);
         registerButton.setMaxWidth(250);
         registerButton.setFocusTraversable(false);
-
 
         // ================= LOGIN TEXT =================
 
