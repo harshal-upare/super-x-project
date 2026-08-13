@@ -186,7 +186,7 @@ public class RegisterPage {
             }
             else if(redirect.equals("Provider")){
                 ProviderDashboard op = new ProviderDashboard();
-                WelcomePage.welcomePageStage.setScene(op.getproviderDashboardScene());
+                WelcomePage.welcomePageStage.setScene(op.getProviderDashboardScene());
             }
 
         });

@@ -12,7 +12,7 @@ import javafx.scene.text.Text;
 
 public class LeftSideBar {
     
-    VBox getSideBar() {
+    public VBox getSideBar() {
 
         Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
         ImageView logoImageView = new ImageView(logoImage);
