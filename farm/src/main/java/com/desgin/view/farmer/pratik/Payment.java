@@ -34,23 +34,23 @@ import javafx.stage.Window;
 
 public class Payment {
 
-    private ArrayList<VBox> paymentCardList = new ArrayList<>();
-    private ArrayList<String> paymentSearchData = new ArrayList<>();
-    private ArrayList<String> paymentStatusList = new ArrayList<>();
-    private ArrayList<String> paymentMethodList = new ArrayList<>();
+    private static ArrayList<VBox> paymentCardList = new ArrayList<>();
+    private static ArrayList<String> paymentSearchData = new ArrayList<>();
+    private static ArrayList<String> paymentStatusList = new ArrayList<>();
+    private static ArrayList<String> paymentMethodList = new ArrayList<>();
 
-    private TextField searchField;
+    private static TextField searchField;
 
-private CheckBox paid;
-private CheckBox pending;
-private CheckBox failed;
+private static CheckBox paid;
+private static CheckBox pending;
+private static CheckBox failed;
 
-private CheckBox upi;
-private CheckBox card;
-private CheckBox net;
+private static CheckBox upi;
+private static CheckBox card;
+private static CheckBox net;
 
 private VBox paymentCards;
-   public ScrollPane getPaymentSection() {
+   public static ScrollPane getPaymentSection() {
 
     Text paymentTitle = new Text("Payment Dashboard");
     paymentTitle.setStyle(
@@ -291,7 +291,7 @@ private VBox paymentCards;
 
     }
 
-    private VBox createPaymentCard(
+    private static VBox createPaymentCard(
             String equipmentName,
             String transactionId,
             String amount,
@@ -597,7 +597,7 @@ invoiceButton.setOnAction(e -> {
 // Summary Card
 //---------------------------------------------------------
 
-private VBox createSummaryCard(
+private static VBox createSummaryCard(
         String title,
         String value,
         String icon,
@@ -643,7 +643,7 @@ private VBox createSummaryCard(
     return card;
 }
 
-private void showPaymentDialog(
+private static void showPaymentDialog(
 
         String equipmentName,
         String amount,
@@ -778,7 +778,7 @@ private void showPaymentDialog(
 
     stage.show();
 }
-private VBox createPaymentFilter(){
+private static VBox createPaymentFilter(){
 
     Text title = new Text("Filters");
 
@@ -943,7 +943,7 @@ apply.setOnAction(e -> {
     return filter;
 }
 
-private void stylePaymentTextField(TextField field){
+private static void stylePaymentTextField(TextField field){
 
     field.setPrefHeight(45);
 
@@ -957,7 +957,7 @@ private void stylePaymentTextField(TextField field){
             "-fx-font-size:13px;"
     );
 }
-    private void styleCheckBox(CheckBox checkBox) {
+    private static void styleCheckBox(CheckBox checkBox) {
 
     checkBox.setStyle(
             "-fx-text-fill: #5C4033;" +
@@ -968,7 +968,7 @@ private void stylePaymentTextField(TextField field){
 
 }
 
-private void styleGreenButton(Button button){
+private static void styleGreenButton(Button button){
 
     button.setPrefHeight(45);
 

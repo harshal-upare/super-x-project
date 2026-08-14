@@ -26,6 +26,7 @@ import java.util.List;
 
 public class BrowseEquip {
 
+   
     /*
      * Equipment Model
      */
@@ -58,43 +59,43 @@ public class BrowseEquip {
     /*
      * All equipment
      */
-    private final List<Equipment> allEquipment =
+    private final static List<Equipment> allEquipment =
             new ArrayList<>();
 
     /*
      * Card container
      */
-    private TilePane equipmentCards;
+    private static TilePane equipmentCards;
 
     /*
      * Search field
      */
-    private TextField searchField;
+    private static TextField searchField;
 
     /*
      * Category filter
      */
-    private ComboBox<String> filterEqSection;
+    private static  ComboBox<String> filterEqSection;
 
     /*
      * Minimum price
      */
-    private ComboBox<String> filterPrSection1;
+    private static ComboBox<String> filterPrSection1;
 
     /*
      * Maximum price
      */
-    private ComboBox<String> filterPrSection2;
+    private static ComboBox<String> filterPrSection2;
 
     /*
      * Equipment count
      */
-    private Text equipmentCount;
+    private static Text equipmentCount;
 
     /*
      * Empty result message
      */
-    private Text noResultText;
+    private static Text noResultText;
 
 
     /*
@@ -195,7 +196,7 @@ public class BrowseEquip {
     /*
      * Main Browse Equipment Page
      */
-    public ScrollPane getBrowseEquip() {
+    public static ScrollPane getBrowseEquip() {
 
         /*
          * --------------------------------
@@ -653,7 +654,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void applyFilters() {
+    private static void applyFilters() {
 
         String search =
                 searchField
@@ -803,7 +804,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void resetFilters() {
+    private static void resetFilters() {
 
         searchField.clear();
 
@@ -826,7 +827,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void refreshCards(
+    private static void refreshCards(
             List<Equipment> equipmentList) {
 
         equipmentCards
@@ -889,7 +890,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private VBox createEquipmentCard(
+    private static VBox createEquipmentCard(
             Equipment equipment) {
 
 
@@ -1279,7 +1280,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void updateWishlistButton(
+    private static void updateWishlistButton(
             Button button,
             String equipmentName) {
 
@@ -1339,7 +1340,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void setGreenButtonStyle(
+    private static void setGreenButtonStyle(
             Button button) {
 
         button.setStyle(
@@ -1386,7 +1387,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void setComboStyle(
+    private static void setComboStyle(
             ComboBox<String> comboBox) {
 
         comboBox.setStyle(
@@ -1409,7 +1410,7 @@ public class BrowseEquip {
      * ================================================
      */
 
-    private void setViewButtonStyle(
+    private static void setViewButtonStyle(
             Button button) {
 
         button.setStyle(

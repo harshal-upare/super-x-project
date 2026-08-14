@@ -9,22 +9,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.desgin.view.farmer.LeftSideBar;
-import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
-import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
-import com.desgin.view.farmer.ashutosh.settings.Settings;
 import com.desgin.view.farmer.om.BrowseEquip;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -32,48 +27,315 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-public class FarmerDashboard {
+public class Dashboard {
 
-        private Scene farmerDashboardScene;
+        public static Dashboard dashboard;
 
-        public static BorderPane borderPane;
-        public static StackPane root;
 
-        public Scene getfarmerDashboardScene(Runnable ref) {
 
-                root = new StackPane();
-
-                // Side Bar
-                LeftSideBar objLeftSideBar = new LeftSideBar(this);
-                VBox leftVB = objLeftSideBar.getSideBar(ref);
-
-                borderPane = new BorderPane();
-                borderPane.setPadding(Insets.EMPTY);
-
-                BorderPane subroot = new BorderPane();
-                subroot.setLeft(leftVB);
-                subroot.setCenter(borderPane);
-
-                root.getChildren().addAll(subroot);
-
-                ProfileManagement objProfileManagement = new ProfileManagement();
-                borderPane.setTop(objProfileManagement.getProfile(root));
-                
-                Dashboard.getPage();
-                
-
+        public static ScrollPane getPage() {
 
                 
-                root.setStyle("-fx-background-color: #EDE3D5;");
+                String userName = "FarmerName";
+                Text welcomeText = new Text("Welcome back, " + userName + " 👋");
 
-                subroot.prefWidthProperty().bind(root.widthProperty());
-                subroot.prefHeightProperty().bind(root.heightProperty());
-                farmerDashboardScene = new Scene(root);
+                welcomeText.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 28px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #4A2C20;");
 
-                return farmerDashboardScene;
+                Text dashboardText = new Text("Farmer Dashboard");
+
+                dashboardText.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 18px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #5C4033;");
+
+                Text descriptionText = new Text("Find the right equipment for your farm");
+
+                descriptionText.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-fill: #806A5B;");
+
+                VBox headerText = new VBox(
+                                5,
+                                welcomeText,
+                                dashboardText,
+                                descriptionText);
+
+                headerText.setAlignment(Pos.TOP_LEFT);
+
+                TextField searchField = new TextField();
+
+                searchField.setPromptText("Search equipment...");
+
+                searchField.setPrefHeight(42);
+                searchField.setPrefWidth(500);
+
+                searchField.setStyle(
+                                "-fx-background-color: #FFFFFF;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-border-color: #D8C7B5;" +
+                                                "-fx-border-radius: 10;" +
+                                                "-fx-border-width: 1;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-text-fill: #4A2C20;" +
+                                                "-fx-prompt-text-fill: #A18C7A;");
+                Text searchIcon = new Text("🔍");
+
+                searchIcon.setStyle(
+                                "-fx-font-size: 18px;");
+                
+
+                Button searchButton = new Button("Search");
+                searchButton.setPrefWidth(90);
+                searchButton.setPrefHeight(45);
+
+                searchButton.setStyle(
+                                "-fx-background-color: #6B8E23;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;");
+
+                searchButton.setOnMouseEntered(e -> searchButton.setStyle(
+                                "-fx-background-color: #55751C;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
+
+                searchButton.setOnMouseExited(e -> searchButton.setStyle(
+                                "-fx-background-color: #6B8E23;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
+
+                HBox searchBox = new HBox(
+                                10,
+                                searchIcon,
+                                searchField,
+                        searchButton);
+
+                searchBox.setAlignment(
+                                Pos.CENTER_LEFT);
+                
+
+                                        
+                VBox weatherCard = createWeatherCard(
+                                "Pune",
+                                18.5204,
+                                73.8567);
+
+                weatherCard.setAlignment(Pos.TOP_RIGHT);
+
+
+
+                VBox equipmentCard = createDashboardCard(
+                                "⚒",
+                                "Available Equipment",
+                                "24");
+
+                equipmentCard.setOnMouseClicked(e -> {
+
+                        LeftSideBar.setActiveButton(
+                                        LeftSideBar.equipmentBtn1,
+                                        LeftSideBar.navigationButtons);
+
+                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());;
+                });
+
+                VBox bookingCard = createDashboardCard(
+                                "📅",
+                                "My Bookings",
+                                "5");
+
+                VBox activebookingCard = createDashboardCard(
+                                "🚜",
+                                "Active Booking",
+                                "2");
+
+                VBox pendingbookingCard = createDashboardCard(
+                                "🕐",
+                                "Pending Booking",
+                                "2");
+                HBox cards = new HBox(
+                                20,
+                                equipmentCard,
+                                bookingCard,
+                                activebookingCard,
+                                pendingbookingCard);
+
+                cards.setAlignment(Pos.CENTER_LEFT);
+
+                VBox header = new VBox(headerText);
+                header.setAlignment(Pos.TOP_LEFT);
+                header.setPadding(
+                                new Insets(25, 30, 20, 30));
+
+                HBox combine = new HBox(400, headerText, weatherCard);
+
+                Text recommendedTitle = new Text("Recommended Equipment");
+
+                recommendedTitle.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 20px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #4A2C20;");
+                VBox tractorCard = createEquipmentCard(
+                                "file:farm/src/main/resources/assets/Images/tractor.png",
+                                "Tractor",
+                                "₹1200 / day");
+
+                VBox rotavatorCard = createEquipmentCard(
+                                "file:farm/src/main/resources/assets/Images/rotavator.png",
+                                "Rotavator",
+                                "₹800 / day");
+
+                VBox cultivatorCard = createEquipmentCard(
+                                "file:farm/src/main/resources/assets/Images/cultivator.png",
+                                "Cultivator",
+                                "₹600 / day");
+
+                VBox harvesterCard = createEquipmentCard(
+                                "file:farm/src/main/resources/assets/Images/",
+                                "Harvester",
+                                "₹900 / day");
+
+                VBox seederCard = createEquipmentCard(
+                                "file:farm/src/main/resources/assets/Images/",
+                                "Seeder",
+                                "₹400 / day");
+
+                HBox equipmentSection = new HBox(
+                                20,
+                                tractorCard,
+                                rotavatorCard,
+                                cultivatorCard,
+                                harvesterCard,
+                                seederCard);
+                Text viewMore = new Text("View More →");
+                viewMore.setOnMouseClicked(event -> {
+
+                        LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
+                });
+
+                viewMore.setStyle(
+                                "-fx-fill: #2e7d32;" +
+                                                "-fx-font-size: 14px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;");
+
+                equipmentSection.getChildren().add(viewMore);
+
+                equipmentSection.setAlignment(
+                                Pos.CENTER_LEFT);
+                equipmentSection.setPadding(new Insets(10, 0, 10, 0));
+
+                ScrollPane equipmentScroll = new ScrollPane();
+
+                equipmentScroll.setContent(equipmentSection);
+
+                equipmentScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                equipmentScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+
+                equipmentScroll.setFitToHeight(true);
+
+                equipmentScroll.setStyle(
+                                "-fx-background-color: transparent;" +
+                                                "-fx-border-color: transparent;");
+
+                Text activeBookingTitle = new Text("Active Booking");
+
+                activeBookingTitle.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 20px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #4A2C20;");
+                Text viewMore2 = new Text("View More →");
+
+                viewMore2.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #2E7D32;" +
+                                                "-fx-cursor: hand;");
+
+                HBox activeBookingHeader = new HBox();
+                activeBookingHeader.setAlignment(Pos.CENTER_LEFT);
+
+                Region spacer = new Region();
+
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                activeBookingHeader.getChildren().addAll(
+                                activeBookingTitle,
+                                spacer,
+                                viewMore2);
+
+                VBox activeBookingCard = createActiveBookingCard(
+                                "Tractor",
+                                "15 Aug 2026 → 17 Aug 2026",
+                                "Confirmed");
+
+                VBox activeBookingSection = new VBox(12);
+
+                activeBookingSection.getChildren().addAll(
+                                activeBookingHeader,
+                                activeBookingCard);
+
+                Text recentBookingTitle = new Text("Recent Bookings");
+
+                recentBookingTitle.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 20px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #4A2C20;");
+                HBox bookingRow = createBookingRow(
+                                "Tractor",
+                                "12 Aug 2026",
+                                "Confirmed");
+
+                VBox centerContent = new VBox(
+                                20,
+                                combine,
+                                // header,
+                                searchBox,
+                                // searchWeatherBox,
+                                cards,
+                                recommendedTitle,
+                                equipmentScroll,
+                                activeBookingSection,
+                                recentBookingTitle,
+                                bookingRow);
+                centerContent.setPadding(new Insets(20, 30, 30, 30));
+                ScrollPane scrollPane = new ScrollPane();
+
+                scrollPane.setContent(centerContent);
+
+                scrollPane.setFitToWidth(true);
+                scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+
+                scrollPane.setStyle("-fx-background-color: transparent;" + "-fx-background: transparent;");
+        
+               FarmerDashboard.borderPane.setCenter(scrollPane);
+
+                return scrollPane;
         }
-
-        private VBox createWeatherCard(
+        private static VBox createWeatherCard(
                         String location,
                         double latitude,
                         double longitude) {
@@ -167,7 +429,7 @@ public class FarmerDashboard {
                 return weatherCard;
         }
 
-        private void loadWeather(
+        private static void loadWeather(
                         double latitude,
                         double longitude,
                         Text weatherIcon,
@@ -261,7 +523,7 @@ public class FarmerDashboard {
                 thread.start();
         }
 
-        private void updateWeatherUI(
+        private static void updateWeatherUI(
                         String json,
                         Text weatherIcon,
                         Text temperature,
@@ -430,7 +692,7 @@ public class FarmerDashboard {
                 }
         }
 
-        private String extractNumberFromSection(
+        private static String extractNumberFromSection(
                         String section,
                         String key) {
 
@@ -458,7 +720,7 @@ public class FarmerDashboard {
                                 .trim();
         }
 
-        private String extractArray(
+        private static String extractArray(
                         String json,
                         String key) {
 
@@ -483,7 +745,7 @@ public class FarmerDashboard {
                                 end);
         }
 
-        private String getWeatherIcon(
+        private static String getWeatherIcon(
                         int code) {
 
                 if (code == 0) {
@@ -527,7 +789,7 @@ public class FarmerDashboard {
                 return "☁";
         }
 
-        private String getWeatherDescription(
+        private static String getWeatherDescription(
                         int code) {
 
                 if (code == 0) {
@@ -571,7 +833,7 @@ public class FarmerDashboard {
                 return "Unknown";
         }
 
-        private VBox createDashboardCard(
+        private static VBox createDashboardCard(
                         String icon,
                         String title,
                         String value) {
@@ -647,7 +909,7 @@ public class FarmerDashboard {
                 return card;
         }
 
-        private VBox createEquipmentCard(
+        private static VBox createEquipmentCard(
                         String imagePath,
                         String equipmentName,
                         String price) {
@@ -745,7 +1007,7 @@ public class FarmerDashboard {
                 return card;
         }
 
-        private HBox createBookingRow(
+        private static HBox createBookingRow(
                         String equipmentName,
                         String date,
                         String status) {
@@ -803,7 +1065,7 @@ public class FarmerDashboard {
                 return row;
         }
 
-        private VBox createActiveBookingCard(
+        private static VBox createActiveBookingCard(
                         String equipmentName,
                         String bookingDate,
                         String status) {
@@ -873,6 +1135,5 @@ public class FarmerDashboard {
                 return card;
         }
 
-
-       
+        
 }
