@@ -13,7 +13,7 @@ import javafx.scene.layout.VBox;
 
 public class Help {
 
-    public ScrollPane getHelp() {
+    public static ScrollPane getHelp() {
 
         // ==========================================
         // MAIN HEADER
@@ -615,9 +615,8 @@ public class Help {
     // CREATE USER CHAT MESSAGE
     // ==========================================
 
-    private Label createUserMessage(
-            String message
-    ) {
+    private static Label createUserMessage(
+            String message) {
 
         Label label = new Label(
                 "You: " + message
@@ -643,9 +642,8 @@ public class Help {
     // CREATE AI CHAT MESSAGE
     // ==========================================
 
-    private Label createAIMessage(
-            String message
-    ) {
+    private static Label createAIMessage(
+            String message) {
 
         Label label = new Label(
                 "🤖 AI Farmer Assistant:\n" + message
@@ -673,7 +671,7 @@ public class Help {
     // FAQ HELPER
     // ==========================================
 
-    private VBox createFaqItem(
+    private static VBox createFaqItem(
             String question,
             String answer
     ) {

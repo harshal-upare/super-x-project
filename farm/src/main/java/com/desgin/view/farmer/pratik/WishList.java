@@ -116,7 +116,7 @@ public class WishList {
     // WISHLIST PAGE
     // ============================================================
 
-    public ScrollPane getWishList() {
+    public static ScrollPane getWishList() {
 
         // --------------------------------------------------------
         // TITLE
@@ -356,7 +356,7 @@ public class WishList {
     // CREATE WISHLIST CARD
     // ============================================================
 
-    private VBox createWishlistCard(
+    private static VBox createWishlistCard(
             WishlistItem item,
             Runnable refreshWishlist) {
 
@@ -364,9 +364,9 @@ public class WishList {
         // --------------------------------------------------------
         // IMAGE
         // --------------------------------------------------------
-
+        WishList obj = new WishList();
         Image image =
-                loadImage(
+                obj.loadImage(
                         item.getImagePath()
                 );
 
@@ -728,7 +728,7 @@ public class WishList {
     // LOAD IMAGE FROM MAVEN RESOURCES
     // ============================================================
 
-    private Image loadImage(
+    private  Image loadImage(
             String imagePath) {
 
         try {
@@ -834,7 +834,7 @@ public class WishList {
     // EMPTY IMAGE
     // ============================================================
 
-    private Image createEmptyImage() {
+    private static Image createEmptyImage() {
 
         return new Image(
                 "data:image/png;base64," +

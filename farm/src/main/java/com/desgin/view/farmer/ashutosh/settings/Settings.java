@@ -9,25 +9,25 @@ import javafx.scene.text.Text;
 public class Settings {
 
     // Main colors
-    private final String BROWN = "#4A2C20";
-    private final String LIGHT_BROWN = "#F5EDE7";
-    private final String CREAM = "#FFF9F5";
-    private final String WHITE = "#FFFFFF";
-    private final String ACCENT = "#B8795B";
-    private final String BORDER = "#E5D5CC";
+    private final static String BROWN = "#4A2C20";
+    private final static String LIGHT_BROWN = "#F5EDE7";
+    private final static String CREAM = "#FFF9F5";
+    private final static String WHITE = "#FFFFFF";
+    private final static String ACCENT = "#B8795B";
+    private final static String BORDER = "#E5D5CC";
 
     // Settings controls
-    private CheckBox notificationCheckBox;
+    private static CheckBox notificationCheckBox;
     
 
     
-    private TextField usernameField;
-    private TextField emailField;
+    private static TextField usernameField;
+    private static TextField emailField;
 
     /**
      * Creates and returns the complete Settings page.
      */
-    public ScrollPane getSetting() {
+    public static ScrollPane getSetting() {
 
         // ==============================
         // Main container
@@ -246,7 +246,7 @@ public class Settings {
     // CARD CREATION
     // =========================================================
 
-    private VBox createCard() {
+    private static VBox createCard() {
 
         VBox card = new VBox(15);
 
@@ -267,7 +267,7 @@ public class Settings {
     // SECTION TITLE
     // =========================================================
 
-    private Text createSectionTitle(String text) {
+    private static Text createSectionTitle(String text) {
 
         Text title = new Text(text);
 
@@ -285,7 +285,7 @@ public class Settings {
     // DESCRIPTION
     // =========================================================
 
-    private Text createDescription(String text) {
+    private static Text createDescription(String text) {
 
         Text description = new Text(text);
 
@@ -302,7 +302,7 @@ public class Settings {
     // INPUT GROUP
     // =========================================================
 
-    private VBox createInputGroup(
+    private static VBox createInputGroup(
             String label,
             Control control
     ) {
@@ -330,7 +330,7 @@ public class Settings {
     // TEXT FIELD STYLE
     // =========================================================
 
-    private void styleTextField(TextField field) {
+    private static void styleTextField(TextField field) {
 
         field.setStyle(
                 "-fx-background-color: #FFFDFC;" +
@@ -365,7 +365,7 @@ public class Settings {
     // PRIMARY BUTTON
     // =========================================================
 
-    private Button createButton(String text) {
+    private static Button createButton(String text) {
 
         Button button = new Button(text);
 
@@ -412,7 +412,7 @@ public class Settings {
     // SECONDARY BUTTON
     // =========================================================
 
-    private Button createSecondaryButton(
+    private static Button createSecondaryButton(
             String text
     ) {
 
@@ -441,7 +441,7 @@ public class Settings {
     // DANGER BUTTON
     // =========================================================
 
-    private Button createDangerButton(
+    private static Button createDangerButton(
             String text
     ) {
 
@@ -468,7 +468,7 @@ public class Settings {
     // SAVE SETTINGS
     // =========================================================
 
-    private void saveSettings() {
+    private static void saveSettings() {
 
         String username =
                 usernameField.getText();
@@ -517,7 +517,7 @@ public class Settings {
     // RESET SETTINGS
     // =========================================================
 
-    private void resetSettings() {
+    private static void resetSettings() {
 
         usernameField.clear();
         emailField.clear();
@@ -541,7 +541,7 @@ public class Settings {
     // CHANGE PASSWORD
     // =========================================================
 
-    private void showChangePasswordDialog() {
+    private static void showChangePasswordDialog() {
 
         Dialog<ButtonType> dialog =
                 new Dialog<>();
@@ -621,7 +621,7 @@ public class Settings {
     // LOGOUT CONFIRMATION
     // =========================================================
 
-    private void showLogoutConfirmation() {
+    private static void showLogoutConfirmation() {
 
         Alert alert = new Alert(
                 Alert.AlertType.CONFIRMATION
@@ -651,7 +651,7 @@ public class Settings {
     // INFORMATION DIALOG
     // =========================================================
 
-    private void showInformation(
+    private static void showInformation(
             String title,
             String message
     ) {
@@ -671,7 +671,7 @@ public class Settings {
     // ERROR DIALOG
     // =========================================================
 
-    private void showError(
+    private static void showError(
             String title,
             String message
     ) {
