@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.Dashboard;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
+import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
+import com.desgin.view.farmer.ashutosh.settings.Settings;
 import com.desgin.view.farmer.harshal.BookingDetails;
 import com.desgin.view.farmer.harshal.MyBookings;
 import com.desgin.view.farmer.om.BrowseEquip;
@@ -123,7 +125,7 @@ public class LeftSideBar {
                 navigationButtons.add(settingsBtn1);
                 navigationButtons.add(supportBtn1);
 
-                setActiveButton(dashboardBtn1, navigationButtons);
+                setActiveButton(dashboardBtn1, navigationButtons );
 
                 dashboardBtn1.setOnAction(event -> {
 
@@ -163,6 +165,20 @@ public class LeftSideBar {
                 });
         
 
+                settingsBtn1.setOnAction(event -> {
+                        setActiveButton(settingsBtn1, navigationButtons);
+
+                        FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+                });
+
+                supportBtn1.setOnAction(event -> {
+                        setActiveButton(supportBtn1, navigationButtons);
+
+                        FarmerDashboard.borderPane.setCenter(Help.getHelp());
+                });
+
+
+        
                 return leftVB;
 
         }
