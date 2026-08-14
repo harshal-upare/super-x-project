@@ -119,6 +119,8 @@ public class FarmerDashboard {
                                 "⭐",
                                 "My Rating",
                                 "4.8");
+
+                        
                 HBox cards = new HBox(
                                 20,
                                 equipmentCard,
