@@ -1,10 +1,11 @@
 package com.desgin.view.farmer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
+import com.desgin.view.farmer.pratik.Payment;
+import com.desgin.view.farmer.pratik.WishList;
 import com.desgin.view.handling_start.WelcomePage;
 
 import javafx.geometry.Insets;
@@ -25,11 +26,11 @@ public class LeftSideBar {
         public static Button equipmentBtn1;
         public static Button bookingBtn1;
         public static Button wishlistBtn1;
-        public static Button reviewBtn1;
+        public static Button paymentBtn1;
         public static Button settingsBtn1;
         public static Button supportBtn1;
 
-        public VBox getSideBar() {
+        public VBox getSideBar(Runnable ref) {
 
                 Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
                 ImageView logoImageView = new ImageView(logoImage);
@@ -69,9 +70,10 @@ public class LeftSideBar {
 
                 // styleMenuButton(notificationBtn1);
 
-                reviewBtn1 = new Button("⭐  Reviews");
-                HBox btnBox6 = new HBox(5, reviewBtn1);
-                styleMenuButton(reviewBtn1);
+                paymentBtn1 = new Button(" 💸 Payment");
+                HBox btnBox6 = new HBox(5, paymentBtn1);
+                styleMenuButton(paymentBtn1);
+                
 
                 VBox vBoxBtn1 = new VBox(10, btnBox1, btnBox2, btnBox3, btnBox4, btnBox6);
 
@@ -84,6 +86,9 @@ public class LeftSideBar {
                 styleMenuButton(supportBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
+                logoutBtn1.setOnAction(e ->{
+                        ref.run();
+                });
                 HBox btnBox9 = new HBox(5, logoutBtn1);
                 styleLogoutButton(logoutBtn1);
 
@@ -108,12 +113,11 @@ public class LeftSideBar {
                 leftVB.setStyle("-fx-background-color: #F5EFE6;" + "-fx-background-radius: 15;"
                                 + "-fx-border-color: #D8C7B5;" + "-fx-border-width: 1;" + "-fx-border-radius: 15;");
 
-                
                 navigationButtons.add(dashboardBtn1);
                 navigationButtons.add(equipmentBtn1);
                 navigationButtons.add(bookingBtn1);
                 navigationButtons.add(wishlistBtn1);
-                navigationButtons.add(reviewBtn1);
+                navigationButtons.add(paymentBtn1);
                 navigationButtons.add(settingsBtn1);
                 navigationButtons.add(supportBtn1);
 
@@ -123,7 +127,7 @@ public class LeftSideBar {
                         setActiveButton(dashboardBtn1, navigationButtons );
 
                         FarmerDashboard obj = new FarmerDashboard();
-                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(ref));
                 });
 
                 equipmentBtn1.setOnAction(event -> {
@@ -131,6 +135,27 @@ public class LeftSideBar {
 
                         FarmerDashboard obj = new FarmerDashboard();
                         obj.borderPane.setCenter(obj.browse());
+                });
+              paymentBtn1.setOnAction(event -> {
+
+    setActiveButton(paymentBtn1, navigationButtons);
+
+    FarmerDashboard obj = new FarmerDashboard();
+    Payment payment = new Payment();
+
+    obj.borderPane.setCenter(payment.getPaymentSection());
+
+                wishlistBtn1.setOnAction(event -> {
+
+                        setActiveButton(wishlistBtn1, navigationButtons);
+
+                        FarmerDashboard obj = new FarmerDashboard();
+
+                        WishList wishList = new WishList();
+
+                        obj.borderPane.setCenter(
+            wishList.getWishList()
+    );
                 });
 
                 settingsBtn1.setOnAction(event -> {
@@ -156,28 +181,28 @@ public class LeftSideBar {
         public static void setActiveButton(
                         Button selected,
                         List<Button> buttons) {
-                
+
                 activeButton = selected;
                 for (Button button : buttons) {
 
                         button.setStyle(
                                         "-fx-background-color: transparent;" +
-                                        "-fx-background-radius: 10;" +
-                                        "-fx-text-fill: #5C4033;" +
-                                        "-fx-font-family: 'Poppins';" +
-                                        "-fx-font-size: 14px;" +
-                                        "-fx-font-weight: normal;" +
-                                        "-fx-cursor: hand;");
+                                                        "-fx-background-radius: 10;" +
+                                                        "-fx-text-fill: #5C4033;" +
+                                                        "-fx-font-family: 'Poppins';" +
+                                                        "-fx-font-size: 14px;" +
+                                                        "-fx-font-weight: normal;" +
+                                                        "-fx-cursor: hand;");
                 }
 
                 selected.setStyle(
                                 "-fx-background-color: #E4D3C2;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #4A2C20;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;");
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: #4A2C20;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 14px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;");
         }
 
         private void styleMenuButton(Button button) {
@@ -196,29 +221,27 @@ public class LeftSideBar {
 
                 // Normal style
                 button.setStyle(
-                        "-fx-background-color: transparent;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-text-fill: #5C4033;" +
-                        "-fx-font-family: 'Poppins';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: normal;" +
-                        "-fx-cursor: hand;"
-                );
+                                "-fx-background-color: transparent;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: #5C4033;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 14px;" +
+                                                "-fx-font-weight: normal;" +
+                                                "-fx-cursor: hand;");
 
                 // Hover
                 button.setOnMouseEntered(e -> {
 
                         if (button != activeButton) {
 
-                        button.setStyle(
-                                "-fx-background-color: #E4D3C2;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #3E2723;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;"
-                        );
+                                button.setStyle(
+                                                "-fx-background-color: #E4D3C2;" +
+                                                                "-fx-background-radius: 10;" +
+                                                                "-fx-text-fill: #3E2723;" +
+                                                                "-fx-font-family: 'Poppins';" +
+                                                                "-fx-font-size: 14px;" +
+                                                                "-fx-font-weight: bold;" +
+                                                                "-fx-cursor: hand;");
                         }
                 });
 
@@ -227,18 +250,17 @@ public class LeftSideBar {
 
                         if (button != activeButton) {
 
-                        button.setStyle(
-                                "-fx-background-color: transparent;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #5C4033;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: normal;" +
-                                "-fx-cursor: hand;"
-                        );
+                                button.setStyle(
+                                                "-fx-background-color: transparent;" +
+                                                                "-fx-background-radius: 10;" +
+                                                                "-fx-text-fill: #5C4033;" +
+                                                                "-fx-font-family: 'Poppins';" +
+                                                                "-fx-font-size: 14px;" +
+                                                                "-fx-font-weight: normal;" +
+                                                                "-fx-cursor: hand;");
                         }
                 });
-                }
+        }
 
         private void styleLogoutButton(Button button) {
 
