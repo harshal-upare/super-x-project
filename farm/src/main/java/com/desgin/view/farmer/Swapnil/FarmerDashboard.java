@@ -1,9 +1,19 @@
 package com.desgin.view.farmer.Swapnil;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import com.desgin.view.farmer.LeftSideBar;
 import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
 import com.desgin.view.farmer.om.BrowseEquip;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -27,12 +37,13 @@ public class FarmerDashboard {
         public static BorderPane borderPane;
         public static StackPane root;
 
-        public Scene getfarmerDashboardScene() {
+        public Scene getfarmerDashboardScene(Runnable ref) {
 
                 root = new StackPane();
 
+                // Side Bar
                 LeftSideBar objLeftSideBar = new LeftSideBar(this);
-                VBox leftVB = objLeftSideBar.getSideBar();
+                VBox leftVB = objLeftSideBar.getSideBar(ref);
 
                 borderPane = new BorderPane();
                 borderPane.setPadding(Insets.EMPTY);
@@ -49,6 +60,8 @@ public class FarmerDashboard {
                 Dashboard.getPage();
                 
 
+
+                
                 root.setStyle("-fx-background-color: #EDE3D5;");
 
                 subroot.prefWidthProperty().bind(root.widthProperty());

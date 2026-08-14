@@ -1,7 +1,6 @@
 package com.desgin.view.farmer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.Dashboard;
@@ -41,8 +40,7 @@ public class LeftSideBar {
 
                 this.root = obj.root;
         }
-
-        public VBox getSideBar() {
+        public VBox getSideBar(Runnable ref) {
 
                 Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
                 ImageView logoImageView = new ImageView(logoImage);
@@ -86,6 +84,9 @@ public class LeftSideBar {
                 styleMenuButton(supportBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
+                logoutBtn1.setOnAction(e ->{
+                        ref.run();
+                });
                 HBox btnBox9 = new HBox(5, logoutBtn1);
                 styleLogoutButton(logoutBtn1);
 
