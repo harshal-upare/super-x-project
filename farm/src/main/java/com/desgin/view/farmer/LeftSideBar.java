@@ -1,11 +1,11 @@
 package com.desgin.view.farmer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.pratik.Payment;
+import com.desgin.view.farmer.pratik.WishList;
 import com.desgin.view.handling_start.WelcomePage;
 
 import javafx.geometry.Insets;
@@ -30,7 +30,7 @@ public class LeftSideBar {
         public static Button settingsBtn1;
         public static Button supportBtn1;
 
-        public VBox getSideBar() {
+        public VBox getSideBar(Runnable ref) {
 
                 Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
                 ImageView logoImageView = new ImageView(logoImage);
@@ -86,6 +86,9 @@ public class LeftSideBar {
                 styleMenuButton(supportBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
+                logoutBtn1.setOnAction(e ->{
+                        ref.run();
+                });
                 HBox btnBox9 = new HBox(5, logoutBtn1);
                 styleLogoutButton(logoutBtn1);
 
@@ -110,7 +113,6 @@ public class LeftSideBar {
                 leftVB.setStyle("-fx-background-color: #F5EFE6;" + "-fx-background-radius: 15;"
                                 + "-fx-border-color: #D8C7B5;" + "-fx-border-width: 1;" + "-fx-border-radius: 15;");
 
-                
                 navigationButtons.add(dashboardBtn1);
                 navigationButtons.add(equipmentBtn1);
                 navigationButtons.add(bookingBtn1);
@@ -125,7 +127,7 @@ public class LeftSideBar {
                         setActiveButton(dashboardBtn1, navigationButtons);
 
                         FarmerDashboard obj = new FarmerDashboard();
-                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(ref));
                 });
 
                 equipmentBtn1.setOnAction(event -> {
@@ -143,7 +145,19 @@ public class LeftSideBar {
 
     obj.borderPane.setCenter(payment.getPaymentSection());
 
-});
+                wishlistBtn1.setOnAction(event -> {
+
+                        setActiveButton(wishlistBtn1, navigationButtons);
+
+                        FarmerDashboard obj = new FarmerDashboard();
+
+                        WishList wishList = new WishList();
+
+                        obj.borderPane.setCenter(
+            wishList.getWishList()
+    );
+                });
+
                 return leftVB;
 
         }
@@ -151,28 +165,28 @@ public class LeftSideBar {
         public static void setActiveButton(
                         Button selected,
                         List<Button> buttons) {
-                
+
                 activeButton = selected;
                 for (Button button : buttons) {
 
                         button.setStyle(
                                         "-fx-background-color: transparent;" +
-                                        "-fx-background-radius: 10;" +
-                                        "-fx-text-fill: #5C4033;" +
-                                        "-fx-font-family: 'Poppins';" +
-                                        "-fx-font-size: 14px;" +
-                                        "-fx-font-weight: normal;" +
-                                        "-fx-cursor: hand;");
+                                                        "-fx-background-radius: 10;" +
+                                                        "-fx-text-fill: #5C4033;" +
+                                                        "-fx-font-family: 'Poppins';" +
+                                                        "-fx-font-size: 14px;" +
+                                                        "-fx-font-weight: normal;" +
+                                                        "-fx-cursor: hand;");
                 }
 
                 selected.setStyle(
                                 "-fx-background-color: #E4D3C2;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #4A2C20;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;");
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: #4A2C20;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 14px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;");
         }
 
         private void styleMenuButton(Button button) {
@@ -191,29 +205,27 @@ public class LeftSideBar {
 
                 // Normal style
                 button.setStyle(
-                        "-fx-background-color: transparent;" +
-                        "-fx-background-radius: 10;" +
-                        "-fx-text-fill: #5C4033;" +
-                        "-fx-font-family: 'Poppins';" +
-                        "-fx-font-size: 14px;" +
-                        "-fx-font-weight: normal;" +
-                        "-fx-cursor: hand;"
-                );
+                                "-fx-background-color: transparent;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: #5C4033;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 14px;" +
+                                                "-fx-font-weight: normal;" +
+                                                "-fx-cursor: hand;");
 
                 // Hover
                 button.setOnMouseEntered(e -> {
 
                         if (button != activeButton) {
 
-                        button.setStyle(
-                                "-fx-background-color: #E4D3C2;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #3E2723;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;"
-                        );
+                                button.setStyle(
+                                                "-fx-background-color: #E4D3C2;" +
+                                                                "-fx-background-radius: 10;" +
+                                                                "-fx-text-fill: #3E2723;" +
+                                                                "-fx-font-family: 'Poppins';" +
+                                                                "-fx-font-size: 14px;" +
+                                                                "-fx-font-weight: bold;" +
+                                                                "-fx-cursor: hand;");
                         }
                 });
 
@@ -222,18 +234,17 @@ public class LeftSideBar {
 
                         if (button != activeButton) {
 
-                        button.setStyle(
-                                "-fx-background-color: transparent;" +
-                                "-fx-background-radius: 10;" +
-                                "-fx-text-fill: #5C4033;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 14px;" +
-                                "-fx-font-weight: normal;" +
-                                "-fx-cursor: hand;"
-                        );
+                                button.setStyle(
+                                                "-fx-background-color: transparent;" +
+                                                                "-fx-background-radius: 10;" +
+                                                                "-fx-text-fill: #5C4033;" +
+                                                                "-fx-font-family: 'Poppins';" +
+                                                                "-fx-font-size: 14px;" +
+                                                                "-fx-font-weight: normal;" +
+                                                                "-fx-cursor: hand;");
                         }
                 });
-                }
+        }
 
         private void styleLogoutButton(Button button) {
 

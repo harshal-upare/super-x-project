@@ -173,7 +173,9 @@ public class RegisterPage {
             if(redirect.equals("Farmer")) {
 
                 FarmerDashboard obj = new FarmerDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+                
             }
 
         });
@@ -243,9 +245,6 @@ public class RegisterPage {
         return registerScene;
 
     }
-
-    private void run() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'run'");
-    }
+   
+    
 }

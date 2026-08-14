@@ -1,9 +1,19 @@
 package com.desgin.view.farmer.Swapnil;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import com.desgin.view.farmer.LeftSideBar;
 import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
 import com.desgin.view.farmer.om.BrowseEquip;
 
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -25,13 +35,13 @@ public class FarmerDashboard {
         private Scene farmerDashboardScene;
         public static BorderPane borderPane;
 
-        public Scene getfarmerDashboardScene() {
+        public Scene getfarmerDashboardScene(Runnable ref) {
 
                 StackPane root = new StackPane();
 
                 // Side Bar
                 LeftSideBar objLeftSideBar = new LeftSideBar();
-                VBox leftVB = objLeftSideBar.getSideBar();
+                VBox leftVB = objLeftSideBar.getSideBar(ref);
 
                 borderPane = new BorderPane();
                 borderPane.setPadding(Insets.EMPTY);
@@ -75,7 +85,7 @@ public class FarmerDashboard {
                                 dashboardText,
                                 descriptionText);
 
-                headerText.setAlignment(Pos.CENTER_LEFT);
+                headerText.setAlignment(Pos.TOP_LEFT);
 
                 TextField searchField = new TextField();
 
@@ -98,34 +108,93 @@ public class FarmerDashboard {
 
                 searchIcon.setStyle(
                                 "-fx-font-size: 18px;");
+                
+
+                Button searchButton = new Button("Search");
+                searchButton.setPrefWidth(90);
+                searchButton.setPrefHeight(45);
+
+                searchButton.setStyle(
+                                "-fx-background-color: #6B8E23;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;");
+
+                searchButton.setOnMouseEntered(e -> searchButton.setStyle(
+                                "-fx-background-color: #55751C;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
+
+                searchButton.setOnMouseExited(e -> searchButton.setStyle(
+                                "-fx-background-color: #6B8E23;" +
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
+
                 HBox searchBox = new HBox(
                                 10,
                                 searchIcon,
-                                searchField);
+                                searchField,
+                        searchButton);
 
                 searchBox.setAlignment(
                                 Pos.CENTER_LEFT);
+                
+
+                                        
+                VBox weatherCard = createWeatherCard(
+                                "Pune",
+                                18.5204,
+                                73.8567);
+
+                weatherCard.setAlignment(Pos.TOP_RIGHT);
+
+
 
                 VBox equipmentCard = createDashboardCard(
-                                "🚜",
+                                "⚒",
                                 "Available Equipment",
                                 "24");
+
+                equipmentCard.setOnMouseClicked(e -> {
+
+                        LeftSideBar.setActiveButton(
+                                        LeftSideBar.equipmentBtn1,
+                                        LeftSideBar.navigationButtons);
+
+                        borderPane.setCenter(browse());
+                });
+
                 VBox bookingCard = createDashboardCard(
                                 "📅",
                                 "My Bookings",
                                 "5");
 
-                VBox ratingCard = createDashboardCard(
-                                "⭐",
-                                "My Rating",
-                                "4.8");
+                VBox activebookingCard = createDashboardCard(
+                                "🚜",
+                                "Active Booking",
+                                "2");
 
-                        
+                VBox pendingbookingCard = createDashboardCard(
+                                "🕐",
+                                "Pending Booking",
+                                "2");
                 HBox cards = new HBox(
                                 20,
                                 equipmentCard,
                                 bookingCard,
-                                ratingCard);
+                                activebookingCard,
+                                pendingbookingCard);
 
                 cards.setAlignment(Pos.CENTER_LEFT);
 
@@ -133,6 +202,8 @@ public class FarmerDashboard {
                 header.setAlignment(Pos.TOP_LEFT);
                 header.setPadding(
                                 new Insets(25, 30, 20, 30));
+
+                HBox combine = new HBox(400, headerText, weatherCard);
 
                 Text recommendedTitle = new Text("Recommended Equipment");
 
@@ -221,7 +292,6 @@ public class FarmerDashboard {
                                                 "-fx-fill: #2E7D32;" +
                                                 "-fx-cursor: hand;");
 
-                
                 HBox activeBookingHeader = new HBox();
                 activeBookingHeader.setAlignment(Pos.CENTER_LEFT);
 
@@ -230,12 +300,9 @@ public class FarmerDashboard {
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 activeBookingHeader.getChildren().addAll(
-                        activeBookingTitle,
-                        spacer,
-                        viewMore2
-                );
-
-                
+                                activeBookingTitle,
+                                spacer,
+                                viewMore2);
 
                 VBox activeBookingCard = createActiveBookingCard(
                                 "Tractor",
@@ -245,9 +312,8 @@ public class FarmerDashboard {
                 VBox activeBookingSection = new VBox(12);
 
                 activeBookingSection.getChildren().addAll(
-                        activeBookingHeader,
-                        activeBookingCard
-                );
+                                activeBookingHeader,
+                                activeBookingCard);
 
                 Text recentBookingTitle = new Text("Recent Bookings");
 
@@ -263,8 +329,10 @@ public class FarmerDashboard {
 
                 VBox centerContent = new VBox(
                                 20,
-                                header,
+                                combine,
+                                // header,
                                 searchBox,
+                                // searchWeatherBox,
                                 cards,
                                 recommendedTitle,
                                 equipmentScroll,
@@ -292,17 +360,522 @@ public class FarmerDashboard {
                 return farmerDashboardScene;
         }
 
-        private VBox createDashboardCard(String icon, String title, String value) {
+        private VBox createWeatherCard(
+                        String location,
+                        double latitude,
+                        double longitude) {
+
+                // Main weather card
+                VBox weatherCard = new VBox(8);
+
+                weatherCard.setPrefWidth(430);
+                weatherCard.setPrefHeight(125);
+
+                weatherCard.setPadding(
+                                new Insets(12, 18, 12, 18));
+
+                weatherCard.setStyle(
+                                "-fx-background-color: #6F91D5;" +
+                                                "-fx-background-radius: 20;");
+
+                // Top section
+                HBox topBox = new HBox(12);
+
+                Text weatherIcon = new Text("☀");
+
+                weatherIcon.setStyle(
+                                "-fx-font-size: 38px;");
+
+                VBox currentInfo = new VBox(2);
+
+                Text temperature = new Text("Loading...");
+
+                temperature.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 28px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: white;");
+
+                Text condition = new Text("Loading weather...");
+
+                condition.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 12px;" +
+                                                "-fx-fill: white;");
+
+                Text locationText = new Text(
+                                "⌖ " + location);
+
+                locationText.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 11px;" +
+                                                "-fx-fill: white;");
+
+                currentInfo.getChildren().addAll(
+                                temperature,
+                                condition,
+                                locationText);
+
+                topBox.getChildren().addAll(
+                                weatherIcon,
+                                currentInfo);
+
+                // Forecast section
+                HBox forecastBox = new HBox(20);
+
+                Text[] days = new Text[4];
+
+                for (int i = 0; i < 4; i++) {
+
+                        days[i] = new Text("Loading...");
+
+                        days[i].setStyle(
+                                        "-fx-font-family: 'Poppins';" +
+                                                        "-fx-font-size: 11px;" +
+                                                        "-fx-fill: white;");
+
+                        forecastBox.getChildren().add(
+                                        days[i]);
+                }
+
+                weatherCard.getChildren().addAll(
+                                topBox,
+                                forecastBox);
+
+                // Load live weather
+                loadWeather(
+                                latitude,
+                                longitude,
+                                weatherIcon,
+                                temperature,
+                                condition,
+                                days);
+
+                return weatherCard;
+        }
+
+        private void loadWeather(
+                        double latitude,
+                        double longitude,
+                        Text weatherIcon,
+                        Text temperature,
+                        Text condition,
+                        Text[] days) {
+
+                Task<String> weatherTask = new Task<>() {
+
+                        @Override
+                        protected String call() throws Exception {
+
+                                String url = "https://api.open-meteo.com/v1/forecast"
+                                                + "?latitude=" + latitude
+                                                + "&longitude=" + longitude
+                                                + "&current=temperature_2m,weather_code"
+                                                + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
+                                                + "&timezone=auto"
+                                                + "&forecast_days=4";
+
+                                System.out.println("Weather URL:");
+                                System.out.println(url);
+
+                                HttpClient client = HttpClient.newHttpClient();
+
+                                HttpRequest request = HttpRequest.newBuilder()
+                                                .uri(URI.create(url))
+                                                .GET()
+                                                .build();
+
+                                HttpResponse<String> response = client.send(
+                                                request,
+                                                HttpResponse.BodyHandlers.ofString());
+
+                                System.out.println("Weather Response Code: "
+                                                + response.statusCode());
+
+                                System.out.println("Weather Response:");
+                                System.out.println(response.body());
+
+                                if (response.statusCode() != 200) {
+                                        throw new RuntimeException(
+                                                        "API returned HTTP "
+                                                                        + response.statusCode());
+                                }
+
+                                return response.body();
+                        }
+                };
+
+                weatherTask.setOnSucceeded(e -> {
+
+                        System.out.println("Weather loaded successfully!");
+
+                        updateWeatherUI(
+                                        weatherTask.getValue(),
+                                        weatherIcon,
+                                        temperature,
+                                        condition,
+                                        days);
+                });
+
+                weatherTask.setOnFailed(e -> {
+
+                        System.out.println("================================");
+                        System.out.println("WEATHER API FAILED");
+                        System.out.println("================================");
+
+                        weatherTask.getException()
+                                        .printStackTrace();
+
+                        Platform.runLater(() -> {
+
+                                temperature.setText("--°C");
+
+                                condition.setText(
+                                                "Weather unavailable");
+
+                                weatherIcon.setText("☀");
+
+                                for (Text day : days) {
+                                        day.setText("--");
+                                }
+                        });
+                });
+
+                Thread thread = new Thread(weatherTask);
+
+                thread.setDaemon(true);
+
+                thread.start();
+        }
+
+        private void updateWeatherUI(
+                        String json,
+                        Text weatherIcon,
+                        Text temperature,
+                        Text condition,
+                        Text[] days) {
+
+                try {
+
+                        // ---------------- CURRENT WEATHER ----------------
+
+                        // Find current section
+                        int currentStart = json.indexOf("\"current\":{");
+
+                        if (currentStart == -1) {
+                                throw new RuntimeException(
+                                                "Current weather data not found");
+                        }
+
+                        int currentEnd = json.indexOf(
+                                        "}",
+                                        currentStart);
+
+                        String currentData = json.substring(
+                                        currentStart,
+                                        currentEnd);
+
+                        // Current temperature
+                        String currentTemperature = extractNumberFromSection(
+                                        currentData,
+                                        "\"temperature_2m\":");
+
+                        // Current weather code
+                        String currentCode = extractNumberFromSection(
+                                        currentData,
+                                        "\"weather_code\":");
+
+                        double temperatureValue = Double.parseDouble(
+                                        currentTemperature);
+
+                        int weatherCode = Integer.parseInt(
+                                        currentCode);
+
+                        // Update current temperature
+                        temperature.setText(
+                                        Math.round(
+                                                        temperatureValue) + "°C");
+
+                        // Update weather description
+                        condition.setText(
+                                        getWeatherDescription(
+                                                        weatherCode));
+
+                        // Update weather icon
+                        weatherIcon.setText(
+                                        getWeatherIcon(
+                                                        weatherCode));
+
+                        // ---------------- DAILY WEATHER ----------------
+
+                        int dailyStart = json.indexOf("\"daily\":{");
+
+                        if (dailyStart == -1) {
+                                return;
+                        }
+
+                        int dailyEnd = json.indexOf(
+                                        "}",
+                                        dailyStart);
+
+                        String dailyData = json.substring(
+                                        dailyStart,
+                                        json.length());
+
+                        // Dates
+                        String datesPart = extractArray(
+                                        dailyData,
+                                        "\"time\":[");
+
+                        // Maximum temperature
+                        String maxPart = extractArray(
+                                        dailyData,
+                                        "\"temperature_2m_max\":[");
+
+                        // Minimum temperature
+                        String minPart = extractArray(
+                                        dailyData,
+                                        "\"temperature_2m_min\":[");
+
+                        // Daily weather codes
+                        String codePart = extractArray(
+                                        dailyData,
+                                        "\"weather_code\":[");
+
+                        String[] dateArray = datesPart.split(",");
+
+                        String[] maxArray = maxPart.split(",");
+
+                        String[] minArray = minPart.split(",");
+
+                        String[] codeArray = codePart.split(",");
+
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
+                                        "EEE",
+                                        Locale.ENGLISH);
+
+                        for (int i = 0; i < 4 && i < days.length; i++) {
+
+                                String date = dateArray[i]
+                                                .replace("\"", "")
+                                                .trim();
+
+                                LocalDate localDate = LocalDate.parse(date);
+
+                                double maxTemperature = Double.parseDouble(
+                                                maxArray[i]
+                                                                .trim());
+
+                                double minTemperature = Double.parseDouble(
+                                                minArray[i]
+                                                                .trim());
+
+                                int dailyWeatherCode = Integer.parseInt(
+                                                codeArray[i]
+                                                                .trim());
+
+                                String dayName = localDate.format(
+                                                formatter);
+
+                                String max = Math.round(
+                                                maxTemperature) + "°";
+
+                                String min = Math.round(
+                                                minTemperature) + "°";
+
+                                days[i].setText(
+                                                dayName
+                                                                + "  "
+                                                                + getWeatherIcon(
+                                                                                dailyWeatherCode)
+                                                                + "  "
+                                                                + max
+                                                                + "/"
+                                                                + min);
+                        }
+
+                } catch (Exception ex) {
+
+                        ex.printStackTrace();
+
+                        Platform.runLater(() -> {
+
+                                temperature.setText(
+                                                "--°C");
+
+                                condition.setText(
+                                                "Unable to load weather");
+
+                                weatherIcon.setText(
+                                                "☀");
+
+                                for (Text day : days) {
+                                        day.setText(
+                                                        "Loading...");
+                                }
+                        });
+                }
+        }
+
+        private String extractNumberFromSection(
+                        String section,
+                        String key) {
+
+                int start = section.indexOf(key);
+
+                if (start == -1) {
+                        throw new RuntimeException(
+                                        "Key not found: " + key);
+                }
+
+                start += key.length();
+
+                int end = start;
+
+                while (end < section.length()
+                                &&
+                                section.charAt(end) != ','
+                                &&
+                                section.charAt(end) != '}') {
+                        end++;
+                }
+
+                return section
+                                .substring(start, end)
+                                .trim();
+        }
+
+        private String extractArray(
+                        String json,
+                        String key) {
+
+                int start = json.indexOf(key);
+
+                if (start == -1) {
+                        return "";
+                }
+
+                start += key.length();
+
+                int end = json.indexOf(
+                                "]",
+                                start);
+
+                if (end == -1) {
+                        return "";
+                }
+
+                return json.substring(
+                                start,
+                                end);
+        }
+
+        private String getWeatherIcon(
+                        int code) {
+
+                if (code == 0) {
+                        return "☀";
+                }
+
+                if (code == 1 ||
+                                code == 2) {
+                        return "🌤";
+                }
+
+                if (code == 3) {
+                        return "☁";
+                }
+
+                if (code >= 45 &&
+                                code <= 48) {
+                        return "🌫";
+                }
+
+                if (code >= 51 &&
+                                code <= 67) {
+                        return "🌧";
+                }
+
+                if (code >= 71 &&
+                                code <= 77) {
+                        return "❄";
+                }
+
+                if (code >= 80 &&
+                                code <= 82) {
+                        return "🌦";
+                }
+
+                if (code >= 95 &&
+                                code <= 99) {
+                        return "⛈";
+                }
+
+                return "☁";
+        }
+
+        private String getWeatherDescription(
+                        int code) {
+
+                if (code == 0) {
+                        return "Clear sky";
+                }
+
+                if (code == 1 ||
+                                code == 2) {
+                        return "Partly cloudy";
+                }
+
+                if (code == 3) {
+                        return "Cloudy";
+                }
+
+                if (code >= 45 &&
+                                code <= 48) {
+                        return "Foggy";
+                }
+
+                if (code >= 51 &&
+                                code <= 67) {
+                        return "Rain likely";
+                }
+
+                if (code >= 71 &&
+                                code <= 77) {
+                        return "Snow";
+                }
+
+                if (code >= 80 &&
+                                code <= 82) {
+                        return "Rain showers";
+                }
+
+                if (code >= 95 &&
+                                code <= 99) {
+                        return "Thunderstorm";
+                }
+
+                return "Unknown";
+        }
+
+        private VBox createDashboardCard(
+                        String icon,
+                        String title,
+                        String value) {
 
                 Text iconText = new Text(icon);
-                iconText.setStyle("-fx-font-size: 25px;");
+
+                iconText.setStyle(
+                                "-fx-font-size: 25px;");
 
                 Text titleText = new Text(title);
+
                 titleText.setStyle(
                                 "-fx-font-size: 13px;" +
                                                 "-fx-fill: #806A5B;");
 
                 Text valueText = new Text(value);
+
                 valueText.setStyle(
                                 "-fx-font-size: 24px;" +
                                                 "-fx-font-weight: bold;" +
@@ -317,14 +890,46 @@ public class FarmerDashboard {
                 card.setPrefWidth(220);
                 card.setPrefHeight(135);
 
-                card.setPadding(new Insets(18));
+                card.setPadding(
+                                new Insets(18));
 
-                card.setStyle(
-                                "-fx-background-color: #F5EFE6;" +
-                                                "-fx-background-radius: 14;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-width: 1;" +
-                                                "-fx-border-radius: 14;");
+                // Normal style
+                String normalStyle = "-fx-background-color: #F5EFE6;" +
+                                "-fx-background-radius: 14;" +
+                                "-fx-border-color: #D8C7B5;" +
+                                "-fx-border-width: 1;" +
+                                "-fx-border-radius: 14;";
+
+                // Hover style
+                String hoverStyle = "-fx-background-color: #FFF9F0;" +
+                                "-fx-background-radius: 14;" +
+                                "-fx-border-color: #8B6F47;" +
+                                "-fx-border-width: 1.5;" +
+                                "-fx-border-radius: 14;" +
+                                "-fx-effect: dropshadow(gaussian, rgba(74,44,32,0.25), 12, 0.2, 0, 4);";
+
+                card.setStyle(normalStyle);
+
+                // Smooth animation
+                card.setOnMouseEntered(e -> {
+
+                        card.setStyle(hoverStyle);
+
+                        card.setScaleX(1.03);
+                        card.setScaleY(1.03);
+
+                        card.setTranslateY(-3);
+                });
+
+                card.setOnMouseExited(e -> {
+
+                        card.setStyle(normalStyle);
+
+                        card.setScaleX(1.0);
+                        card.setScaleY(1.0);
+
+                        card.setTranslateY(0);
+                });
 
                 return card;
         }
@@ -560,4 +1165,5 @@ public class FarmerDashboard {
                 BrowseEquip objBrowseEquip = new BrowseEquip();
                 return objBrowseEquip.getBrowseEquip();
         }
+
 }
