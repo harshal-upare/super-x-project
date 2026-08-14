@@ -1,7 +1,6 @@
 package com.desgin.view.farmer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
@@ -29,7 +28,7 @@ public class LeftSideBar {
         public static Button settingsBtn1;
         public static Button supportBtn1;
 
-        public VBox getSideBar() {
+        public VBox getSideBar(Runnable ref) {
 
                 Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
                 ImageView logoImageView = new ImageView(logoImage);
@@ -84,6 +83,9 @@ public class LeftSideBar {
                 styleMenuButton(supportBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
+                logoutBtn1.setOnAction(e ->{
+                        ref.run();
+                });
                 HBox btnBox9 = new HBox(5, logoutBtn1);
                 styleLogoutButton(logoutBtn1);
 
@@ -123,7 +125,7 @@ public class LeftSideBar {
                         setActiveButton(dashboardBtn1, navigationButtons);
 
                         FarmerDashboard obj = new FarmerDashboard();
-                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(ref));
                 });
 
                 equipmentBtn1.setOnAction(event -> {
