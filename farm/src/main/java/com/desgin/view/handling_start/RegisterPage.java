@@ -1,7 +1,5 @@
 package com.desgin.view.handling_start;
-//import com.desgin.view.Provider.ProviderDashboard;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
-//import com.desgin.view.operator.OperatorDashboard;
     
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -175,15 +173,10 @@ public class RegisterPage {
             if(redirect.equals("Farmer")) {
 
                 FarmerDashboard obj = new FarmerDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
+                
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+                
             }
-            /*else if(redirect.equals("Operator")){
-                OperatorDashboard op = new OperatorDashboard();
-                WelcomePage.welcomePageStage.setScene(op.getOperatorDashboardScene());
-            } else if(redirect.equals("Provider")){
-                ProviderDashboard op = new ProviderDashboard();
-                WelcomePage.welcomePageStage.setScene(op.getproviderDashboardScene());
-            }*/
 
         });
         registerButton.setPrefHeight(42);
@@ -252,9 +245,6 @@ public class RegisterPage {
         return registerScene;
 
     }
-
-    private void run() {
-        // TODO Auto-generated method stub
-        throw new UnsupportedOperationException("Unimplemented method 'run'");
-    }
+   
+    
 }
