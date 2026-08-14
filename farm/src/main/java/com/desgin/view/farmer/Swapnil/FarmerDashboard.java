@@ -1,7 +1,9 @@
 package com.desgin.view.farmer.Swapnil;
 
 import com.desgin.view.farmer.LeftSideBar;
+import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
 import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
+import com.desgin.view.farmer.ashutosh.settings.Settings;
 import com.desgin.view.farmer.om.BrowseEquip;
 
 import javafx.geometry.Insets;
@@ -558,5 +560,17 @@ public class FarmerDashboard {
 
                 BrowseEquip objBrowseEquip = new BrowseEquip();
                 return objBrowseEquip.getBrowseEquip();
+        }
+
+        public ScrollPane setting() {
+
+                Settings objsetting = new Settings();
+                return objsetting.getSetting();
+        }
+
+        public ScrollPane helpSup() {
+
+                Help objHelp = new Help();
+                return objHelp.getHelp();
         }
 }

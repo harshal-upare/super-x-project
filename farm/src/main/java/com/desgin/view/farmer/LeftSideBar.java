@@ -117,10 +117,10 @@ public class LeftSideBar {
                 navigationButtons.add(settingsBtn1);
                 navigationButtons.add(supportBtn1);
 
-                setActiveButton(dashboardBtn1, navigationButtons);
+                setActiveButton(dashboardBtn1, navigationButtons );
 
                 dashboardBtn1.setOnAction(event -> {
-                        setActiveButton(dashboardBtn1, navigationButtons);
+                        setActiveButton(dashboardBtn1, navigationButtons );
 
                         FarmerDashboard obj = new FarmerDashboard();
                         WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene());
@@ -132,6 +132,21 @@ public class LeftSideBar {
                         FarmerDashboard obj = new FarmerDashboard();
                         obj.borderPane.setCenter(obj.browse());
                 });
+
+                settingsBtn1.setOnAction(event -> {
+                        setActiveButton(settingsBtn1, navigationButtons);
+
+                        FarmerDashboard obj = new FarmerDashboard();
+                        obj.borderPane.setCenter(obj.setting());
+                });
+
+                supportBtn1.setOnAction(event -> {
+                        setActiveButton(supportBtn1, navigationButtons);
+
+                        FarmerDashboard obj = new FarmerDashboard();
+                        obj.borderPane.setCenter(obj.helpSup());
+                });
+
 
         
                 return leftVB;
