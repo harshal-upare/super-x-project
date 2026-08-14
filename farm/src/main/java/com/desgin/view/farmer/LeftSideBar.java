@@ -143,7 +143,7 @@ public class LeftSideBar {
     FarmerDashboard obj = new FarmerDashboard();
     Payment payment = new Payment();
 
-    obj.borderPane.setCenter(payment.getPaymentSection());
+    obj.borderPane.setCenter(payment.getPaymentSection());});
 
                 wishlistBtn1.setOnAction(event -> {
 

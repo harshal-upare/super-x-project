@@ -157,15 +157,7 @@ private VBox paymentCards;
             )
     );
 
-    //---------------------------------------------------------
-    // Left Filter Section
-    //---------------------------------------------------------
-
     VBox filterSection = createPaymentFilter();
-
-    //---------------------------------------------------------
-    // Payment History
-    //---------------------------------------------------------
 
     Text historyTitle = new Text(
             "Payment History"
@@ -196,10 +188,8 @@ private VBox paymentCards;
 
     VBox paymentCards = new VBox(18);
 
-    //---------------------------------------------------------
-    // Payment Cards
-    //---------------------------------------------------------
 
+    
     VBox card1 = createPaymentCard(
         "Mahindra Tractor",
         "TXN-100234",
