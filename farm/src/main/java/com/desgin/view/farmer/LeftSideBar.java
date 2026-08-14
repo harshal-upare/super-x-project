@@ -8,6 +8,7 @@ import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.harshal.BookingDetails;
 import com.desgin.view.farmer.harshal.MyBookings;
 import com.desgin.view.farmer.om.BrowseEquip;
+import com.desgin.view.farmer.pratik.WishList;
 import com.desgin.view.handling_start.WelcomePage;
 
 import javafx.geometry.Insets;
@@ -127,7 +128,9 @@ public class LeftSideBar {
                 });
 
                 equipmentBtn1.setOnAction(event -> {
-                        setActiveButton(equipmentBtn1, navigationButtons);
+                        setActiveButton(equipmentBtn1, navigationButtons);      
+
+                        BrowseEquip obj = new BrowseEquip();
                      
                         FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
 
@@ -142,6 +145,15 @@ public class LeftSideBar {
 
 
                 });
+
+                wishlistBtn1.setOnAction(event -> {
+
+                        setActiveButton(wishlistBtn1, navigationButtons);
+
+
+                        FarmerDashboard.borderPane.setCenter( WishList.getWishList());
+                });
+        
 
                 return leftVB;
 
