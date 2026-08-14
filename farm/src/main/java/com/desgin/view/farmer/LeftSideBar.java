@@ -8,6 +8,7 @@ import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.harshal.BookingDetails;
 import com.desgin.view.farmer.harshal.MyBookings;
 import com.desgin.view.farmer.om.BrowseEquip;
+import com.desgin.view.farmer.pratik.Payment;
 import com.desgin.view.farmer.pratik.WishList;
 import com.desgin.view.handling_start.WelcomePage;
 
@@ -32,7 +33,7 @@ public class LeftSideBar {
         public static Button equipmentBtn1;
         public static Button bookingBtn1;
         public static Button wishlistBtn1;
-        public static Button reviewBtn1;
+        public static Button paymentBtn1;
         public static Button settingsBtn1;
         public static Button supportBtn1;
 
@@ -70,9 +71,12 @@ public class LeftSideBar {
                 HBox btnBox4 = new HBox(5, wishlistBtn1);
                 styleMenuButton(wishlistBtn1);
 
-                reviewBtn1 = new Button("⭐  Reviews");
-                HBox btnBox6 = new HBox(5, reviewBtn1);
-                styleMenuButton(reviewBtn1);
+                // styleMenuButton(notificationBtn1);
+
+                paymentBtn1 = new Button(" 💸 Payment");
+                HBox btnBox6 = new HBox(5, paymentBtn1);
+                styleMenuButton(paymentBtn1);
+                
 
                 VBox vBoxBtn1 = new VBox(10, btnBox1, btnBox2, btnBox3, btnBox4, btnBox6);
 
@@ -115,7 +119,7 @@ public class LeftSideBar {
                 navigationButtons.add(equipmentBtn1);
                 navigationButtons.add(bookingBtn1);
                 navigationButtons.add(wishlistBtn1);
-                navigationButtons.add(reviewBtn1);
+                navigationButtons.add(paymentBtn1);
                 navigationButtons.add(settingsBtn1);
                 navigationButtons.add(supportBtn1);
 
@@ -145,12 +149,16 @@ public class LeftSideBar {
 
 
                 });
+                paymentBtn1.setOnAction(event -> {
+
+                        setActiveButton(paymentBtn1, navigationButtons);
+
+                        FarmerDashboard.borderPane.setCenter(Payment.getPaymentSection()); 
+                });
 
                 wishlistBtn1.setOnAction(event -> {
 
                         setActiveButton(wishlistBtn1, navigationButtons);
-
-
                         FarmerDashboard.borderPane.setCenter( WishList.getWishList());
                 });
         
