@@ -20,7 +20,7 @@ import javafx.scene.text.Text;
 
 public class BrowseEquip {
 
-    public ScrollPane getBrowseEquip() {
+    public static ScrollPane getBrowseEquip() {
 
         Text browseTitle = new Text("Browse Equipment");
         browseTitle.setStyle(
@@ -243,7 +243,7 @@ public class BrowseEquip {
         return scrollPane;
     }
 
-    private VBox createEquipmentCard(
+    private static VBox createEquipmentCard(
             String equipmentName,
             String category,
             String price,
@@ -446,7 +446,7 @@ public class BrowseEquip {
         return card;
     }
 
-    private VBox createFilterSection() {
+    private static VBox createFilterSection() {
 
         Text filterTitle = new Text("Filters");
 
@@ -729,7 +729,7 @@ public class BrowseEquip {
         return filterBox;
     }
 
-    private void styleCheckBox(
+    private static void styleCheckBox(
             CheckBox checkBox) {
 
         checkBox.setStyle(
@@ -740,7 +740,7 @@ public class BrowseEquip {
         );
     }
 
-    private void stylePriceField(
+    private static void stylePriceField(
             TextField field) {
 
         field.setPrefHeight(38);
@@ -758,7 +758,7 @@ public class BrowseEquip {
         );
     }
 
-    private VBox priceBoxWithTitle(
+    private static VBox priceBoxWithTitle(
             Text priceTitle,
             HBox priceBox) {
 
