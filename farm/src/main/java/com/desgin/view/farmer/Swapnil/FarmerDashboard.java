@@ -9,7 +9,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.desgin.view.farmer.LeftSideBar;
+import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
 import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
+import com.desgin.view.farmer.ashutosh.settings.Settings;
 import com.desgin.view.farmer.om.BrowseEquip;
 
 import javafx.application.Platform;
@@ -1166,4 +1168,15 @@ public class FarmerDashboard {
                 return objBrowseEquip.getBrowseEquip();
         }
 
+        public ScrollPane setting() {
+
+                Settings objsetting = new Settings();
+                return objsetting.getSetting();
+        }
+
+        public ScrollPane helpSup() {
+
+                Help objHelp = new Help();
+                return objHelp.getHelp();
+        }
 }
