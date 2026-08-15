@@ -135,6 +135,7 @@ public class RegisterPage {
         operatorRadio.setFocusTraversable(false);
 
         // Farmer selected by default
+        farmerRadio.setSelected(true);
 
         // Put radio buttons in HBox
         HBox roleHBox = new HBox(
@@ -163,13 +164,27 @@ public class RegisterPage {
         registerButton.setOnAction(event -> {
 
             RadioButton valRadioButton = (RadioButton) roleGroup.getSelectedToggle();
-            String redirect = valRadioButton.getText();
+            String redirect = valRadioButton != null ? valRadioButton.getText() : "Farmer";
             if(redirect.equals("Farmer")) {
 
                 FarmerDashboard obj = new FarmerDashboard();
-                
                 WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
                 
+            } else if (redirect.equals("Provider")) {
+
+                com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
+
+            } else if (redirect.equals("Operator")) {
+
+                com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+
+            } else {
+
+                FarmerDashboard obj = new FarmerDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+
             }
 
         });

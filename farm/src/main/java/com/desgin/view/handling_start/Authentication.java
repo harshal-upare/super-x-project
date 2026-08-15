@@ -6,10 +6,14 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
+import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
@@ -29,7 +33,7 @@ public class Authentication {
 
         BorderPane borderPane = new BorderPane();
 
-        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
+        Image img = new Image("file:farm/src/main/resources/assets/Images/logo.png");
         ImageView loginPageImageView = new ImageView(img);
         loginPageImageView.setFitWidth(60);
         loginPageImageView.setFitHeight(60);
@@ -61,16 +65,53 @@ public class Authentication {
         passwordTextField.setFocusTraversable(false);
         
         
-        VBox secondaryVBox = new VBox(5,label1,mailAndPhoneTextField,label2,passwordTextField);
-        //secondaryVBox.setStyle("-fx-alignment:center");
+        Label roleLabel = new Label("Login As");
+        RadioButton farmerRadio = new RadioButton("Farmer");
+        RadioButton providerRadio = new RadioButton("Provider");
+        RadioButton operatorRadio = new RadioButton("Operator");
+        farmerRadio.setSelected(true);
+        farmerRadio.setFocusTraversable(false);
+        providerRadio.setFocusTraversable(false);
+        operatorRadio.setFocusTraversable(false);
+
+        ToggleGroup loginRoleGroup = new ToggleGroup();
+        farmerRadio.setToggleGroup(loginRoleGroup);
+        providerRadio.setToggleGroup(loginRoleGroup);
+        operatorRadio.setToggleGroup(loginRoleGroup);
+
+        HBox roleHBox = new HBox(12, farmerRadio, providerRadio, operatorRadio);
+        roleHBox.setAlignment(Pos.CENTER_LEFT);
+
+        VBox secondaryVBox = new VBox(5, label1, mailAndPhoneTextField, label2, passwordTextField, roleLabel, roleHBox);
         secondaryVBox.setMaxWidth(250);
-        
-        
+
         Button loginButton = new Button("Login");
-        loginButton.setStyle("-fx-background-color: #388E3C; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 15px; -fx-font-weight: bold;");
+        loginButton.setStyle("-fx-background-color: #388E3C; -fx-text-fill: white; -fx-background-radius: 8; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand;");
         loginButton.setPrefHeight(42);
         loginButton.setMaxWidth(250);
         loginButton.setFocusTraversable(false);
+
+        loginButton.setOnAction(e -> {
+            RadioButton valRadio = (RadioButton) loginRoleGroup.getSelectedToggle();
+            String role = valRadio != null ? valRadio.getText() : "Farmer";
+
+            Runnable backToLogin = new Runnable() {
+                public void run() {
+                    backtologin();
+                }
+            };
+
+            if ("Provider".equals(role)) {
+                com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
+            } else if ("Operator".equals(role)) {
+                com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+            } else {
+                com.desgin.view.farmer.Swapnil.FarmerDashboard obj = new com.desgin.view.farmer.Swapnil.FarmerDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+            }
+        });
         
         Text noAccText = new Text("Don't have an account?");
         noAccText.setStyle("-fx-underline: true; -fx-fill : #000;");
