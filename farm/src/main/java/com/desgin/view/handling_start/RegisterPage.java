@@ -1,11 +1,11 @@
 package com.desgin.view.handling_start;
+import com.desgin.view.components.PasswordEyeField;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
     
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.RadioButton;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleGroup;
@@ -100,26 +100,20 @@ public class RegisterPage {
 
         Label label4 = new Label("Password");
 
-        PasswordField passwordTextField = new PasswordField();
+        PasswordEyeField passwordTextField = new PasswordEyeField();
 
-        passwordTextField.setPrefSize(250, 42);
-        passwordTextField.setMaxSize(250, 42);
+        passwordTextField.setCustomPrefSize(250, 42);
         passwordTextField.setFocusTraversable(false);
-
-        passwordTextField.setStyle("-fx-background-color : #F8FAF7; -fx-border-color : #D6DDD2; -fx-border-radius: 8px;");
 
 
         // ================= CONFIRM PASSWORD =================
 
         Label label5 = new Label("Confirm Password");
 
-        PasswordField confirmPasswordTextField = new PasswordField();
+        PasswordEyeField confirmPasswordTextField = new PasswordEyeField();
 
-        confirmPasswordTextField.setPrefSize(250, 42);
-        confirmPasswordTextField.setMaxSize(250, 42);
+        confirmPasswordTextField.setCustomPrefSize(250, 42);
         confirmPasswordTextField.setFocusTraversable(false);
-
-        confirmPasswordTextField.setStyle( "-fx-background-color : #F8FAF7; -fx-border-color : #D6DDD2; -fx-border-radius: 8px;");
         
         // === select role ===
 
