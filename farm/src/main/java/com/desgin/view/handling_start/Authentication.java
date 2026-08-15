@@ -1,6 +1,7 @@
 package com.desgin.view.handling_start;
 
 
+import com.desgin.view.components.PasswordEyeField;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -59,12 +60,9 @@ public class Authentication {
         
         
         Label label2 = new Label("Password");
-        PasswordField passwordTextField = new PasswordField();
-        passwordTextField.setPrefSize(250, 42);
-        passwordTextField.setMaxSize(250, 42);
+        PasswordEyeField passwordTextField = new PasswordEyeField();
+        passwordTextField.setCustomPrefSize(250, 42);
         passwordTextField.setFocusTraversable(false);
-        passwordTextField.setStyle("-fx-background-color : #F8FAF7; -fx-border-color : #D6DDD2; -fx-border-radius: 8px;");
-        
         
         
         Label roleLabel = new Label("Login As");
