@@ -6,12 +6,16 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
+
+import com.desgin.view.farmer.Swapnil.EquipmentDataStore;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
@@ -37,20 +41,20 @@ public class Dashboard {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 26px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;");
+                "-fx-fill: #1B4332;");
 
         Text dashboardText = new Text("Provider Fleet Command Center");
         dashboardText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 16px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #5C4033;");
+                "-fx-fill: #374151;");
 
         Text descriptionText = new Text("Monitor agricultural machinery fleet, approve instant rental bookings & review earnings");
         descriptionText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-fill: #806A5B;");
+                "-fx-fill: #4B5563;");
 
         VBox headerText = new VBox(4, welcomeText, dashboardText, descriptionText);
         headerText.setAlignment(Pos.TOP_LEFT);
@@ -71,12 +75,12 @@ public class Dashboard {
         searchField.setStyle(
                 "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
-                "-fx-border-color: #D8C7B5;" +
+                "-fx-border-color: #E2EBE5;" +
                 "-fx-border-radius: 10;" +
                 "-fx-border-width: 1;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-text-fill: #4A2C20;" +
+                "-fx-text-fill: #1B4332;" +
                 "-fx-prompt-text-fill: #A18C7A;");
 
         Text searchIcon = new Text("🔍");
@@ -101,7 +105,11 @@ public class Dashboard {
         searchBox.setAlignment(Pos.CENTER_LEFT);
 
         // 5 Elevated KPI Cards
-        VBox fleetKpiCard = createDashboardCard("🚜", "Total Fleet Listed", "18 Units", "14 Avail • 4 Rented", "#2E7D32", () -> {
+        int totalFleet = EquipmentDataStore.getTotalCount();
+        int availFleet = EquipmentDataStore.getAvailableCount();
+        int rentedFleet = totalFleet - availFleet;
+
+        VBox fleetKpiCard = createDashboardCard("🚜", "Total Fleet Listed", totalFleet + " Units", availFleet + " Avail • " + rentedFleet + " Rented", "#2E7D32", () -> {
             ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.fleetBtn, ProviderLeftSideBar.navigationButtons);
             ProviderDashboard.borderPane.setCenter(MyEquipment.getFleetSection(ProviderDashboard.root));
         });
@@ -117,13 +125,13 @@ public class Dashboard {
         });
 
         VBox inUseKpiCard = createDashboardCard("⏱", "Machinery In-Field", "4 Deployed", "All GPS Live Active", "#1976D2", () -> {
-            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.maintenanceBtn, ProviderLeftSideBar.navigationButtons);
-            ProviderDashboard.borderPane.setCenter(Maintenance.getMaintenanceSection(ProviderDashboard.root));
+            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.fleetBtn, ProviderLeftSideBar.navigationButtons);
+            ProviderDashboard.borderPane.setCenter(MyEquipment.getFleetSection(ProviderDashboard.root));
         });
 
-        VBox ratingKpiCard = createDashboardCard("⭐", "Provider Rating", "4.9 / 5.0", "128 Verified Reviews", "#8B6F47", () -> {
-            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.analyticsBtn, ProviderLeftSideBar.navigationButtons);
-            ProviderDashboard.borderPane.setCenter(ProviderAnalytics.getAnalyticsSection());
+        VBox ratingKpiCard = createDashboardCard("⭐", "Provider Rating", "4.9 / 5.0", "128 Verified Reviews", "#2D6A4F", () -> {
+            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.earningsBtn, ProviderLeftSideBar.navigationButtons);
+            ProviderDashboard.borderPane.setCenter(Earnings.getEarningsSection(ProviderDashboard.root));
         });
 
         HBox cards = new HBox(14, fleetKpiCard, pendingKpiCard, revenueKpiCard, inUseKpiCard, ratingKpiCard);
@@ -173,19 +181,19 @@ public class Dashboard {
             ProviderDashboard.borderPane.setCenter(MyEquipment.getFleetSection(ProviderDashboard.root));
         });
 
-        Button reviewBtn = createActionButton("📥  Review Bookings (5)", "#8B6F47", () -> {
+        Button reviewBtn = createActionButton("📥  Review Bookings (5)", "#2D6A4F", () -> {
             ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.rentalRequestsBtn, ProviderLeftSideBar.navigationButtons);
             ProviderDashboard.borderPane.setCenter(RentalRequests.getRequestsSection(ProviderDashboard.root));
         });
 
-        Button payoutBtn = createActionButton("💸  Instant Bank Payout", "#5C4033", () -> {
+        Button payoutBtn = createActionButton("💸  Instant Bank Payout", "#374151", () -> {
             ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.earningsBtn, ProviderLeftSideBar.navigationButtons);
             ProviderDashboard.borderPane.setCenter(Earnings.getEarningsSection(ProviderDashboard.root));
         });
 
-        Button logMaintBtn = createActionButton("🛠  Log Fleet Service", "#37474F", () -> {
-            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.maintenanceBtn, ProviderLeftSideBar.navigationButtons);
-            ProviderDashboard.borderPane.setCenter(Maintenance.getMaintenanceSection(ProviderDashboard.root));
+        Button logMaintBtn = createActionButton("🛠  Manage Fleet Health", "#37474F", () -> {
+            ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.fleetBtn, ProviderLeftSideBar.navigationButtons);
+            ProviderDashboard.borderPane.setCenter(MyEquipment.getFleetSection(ProviderDashboard.root));
         });
 
         HBox bar = new HBox(12, addEqBtn, reviewBtn, payoutBtn, logMaintBtn);
@@ -207,7 +215,7 @@ public class Dashboard {
 
     private static VBox createPendingRequestsSection() {
         Text sectionTitle = new Text("Incoming Rental Requests (Awaiting Provider Approval)");
-        sectionTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        sectionTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text viewAll = new Text("View All 5 Requests →");
         viewAll.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-cursor: hand;");
@@ -233,7 +241,7 @@ public class Dashboard {
 
     private static VBox createRequestCard(String farmer, String location, String eq, String dates, String price, String delivery, String catTag) {
         Text farmerName = new Text("👨‍🌾 " + farmer);
-        farmerName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        farmerName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text catBadge = new Text(" " + catTag + " ");
         catBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-background-color: #E8F5E9;");
@@ -243,22 +251,22 @@ public class Dashboard {
         topH.setAlignment(Pos.CENTER_LEFT);
 
         Text locText = new Text("📍 " + location);
-        locText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+        locText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
         Text eqText = new Text("🚜 " + eq);
         eqText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
 
         Text dateText = new Text("📅 " + dates);
-        dateText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #5C4033;");
+        dateText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
         Text delText = new Text("🚚 " + delivery);
-        delText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #806A5B;");
+        delText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
 
         Text priceText = new Text(price);
-        priceText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        priceText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text netText = new Text("Gross Fare");
-        netText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #806A5B;");
+        netText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #4B5563;");
 
         VBox priceBox = new VBox(1, priceText, netText);
 
@@ -284,9 +292,9 @@ public class Dashboard {
         card.setPrefWidth(350);
         card.setPadding(new Insets(16));
         card.setStyle(
-                "-fx-background-color: #F5EFE6;" +
+                "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 14;" +
-                "-fx-border-color: #D8C7B5;" +
+                "-fx-border-color: #E2EBE5;" +
                 "-fx-border-width: 1;" +
                 "-fx-border-radius: 14;");
 
@@ -308,9 +316,9 @@ public class Dashboard {
 
     private static VBox createFleetCarouselSection() {
         Text fleetTitle = new Text("My Machinery Fleet & Availability");
-        fleetTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        fleetTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text manageFleet = new Text("Manage All 18 Machines →");
+        Text manageFleet = new Text("Go to Fleet Manager →");
         manageFleet.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-cursor: hand;");
         manageFleet.setOnMouseClicked(e -> {
             ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.fleetBtn, ProviderLeftSideBar.navigationButtons);
@@ -322,41 +330,62 @@ public class Dashboard {
         HBox header = new HBox(fleetTitle, spacer, manageFleet);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        VBox c1 = createFleetCard("🚜", "Mahindra 575 DI (45HP)", "Tractor", "₹1,200 / day", "AVAILABLE", "#2E7D32", "24 Bookings");
-        VBox c2 = createFleetCard("🚜", "John Deere 5310 (55HP)", "Tractor", "₹1,500 / day", "RENTED OUT", "#E65100", "41 Bookings");
-        VBox c3 = createFleetCard("⚙", "Shaktiman Rotary Tiller 7ft", "Rotavator", "₹800 / day", "AVAILABLE", "#2E7D32", "19 Bookings");
-        VBox c4 = createFleetCard("🌾", "Kartar 4000 Multi-Crop", "Harvester", "₹3,500 / day", "RENTED OUT", "#E65100", "32 Bookings");
-        VBox c5 = createFleetCard("🚁", "Agri-Drone 16L Sprayer", "Drone", "₹1,800 / day", "IN SERVICE", "#C62828", "12 Bookings");
+        List<EquipmentDataStore.EquipmentItem> allFleet = EquipmentDataStore.getAllEquipment();
+        Node fleetContent;
 
-        HBox fleetRow = new HBox(16, c1, c2, c3, c4, c5);
-        fleetRow.setAlignment(Pos.CENTER_LEFT);
-        fleetRow.setPadding(new Insets(6, 0, 8, 0));
+        if (allFleet.isEmpty()) {
+            VBox emptyFleetBox = new VBox(6);
+            emptyFleetBox.setAlignment(Pos.CENTER);
+            emptyFleetBox.setPadding(new Insets(24));
+            emptyFleetBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            Text emptyText = new Text("No machinery registered in your fleet yet.");
+            emptyText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Click 'Go to Fleet Manager' to register new agricultural equipment.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
+            emptyFleetBox.getChildren().addAll(emptyText, emptySub);
+            fleetContent = emptyFleetBox;
+        } else {
+            HBox fleetRow = new HBox(16);
+            fleetRow.setAlignment(Pos.CENTER_LEFT);
+            fleetRow.setPadding(new Insets(6, 0, 8, 0));
 
-        ScrollPane scroll = new ScrollPane(fleetRow);
-        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scroll.setFitToHeight(true);
-        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+            for (EquipmentDataStore.EquipmentItem item : allFleet) {
+                String icon = item.category.contains("Harvester") ? "🌾" : (item.category.contains("Drone") ? "🚁" : (item.category.contains("Rotavator") ? "⚙" : (item.category.contains("Cultivator") ? "🌱" : "🚜")));
+                String stColor = "AVAILABLE".equalsIgnoreCase(item.status) ? "#2E7D32" : ("RENTED OUT".equalsIgnoreCase(item.status) ? "#E65100" : "#C62828");
+                fleetRow.getChildren().add(createFleetCard(icon, item.name, item.category, "₹" + item.pricePerDay + " / day", item.status, stColor, item.location, item.imagePath));
+            }
 
-        return new VBox(12, header, scroll);
+            ScrollPane scroll = new ScrollPane(fleetRow);
+            scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+            scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+            scroll.setFitToHeight(true);
+            scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
+            fleetContent = scroll;
+        }
+
+        return new VBox(12, header, fleetContent);
     }
 
-    private static VBox createFleetCard(String icon, String name, String category, String price, String status, String statusColor, String stats) {
+    private static VBox createFleetCard(String icon, String name, String category, String price, String status, String statusColor, String stats, String imagePath) {
         Image img = null;
         try {
-            img = new Image("file:farm/src/main/resources/assets/Images/tractor.png");
+            if (imagePath != null && !imagePath.isEmpty()) {
+                img = new Image(imagePath);
+            }
         } catch (Exception ignored) {}
 
         ImageView iv = new ImageView();
         if (img != null && !img.isError()) {
             iv.setImage(img);
-            iv.setFitWidth(140);
-            iv.setFitHeight(75);
-            iv.setPreserveRatio(true);
         } else {
-            iv.setFitWidth(140);
-            iv.setFitHeight(75);
+            try {
+                iv.setImage(new Image("file:farm/src/main/resources/assets/Images/tractor.png"));
+            } catch (Exception ignored) {}
         }
+        iv.setFitWidth(140);
+        iv.setFitHeight(75);
+        iv.setPreserveRatio(true);
+        iv.setSmooth(true);
 
         Text iconBadge = new Text(icon);
         iconBadge.setStyle("-fx-font-size: 28px;");
@@ -365,17 +394,17 @@ public class Dashboard {
         StackPane.setAlignment(iconBadge, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(iconBadge, new Insets(0, 8, 4, 0));
         imgBox.setPrefHeight(90);
-        imgBox.setStyle("-fx-background-color: #E4D3C2; -fx-background-radius: 10;");
+        imgBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
 
         Label statusBadge = new Label(status);
         statusBadge.setStyle("-fx-background-color: " + statusColor + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
 
         Text title = new Text(name);
         title.setWrappingWidth(190);
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text cat = new Text(category + " • " + stats);
-        cat.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #806A5B;");
+        cat.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
 
         Text pr = new Text(price);
         pr.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -383,7 +412,7 @@ public class Dashboard {
         Button editBtn = new Button("Manage Unit ⚙");
         editBtn.setPrefWidth(190);
         editBtn.setPrefHeight(32);
-        editBtn.setStyle("-fx-background-color: #8B6F47; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        editBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
 
         editBtn.setOnAction(e -> {
             ProviderLeftSideBar.setActiveButton(ProviderLeftSideBar.fleetBtn, ProviderLeftSideBar.navigationButtons);
@@ -393,15 +422,15 @@ public class Dashboard {
         VBox card = new VBox(8, imgBox, statusBadge, title, cat, pr, editBtn);
         card.setPrefWidth(215);
         card.setPadding(new Insets(12));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
 
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: #FFF9F0; -fx-background-radius: 12; -fx-border-color: #8B6F47; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(74,44,32,0.2), 10, 0.2, 0, 3);");
+            card.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 12; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.2), 10, 0.2, 0, 3);");
             card.setTranslateY(-2);
         });
 
         card.setOnMouseExited(e -> {
-            card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
             card.setTranslateY(0);
         });
 
@@ -410,7 +439,7 @@ public class Dashboard {
 
     private static VBox createActiveDeploymentsSection() {
         Text title = new Text("Active On-Field Machinery (Currently Deployed)");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         VBox row1 = createDeploymentCard("🚜 John Deere 5310 Tractor (55HP)", "Farmer: Ramesh Waghmare • Saswad Farm (Plot 4)", "15 Aug → 19 Aug 2026 (Due in 2 Days)", "Driver Assigned: Dilip Shinde (+91 98901 44552)", "RUNNING OK • GPS ACTIVE", 0.65);
         VBox row2 = createDeploymentCard("🌾 Kartar 4000 Combine Harvester", "Farmer: Balasaheb Shirole • Baramati East", "14 Aug → 18 Aug 2026 (Due Tomorrow)", "Self Operated by Farmer • Fuel Full", "RUNNING OK • GPS ACTIVE", 0.85);
@@ -420,16 +449,16 @@ public class Dashboard {
 
     private static VBox createDeploymentCard(String title, String farmerInfo, String dateInfo, String driverInfo, String gpsStatus, double progress) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text f = new Text(farmerInfo);
-        f.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #5C4033;");
+        f.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
         Text d = new Text(dateInfo);
-        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
         Text dr = new Text(driverInfo);
-        dr.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+        dr.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
         ProgressBar pb = new ProgressBar(progress);
         pb.setPrefWidth(220);
@@ -452,13 +481,13 @@ public class Dashboard {
 
         VBox card = new VBox(6, t, f, d, dr, statusRow);
         card.setPadding(new Insets(14));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return card;
     }
 
     private static VBox createRecentEarningsSection() {
         Text title = new Text("Recent Payouts & Settlement Credits");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         HBox r1 = createPayoutRow("Harvester Rental #FE-8921", "Balasaheb Shirole", "14 Aug 2026", "₹12,600", "SETTLED TO BANK");
         HBox r2 = createPayoutRow("Rotavator 3-Day Rental #FE-8894", "Vikas More", "13 Aug 2026", "₹2,400", "SETTLED TO BANK");
@@ -469,13 +498,13 @@ public class Dashboard {
 
     private static HBox createPayoutRow(String booking, String farmer, String date, String amount, String status) {
         Text b = new Text(booking);
-        b.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        b.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
         Text f = new Text("Farmer: " + farmer);
-        f.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+        f.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
         VBox bBox = new VBox(2, b, f);
 
         Text dt = new Text(date);
-        dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #5C4033;");
+        dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
 
         Text amt = new Text(amount);
         amt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -489,7 +518,7 @@ public class Dashboard {
         HBox row = new HBox(40, bBox, dt, amt, spacer, st);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 16, 12, 16));
-        row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
         return row;
     }
 
@@ -499,13 +528,13 @@ public class Dashboard {
 
         StackPane iconHolder = new StackPane(iconText);
         iconHolder.setPrefSize(42, 42);
-        iconHolder.setStyle("-fx-background-color: #E4D3C2; -fx-background-radius: 10;");
+        iconHolder.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
 
         Text titleText = new Text(title);
-        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text valueText = new Text(value);
-        valueText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        valueText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subText = new Text(subtext);
         subText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-fill: " + badgeColor + ";");
@@ -518,8 +547,8 @@ public class Dashboard {
         card.setPrefHeight(115);
         card.setPadding(new Insets(14));
 
-        String normalStyle = "-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14; -fx-cursor: hand;";
-        String hoverStyle = "-fx-background-color: #FFF9F0; -fx-background-radius: 14; -fx-border-color: #8B6F47; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(74,44,32,0.25), 12, 0.2, 0, 4); -fx-cursor: hand;";
+        String normalStyle = "-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: #F0FDF4; -fx-background-radius: 14; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.25), 12, 0.2, 0, 4); -fx-cursor: hand;";
 
         card.setStyle(normalStyle);
 

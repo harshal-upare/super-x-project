@@ -59,10 +59,10 @@ public class Maintenance {
 
     public static ScrollPane getMaintenanceSection(StackPane root) {
         Text headerTitle = new Text("Machinery Health & Maintenance Log");
-        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text headerSubtitle = new Text("Schedule machinery servicing, log maintenance expenses, prevent breakdown during harvest peak, and track fleet health.");
-        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, headerTitle, headerSubtitle);
 
@@ -100,8 +100,8 @@ public class Maintenance {
     private static HBox createHealthKpis() {
         VBox c1 = createMetricCard("🩺 Fleet Operational Health", "96% Healthy", "17 of 18 machines field-ready", "#2E7D32");
         VBox c2 = createMetricCard("⚠️ Services Due Soon", "2 Machines", "Action required in next 7 days", "#E65100");
-        VBox c3 = createMetricCard("💰 Total Maintenance Spend", "₹24,800", "YTD service expenditure", "#4A2C20");
-        VBox c4 = createMetricCard("🛡 Active AMC / Warranty", "14 Units", "Covered under service plans", "#5C4033");
+        VBox c3 = createMetricCard("💰 Total Maintenance Spend", "₹24,800", "YTD service expenditure", "#1B4332");
+        VBox c4 = createMetricCard("🛡 Active AMC / Warranty", "14 Units", "Covered under service plans", "#374151");
 
         HBox row = new HBox(15, c1, c2, c3, c4);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -110,24 +110,24 @@ public class Maintenance {
 
     private static VBox createMetricCard(String title, String value, String sub, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text v = new Text(value);
         v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: " + color + ";");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, v, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createUpcomingSection() {
         Text title = new Text("Upcoming Maintenance & Inspection Schedule");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 19px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 19px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         upcomingContainer = new VBox(10);
         renderUpcoming();
@@ -142,10 +142,10 @@ public class Maintenance {
             if (!"DUE SOON".equals(rec.status)) continue;
 
             Text m = new Text("🚜 " + rec.machineName);
-            m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text t = new Text("Task: " + rec.serviceType + "  •  Due: " + rec.nextDue);
-            t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #5C4033;");
+            t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
             VBox info = new VBox(2, m, t);
 
@@ -166,7 +166,7 @@ public class Maintenance {
             HBox row = new HBox(15, info, spacer, st, doneBtn);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(14, 18, 14, 18));
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #E65100; -fx-border-width: 1; -fx-border-radius: 10;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E65100; -fx-border-width: 1; -fx-border-radius: 10;");
 
             upcomingContainer.getChildren().add(row);
         }
@@ -181,7 +181,7 @@ public class Maintenance {
 
     private static VBox createHistorySection() {
         Text title = new Text("Maintenance Service History Log");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 19px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 19px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         historyContainer = new VBox(10);
         renderHistory();
@@ -196,15 +196,15 @@ public class Maintenance {
             if ("DUE SOON".equals(rec.status)) continue;
 
             Text m = new Text(rec.machineName);
-            m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text t = new Text(rec.serviceType + " • Service Tech: " + rec.technician);
-            t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+            t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
             VBox info = new VBox(2, m, t);
 
             Text dt = new Text("📅 " + rec.date);
-            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #5C4033;");
+            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
             Text cost = new Text("Cost: ₹" + String.format("%,d", rec.cost));
             cost.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -218,7 +218,7 @@ public class Maintenance {
             HBox row = new HBox(25, info, dt, spacer, cost, st);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(12, 16, 12, 16));
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
             historyContainer.getChildren().add(row);
         }
@@ -232,10 +232,10 @@ public class Maintenance {
         modal.setPrefWidth(480);
         modal.setMaxWidth(480);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
 
         Text title = new Text("Log Machinery Service & Repairs");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(10);
@@ -302,7 +302,7 @@ public class Maintenance {
 
     private static Label createLabel(String t) {
         Label l = new Label(t);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }

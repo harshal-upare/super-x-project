@@ -6,15 +6,25 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Locale;
 
 import com.desgin.view.farmer.LeftSideBar;
+import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
+import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
+import com.desgin.view.farmer.ashutosh.settings.Settings;
+import com.desgin.view.farmer.harshal.MyBookings;
 import com.desgin.view.farmer.om.BrowseEquip;
+import com.desgin.view.farmer.om.EquipmentDetailPage;
+import com.desgin.view.farmer.pratik.Payment;
+import com.desgin.view.farmer.pratik.WishList;
+import com.desgin.view.farmer.review.ReviewRating;
 
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
@@ -31,253 +41,326 @@ public class Dashboard {
 
         public static Dashboard dashboard;
 
-
-
         public static ScrollPane getPage() {
 
-                
-                String userName = "FarmerName";
+                String userName = "Harshal";
                 Text welcomeText = new Text("Welcome back, " + userName + " 👋");
 
                 welcomeText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 28px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-fill: #1B4332;");
 
-                Text dashboardText = new Text("Farmer Dashboard");
+                Text subText = new Text("Farmer Dashboard");
 
-                dashboardText.setStyle(
+                subText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 18px;" +
+                                                "-fx-font-size: 16px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #5C4033;");
+                                                "-fx-fill: #2D6A4F;");
 
-                Text descriptionText = new Text("Find the right equipment for your farm");
+                Text descText = new Text(
+                                "Find the right equipment for your farm");
 
-                descriptionText.setStyle(
+                descText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
-                                                "-fx-fill: #806A5B;");
+                                                "-fx-fill: #4B5563;");
 
                 VBox headerText = new VBox(
-                                5,
+                                3,
                                 welcomeText,
-                                dashboardText,
-                                descriptionText);
+                                subText,
+                                descText);
 
-                headerText.setAlignment(Pos.TOP_LEFT);
+                headerText.setAlignment(
+                                Pos.CENTER_LEFT);
 
-                TextField searchField = new TextField();
-
-                searchField.setPromptText("Search equipment...");
-
-                searchField.setPrefHeight(42);
-                searchField.setPrefWidth(500);
-
-                searchField.setStyle(
-                                "-fx-background-color: #FFFFFF;" +
-                                                "-fx-background-radius: 10;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-radius: 10;" +
-                                                "-fx-border-width: 1;" +
-                                                "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 13px;" +
-                                                "-fx-text-fill: #4A2C20;" +
-                                                "-fx-prompt-text-fill: #A18C7A;");
                 Text searchIcon = new Text("🔍");
 
                 searchIcon.setStyle(
-                                "-fx-font-size: 18px;");
-                
+                                "-fx-font-size: 16px;");
+
+                TextField searchField = new TextField();
+
+                searchField.setPromptText(
+                                "Search anything (Equipment, Bookings, Wishlist, Payments, Settings, Help)...");
+
+                searchField.setPrefWidth(420);
+                searchField.setPrefHeight(45);
+
+                searchField.setStyle(
+                                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                                                "-fx-background-radius: 12;" +
+                                                "-fx-border-color: rgba(45, 106, 79, 0.3);" +
+                                                "-fx-border-width: 1.2;" +
+                                                "-fx-border-radius: 12;" +
+                                                "-fx-padding: 0 15 0 15;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 13px;" +
+                                                "-fx-text-fill: #1F2937;");
 
                 Button searchButton = new Button("Search");
-                searchButton.setPrefWidth(90);
+
+                searchButton.setPrefWidth(95);
                 searchButton.setPrefHeight(45);
 
                 searchButton.setStyle(
-                                "-fx-background-color: #6B8E23;" +
-                                                "-fx-background-radius: 10;" +
+                                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                                                "-fx-background-radius: 12;" +
                                                 "-fx-text-fill: white;" +
                                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-cursor: hand;");
+                                                "-fx-cursor: hand;" +
+                                                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);");
 
                 searchButton.setOnMouseEntered(e -> searchButton.setStyle(
-                                "-fx-background-color: #55751C;" +
-                                                "-fx-background-radius: 10;" +
+                                "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F);" +
+                                                "-fx-background-radius: 12;" +
                                                 "-fx-text-fill: white;" +
                                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-cursor: hand;"));
+                                                "-fx-cursor: hand;" +
+                                                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.35), 10, 0, 0, 3);"));
 
                 searchButton.setOnMouseExited(e -> searchButton.setStyle(
-                                "-fx-background-color: #6B8E23;" +
-                                                "-fx-background-radius: 10;" +
+                                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                                                "-fx-background-radius: 12;" +
                                                 "-fx-text-fill: white;" +
                                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-cursor: hand;"));
+                                                "-fx-cursor: hand;" +
+                                                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);"));
+
+                // Universal Global Search Handler for Farmer Dashboard
+                Runnable doSearch = () -> {
+                        String raw = searchField.getText() != null ? searchField.getText().trim() : "";
+                        if (raw.isEmpty()) return;
+                        String q = raw.toLowerCase();
+
+                        if (q.contains("book") || q.contains("order") || q.contains("rent") || q.contains("hist")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                                MyBookings obj = new MyBookings();
+                                FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                        } else if (q.contains("wish") || q.contains("save") || q.contains("fav") || q.contains("like")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.wishlistBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(WishList.getWishList());
+                        } else if (q.contains("oper") || q.contains("driver") || q.contains("pilot") || q.contains("worker") || q.contains("hire") || q.contains("manpower") || q.contains("pay") || q.contains("bill")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.paymentBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(FarmerDashboard.root));
+                        } else if (q.contains("review") || q.contains("rat") || q.contains("star") || q.contains("feed")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.reviewBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(ReviewRating.getReviewRatingPage(FarmerDashboard.root));
+                        } else if (q.contains("sett") || q.contains("pref") || q.contains("pass") || q.contains("notif")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+                        } else if (q.contains("help") || q.contains("supp") || q.contains("ai") || q.contains("faq") || q.contains("chat") || q.contains("bot") || q.contains("issue")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.supportBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(Help.getHelp());
+                        } else if (q.contains("prof") || q.contains("user") || q.contains("acc") || q.contains("harshal")) {
+                                ProfileManagement obj = new ProfileManagement();
+                                FarmerDashboard.borderPane.setCenter(obj.getProfile(FarmerDashboard.root));
+                        } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("pune") || q.contains("clim")) {
+                                LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
+                        } else {
+                                // Equipment keyword, category, or general machinery search
+                                LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
+                                BrowseEquip.setSearchQuery(raw);
+                        }
+                };
+
+                searchButton.setOnAction(e -> doSearch.run());
+                searchField.setOnAction(e -> doSearch.run());
 
                 HBox searchBox = new HBox(
                                 10,
                                 searchIcon,
                                 searchField,
-                        searchButton);
+                                searchButton);
 
                 searchBox.setAlignment(
                                 Pos.CENTER_LEFT);
-                
 
-                                        
-                VBox weatherCard = createWeatherCard(
+                HBox weatherCard = createWeatherCard(
                                 "Pune",
                                 18.5204,
                                 73.8567);
 
-                weatherCard.setAlignment(Pos.TOP_RIGHT);
-
-
-
+                // Dynamic KPI cards reflecting live counts
                 VBox equipmentCard = createDashboardCard(
                                 "⚒",
                                 "Available Equipment",
-                                "24");
+                                String.valueOf(EquipmentDataStore.getAvailableCount()));
 
                 equipmentCard.setOnMouseClicked(e -> {
-
                         LeftSideBar.setActiveButton(
                                         LeftSideBar.equipmentBtn1,
                                         LeftSideBar.navigationButtons);
-
-                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());;
+                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
                 });
 
                 VBox bookingCard = createDashboardCard(
                                 "📅",
                                 "My Bookings",
-                                "5");
+                                String.valueOf(BookingDataStore.getTotalCount()));
+
+                bookingCard.setOnMouseClicked(e -> {
+                        LeftSideBar.setActiveButton(
+                                        LeftSideBar.bookingBtn1,
+                                        LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                });
 
                 VBox activebookingCard = createDashboardCard(
                                 "🚜",
                                 "Active Booking",
-                                "2");
+                                String.valueOf(BookingDataStore.getActiveCount()));
+
+                activebookingCard.setOnMouseClicked(e -> {
+                        LeftSideBar.setActiveButton(
+                                        LeftSideBar.bookingBtn1,
+                                        LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                });
 
                 VBox pendingbookingCard = createDashboardCard(
                                 "🕐",
                                 "Pending Booking",
-                                "2");
+                                String.valueOf(BookingDataStore.getPendingCount()));
+
+                pendingbookingCard.setOnMouseClicked(e -> {
+                        LeftSideBar.setActiveButton(
+                                        LeftSideBar.bookingBtn1,
+                                        LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                });
+
                 HBox cards = new HBox(
-                                20,
+                                16,
                                 equipmentCard,
                                 bookingCard,
                                 activebookingCard,
                                 pendingbookingCard);
 
                 cards.setAlignment(Pos.CENTER_LEFT);
+                HBox.setHgrow(equipmentCard, Priority.ALWAYS);
+                HBox.setHgrow(bookingCard, Priority.ALWAYS);
+                HBox.setHgrow(activebookingCard, Priority.ALWAYS);
+                HBox.setHgrow(pendingbookingCard, Priority.ALWAYS);
 
-                VBox header = new VBox(headerText);
-                header.setAlignment(Pos.TOP_LEFT);
-                header.setPadding(
-                                new Insets(25, 30, 20, 30));
-
-                HBox combine = new HBox(400, headerText, weatherCard);
-
+                // ----------------- RECOMMENDED EQUIPMENT SECTION -----------------
                 Text recommendedTitle = new Text("Recommended Equipment");
 
                 recommendedTitle.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 20px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
-                VBox tractorCard = createEquipmentCard(
-                                "file:farm/src/main/resources/assets/Images/tractor.png",
-                                "Tractor",
-                                "₹1200 / day");
+                                                "-fx-fill: #1B4332;");
 
-                VBox rotavatorCard = createEquipmentCard(
-                                "file:farm/src/main/resources/assets/Images/rotavator.png",
-                                "Rotavator",
-                                "₹800 / day");
+                List<EquipmentDataStore.EquipmentItem> recommendedList = EquipmentDataStore.getRandomRecommended(5);
+                Node recommendedNode;
 
-                VBox cultivatorCard = createEquipmentCard(
-                                "file:farm/src/main/resources/assets/Images/cultivator.png",
-                                "Cultivator",
-                                "₹600 / day");
+                if (recommendedList.isEmpty()) {
+                        VBox emptyRecBox = new VBox(8);
+                        emptyRecBox.setAlignment(Pos.CENTER);
+                        emptyRecBox.setPadding(new Insets(24, 30, 24, 30));
+                        emptyRecBox.setMaxWidth(Double.MAX_VALUE);
+                        emptyRecBox.setStyle(
+                                "-fx-background-color: #FFFFFF;" +
+                                "-fx-background-radius: 14;" +
+                                "-fx-border-color: #D1E7DD;" +
+                                "-fx-border-width: 1.2;" +
+                                "-fx-border-radius: 14;"
+                        );
+                        Text emptyIcon = new Text("🚜");
+                        emptyIcon.setStyle("-fx-font-size: 30px;");
 
-                VBox harvesterCard = createEquipmentCard(
-                                "file:farm/src/main/resources/assets/Images/",
-                                "Harvester",
-                                "₹900 / day");
+                        Text emptyTitle = new Text("No Recommended Equipment Available Yet");
+                        emptyTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-                VBox seederCard = createEquipmentCard(
-                                "file:farm/src/main/resources/assets/Images/",
-                                "Seeder",
-                                "₹400 / day");
+                        Text emptyDesc = new Text("Currently no machinery is available. When providers add equipment to the platform, recommended machinery will appear here automatically.");
+                        emptyDesc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #6B7280;");
 
-                HBox equipmentSection = new HBox(
-                                20,
-                                tractorCard,
-                                rotavatorCard,
-                                cultivatorCard,
-                                harvesterCard,
-                                seederCard);
-                Text viewMore = new Text("View More →");
-                viewMore.setOnMouseClicked(event -> {
+                        emptyRecBox.getChildren().addAll(emptyIcon, emptyTitle, emptyDesc);
+                        recommendedNode = emptyRecBox;
+                } else {
+                        HBox equipmentSection = new HBox(18);
+                        equipmentSection.setAlignment(Pos.CENTER_LEFT);
+                        equipmentSection.setPadding(new Insets(6, 0, 6, 0));
 
-                        LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
-                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
-                });
+                        for (EquipmentDataStore.EquipmentItem item : recommendedList) {
+                                VBox card = createEquipmentCard(
+                                        item.imagePath,
+                                        item.name,
+                                        "₹" + item.pricePerDay + " / day",
+                                        item.category,
+                                        item.rating,
+                                        item.location
+                                );
+                                equipmentSection.getChildren().add(card);
+                        }
 
-                viewMore.setStyle(
-                                "-fx-fill: #2e7d32;" +
-                                                "-fx-font-size: 14px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-cursor: hand;");
+                        Text viewMore = new Text("View More →");
+                        viewMore.setStyle(
+                                        "-fx-fill: #16A34A;" +
+                                                        "-fx-font-size: 14px;" +
+                                                        "-fx-font-weight: bold;" +
+                                                        "-fx-cursor: hand;");
 
-                equipmentSection.getChildren().add(viewMore);
+                        viewMore.setOnMouseClicked(event -> {
+                                LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                                FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
+                        });
 
-                equipmentSection.setAlignment(
-                                Pos.CENTER_LEFT);
-                equipmentSection.setPadding(new Insets(10, 0, 10, 0));
+                        equipmentSection.getChildren().add(viewMore);
 
-                ScrollPane equipmentScroll = new ScrollPane();
+                        ScrollPane equipmentScroll = new ScrollPane();
+                        equipmentScroll.setContent(equipmentSection);
+                        equipmentScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+                        equipmentScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+                        equipmentScroll.setFitToHeight(true);
+                        equipmentScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent; -fx-border-color: transparent;");
 
-                equipmentScroll.setContent(equipmentSection);
+                        recommendedNode = equipmentScroll;
+                }
 
-                equipmentScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-                equipmentScroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-
-                equipmentScroll.setFitToHeight(true);
-
-                equipmentScroll.setStyle(
-                                "-fx-background-color: transparent;" +
-                                                "-fx-border-color: transparent;");
-
+                // ----------------- ACTIVE BOOKING SECTION -----------------
                 Text activeBookingTitle = new Text("Active Booking");
 
                 activeBookingTitle.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 20px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-fill: #1B4332;");
+
                 Text viewMore2 = new Text("View More →");
 
                 viewMore2.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #2E7D32;" +
+                                                "-fx-fill: #16A34A;" +
                                                 "-fx-cursor: hand;");
+
+                viewMore2.setOnMouseClicked(e -> {
+                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                });
 
                 HBox activeBookingHeader = new HBox();
                 activeBookingHeader.setAlignment(Pos.CENTER_LEFT);
 
                 Region spacer = new Region();
-
                 HBox.setHgrow(spacer, Priority.ALWAYS);
 
                 activeBookingHeader.getChildren().addAll(
@@ -285,137 +368,184 @@ public class Dashboard {
                                 spacer,
                                 viewMore2);
 
-                VBox activeBookingCard = createActiveBookingCard(
-                                "Tractor",
-                                "15 Aug 2026 → 17 Aug 2026",
-                                "Confirmed");
-
+                List<BookingDataStore.BookingItem> activeList = BookingDataStore.getActiveBookings();
                 VBox activeBookingSection = new VBox(12);
 
-                activeBookingSection.getChildren().addAll(
-                                activeBookingHeader,
-                                activeBookingCard);
+                if (activeList.isEmpty()) {
+                        VBox emptyActiveBox = new VBox(6);
+                        emptyActiveBox.setPadding(new Insets(14, 18, 14, 18));
+                        emptyActiveBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #D1E7DD; -fx-border-width: 1.2; -fx-border-radius: 12;");
+                        Text emptyActiveText = new Text("No active equipment rentals at the moment.");
+                        emptyActiveText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #6B7280;");
+                        emptyActiveBox.getChildren().add(emptyActiveText);
+                        activeBookingSection.getChildren().addAll(activeBookingHeader, emptyActiveBox);
+                } else {
+                        BookingDataStore.BookingItem firstActive = activeList.get(0);
+                        VBox activeBookingCard = createActiveBookingCard(
+                                        firstActive.equipmentName,
+                                        firstActive.startDate + " → " + firstActive.endDate,
+                                        firstActive.status);
+                        activeBookingSection.getChildren().addAll(activeBookingHeader, activeBookingCard);
+                }
 
+                // ----------------- RECENT BOOKINGS SECTION -----------------
                 Text recentBookingTitle = new Text("Recent Bookings");
 
                 recentBookingTitle.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 20px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
-                HBox bookingRow = createBookingRow(
-                                "Tractor",
-                                "12 Aug 2026",
-                                "Confirmed");
+                                                "-fx-fill: #1B4332;");
+
+                List<BookingDataStore.BookingItem> allBookings = BookingDataStore.getAllBookings();
+                Node recentBookingNode;
+
+                if (allBookings.isEmpty()) {
+                        VBox emptyRecentBox = new VBox(6);
+                        emptyRecentBox.setPadding(new Insets(14, 18, 14, 18));
+                        emptyRecentBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #D1E7DD; -fx-border-width: 1.2; -fx-border-radius: 12;");
+                        Text emptyRecentText = new Text("No recent bookings recorded.");
+                        emptyRecentText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #6B7280;");
+                        emptyRecentBox.getChildren().add(emptyRecentText);
+                        recentBookingNode = emptyRecentBox;
+                } else {
+                        VBox recentRows = new VBox(8);
+                        for (int i = 0; i < Math.min(3, allBookings.size()); i++) {
+                                BookingDataStore.BookingItem b = allBookings.get(i);
+                                recentRows.getChildren().add(createBookingRow(b.equipmentName, b.startDate, b.status));
+                        }
+                        recentBookingNode = recentRows;
+                }
 
                 VBox centerContent = new VBox(
-                                20,
-                                combine,
-                                // header,
+                                18,
+                                headerText,
+                                weatherCard,
                                 searchBox,
-                                // searchWeatherBox,
                                 cards,
                                 recommendedTitle,
-                                equipmentScroll,
+                                recommendedNode,
                                 activeBookingSection,
                                 recentBookingTitle,
-                                bookingRow);
+                                recentBookingNode);
+
                 centerContent.setPadding(new Insets(20, 30, 30, 30));
+                centerContent.setStyle("-fx-background-color: #F4F9F4;");
+
                 ScrollPane scrollPane = new ScrollPane();
 
                 scrollPane.setContent(centerContent);
 
                 scrollPane.setFitToWidth(true);
+                scrollPane.setFitToHeight(false);
+                scrollPane.setPannable(false);
                 scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
                 scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
 
-                scrollPane.setStyle("-fx-background-color: transparent;" + "-fx-background: transparent;");
+                scrollPane.hvalueProperty().addListener((obs, oldVal, newVal) -> {
+                        if (newVal.doubleValue() != 0.0) {
+                                scrollPane.setHvalue(0.0);
+                        }
+                });
+
+                scrollPane.setStyle("-fx-background-color: #F4F9F4; -fx-background: #F4F9F4;");
         
-               FarmerDashboard.borderPane.setCenter(scrollPane);
+                FarmerDashboard.borderPane.setCenter(scrollPane);
 
                 return scrollPane;
         }
-        private static VBox createWeatherCard(
+
+        private static HBox createWeatherCard(
                         String location,
                         double latitude,
                         double longitude) {
 
-                // Main weather card
-                VBox weatherCard = new VBox(8);
-
-                weatherCard.setPrefWidth(430);
-                weatherCard.setPrefHeight(125);
-
-                weatherCard.setPadding(
-                                new Insets(12, 18, 12, 18));
-
+                HBox weatherCard = new HBox(20);
+                weatherCard.setAlignment(Pos.CENTER_LEFT);
+                weatherCard.setPadding(new Insets(14, 22, 14, 22));
+                weatherCard.setMaxWidth(Double.MAX_VALUE);
                 weatherCard.setStyle(
-                                "-fx-background-color: #6F91D5;" +
-                                                "-fx-background-radius: 20;");
+                                "-fx-background-color: linear-gradient(to right, #1B5E20, #2E7D32, #388E3C);" +
+                                "-fx-background-radius: 14px;" +
+                                "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);");
 
-                // Top section
-                HBox topBox = new HBox(12);
-
+                // Left: Current Weather Icon, Temperature & Details
                 Text weatherIcon = new Text("☀");
-
-                weatherIcon.setStyle(
-                                "-fx-font-size: 38px;");
-
-                VBox currentInfo = new VBox(2);
+                weatherIcon.setStyle("-fx-font-size: 34px; -fx-fill: #FFF9C4;");
 
                 Text temperature = new Text("Loading...");
-
                 temperature.setStyle(
                                 "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 28px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-fill: white;");
+                                "-fx-font-size: 26px;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-fill: white;");
 
                 Text condition = new Text("Loading weather...");
-
                 condition.setStyle(
                                 "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 12px;" +
-                                                "-fx-fill: white;");
+                                "-fx-font-size: 13px;" +
+                                "-fx-font-weight: bold;" +
+                                "-fx-fill: #E8F5E9;");
 
-                Text locationText = new Text(
-                                "⌖ " + location);
-
+                Text locationText = new Text("📍 " + location + ", Maharashtra");
                 locationText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 11px;" +
-                                                "-fx-fill: white;");
+                                "-fx-font-size: 11px;" +
+                                "-fx-fill: #C8E6C9;");
 
-                currentInfo.getChildren().addAll(
-                                temperature,
-                                condition,
-                                locationText);
+                VBox currentDetails = new VBox(2, condition, locationText);
+                currentDetails.setAlignment(Pos.CENTER_LEFT);
 
-                topBox.getChildren().addAll(
-                                weatherIcon,
-                                currentInfo);
+                HBox leftCurrentBox = new HBox(12, weatherIcon, temperature, currentDetails);
+                leftCurrentBox.setAlignment(Pos.CENTER_LEFT);
 
-                // Forecast section
-                HBox forecastBox = new HBox(20);
+                // Middle: Farming advisory badge
+                Text agriTip = new Text("🌱 Field Status: Favorable conditions for farming operations");
+                agriTip.setStyle(
+                                "-fx-font-family: 'Poppins';" +
+                                "-fx-font-size: 11.5px;" +
+                                "-fx-font-weight: 500;" +
+                                "-fx-fill: #E8F5E9;");
+                HBox agriChip = new HBox(agriTip);
+                agriChip.setAlignment(Pos.CENTER);
+                agriChip.setPadding(new Insets(6, 14, 6, 14));
+                agriChip.setStyle(
+                                "-fx-background-color: rgba(255, 255, 255, 0.15);" +
+                                "-fx-background-radius: 20px;");
 
-                Text[] days = new Text[4];
+                Region spacer = new Region();
+                HBox.setHgrow(spacer, Priority.ALWAYS);
+
+                // Right: 4-Day Forecast in individual mini column cards
+                HBox forecastBox = new HBox(10);
+                forecastBox.setAlignment(Pos.CENTER_RIGHT);
+
+                Text[] dayNames = new Text[4];
+                Text[] dayIcons = new Text[4];
+                Text[] dayTemps = new Text[4];
 
                 for (int i = 0; i < 4; i++) {
+                        dayNames[i] = new Text("Day");
+                        dayNames[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #E8F5E9;");
 
-                        days[i] = new Text("Loading...");
+                        dayIcons[i] = new Text("☀");
+                        dayIcons[i].setStyle("-fx-font-size: 13px; -fx-fill: #FFF9C4;");
 
-                        days[i].setStyle(
-                                        "-fx-font-family: 'Poppins';" +
-                                                        "-fx-font-size: 11px;" +
-                                                        "-fx-fill: white;");
+                        dayTemps[i] = new Text("--° / --°");
+                        dayTemps[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: white;");
 
-                        forecastBox.getChildren().add(
-                                        days[i]);
+                        HBox dayHeader = new HBox(4, dayNames[i], dayIcons[i]);
+                        dayHeader.setAlignment(Pos.CENTER);
+
+                        VBox dayCard = new VBox(2, dayHeader, dayTemps[i]);
+                        dayCard.setAlignment(Pos.CENTER);
+                        dayCard.setPadding(new Insets(4, 10, 4, 10));
+                        dayCard.setStyle("-fx-background-color: rgba(255, 255, 255, 0.12); -fx-background-radius: 8px;");
+
+                        forecastBox.getChildren().add(dayCard);
                 }
 
-                weatherCard.getChildren().addAll(
-                                topBox,
-                                forecastBox);
+                weatherCard.getChildren().addAll(leftCurrentBox, agriChip, spacer, forecastBox);
 
                 // Load live weather
                 loadWeather(
@@ -424,7 +554,9 @@ public class Dashboard {
                                 weatherIcon,
                                 temperature,
                                 condition,
-                                days);
+                                dayNames,
+                                dayIcons,
+                                dayTemps);
 
                 return weatherCard;
         }
@@ -435,7 +567,9 @@ public class Dashboard {
                         Text weatherIcon,
                         Text temperature,
                         Text condition,
-                        Text[] days) {
+                        Text[] dayNames,
+                        Text[] dayIcons,
+                        Text[] dayTemps) {
 
                 Task<String> weatherTask = new Task<>() {
 
@@ -450,9 +584,6 @@ public class Dashboard {
                                                 + "&timezone=auto"
                                                 + "&forecast_days=4";
 
-                                System.out.println("Weather URL:");
-                                System.out.println(url);
-
                                 HttpClient client = HttpClient.newHttpClient();
 
                                 HttpRequest request = HttpRequest.newBuilder()
@@ -463,12 +594,6 @@ public class Dashboard {
                                 HttpResponse<String> response = client.send(
                                                 request,
                                                 HttpResponse.BodyHandlers.ofString());
-
-                                System.out.println("Weather Response Code: "
-                                                + response.statusCode());
-
-                                System.out.println("Weather Response:");
-                                System.out.println(response.body());
 
                                 if (response.statusCode() != 200) {
                                         throw new RuntimeException(
@@ -481,45 +606,31 @@ public class Dashboard {
                 };
 
                 weatherTask.setOnSucceeded(e -> {
-
-                        System.out.println("Weather loaded successfully!");
-
                         updateWeatherUI(
                                         weatherTask.getValue(),
                                         weatherIcon,
                                         temperature,
                                         condition,
-                                        days);
+                                        dayNames,
+                                        dayIcons,
+                                        dayTemps);
                 });
 
                 weatherTask.setOnFailed(e -> {
-
-                        System.out.println("================================");
-                        System.out.println("WEATHER API FAILED");
-                        System.out.println("================================");
-
-                        weatherTask.getException()
-                                        .printStackTrace();
-
                         Platform.runLater(() -> {
-
                                 temperature.setText("--°C");
-
-                                condition.setText(
-                                                "Weather unavailable");
-
+                                condition.setText("Weather unavailable");
                                 weatherIcon.setText("☀");
-
-                                for (Text day : days) {
-                                        day.setText("--");
+                                for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                                        dayNames[i].setText("Day");
+                                        dayIcons[i].setText("☀");
+                                        dayTemps[i].setText("--°");
                                 }
                         });
                 });
 
                 Thread thread = new Thread(weatherTask);
-
                 thread.setDaemon(true);
-
                 thread.start();
         }
 
@@ -528,166 +639,72 @@ public class Dashboard {
                         Text weatherIcon,
                         Text temperature,
                         Text condition,
-                        Text[] days) {
+                        Text[] dayNames,
+                        Text[] dayIcons,
+                        Text[] dayTemps) {
 
                 try {
-
                         // ---------------- CURRENT WEATHER ----------------
-
-                        // Find current section
                         int currentStart = json.indexOf("\"current\":{");
-
                         if (currentStart == -1) {
-                                throw new RuntimeException(
-                                                "Current weather data not found");
+                                throw new RuntimeException("Current weather data not found");
                         }
 
-                        int currentEnd = json.indexOf(
-                                        "}",
-                                        currentStart);
+                        int currentEnd = json.indexOf("}", currentStart);
+                        String currentData = json.substring(currentStart, currentEnd);
 
-                        String currentData = json.substring(
-                                        currentStart,
-                                        currentEnd);
+                        String currentTemperature = extractNumberFromSection(currentData, "\"temperature_2m\":");
+                        String currentCode = extractNumberFromSection(currentData, "\"weather_code\":");
 
-                        // Current temperature
-                        String currentTemperature = extractNumberFromSection(
-                                        currentData,
-                                        "\"temperature_2m\":");
+                        double temperatureValue = Double.parseDouble(currentTemperature);
+                        int weatherCode = Integer.parseInt(currentCode);
 
-                        // Current weather code
-                        String currentCode = extractNumberFromSection(
-                                        currentData,
-                                        "\"weather_code\":");
-
-                        double temperatureValue = Double.parseDouble(
-                                        currentTemperature);
-
-                        int weatherCode = Integer.parseInt(
-                                        currentCode);
-
-                        // Update current temperature
-                        temperature.setText(
-                                        Math.round(
-                                                        temperatureValue) + "°C");
-
-                        // Update weather description
-                        condition.setText(
-                                        getWeatherDescription(
-                                                        weatherCode));
-
-                        // Update weather icon
-                        weatherIcon.setText(
-                                        getWeatherIcon(
-                                                        weatherCode));
+                        temperature.setText(Math.round(temperatureValue) + "°C");
+                        condition.setText(getWeatherDescription(weatherCode));
+                        weatherIcon.setText(getWeatherIcon(weatherCode));
 
                         // ---------------- DAILY WEATHER ----------------
-
                         int dailyStart = json.indexOf("\"daily\":{");
-
                         if (dailyStart == -1) {
                                 return;
                         }
 
-                        int dailyEnd = json.indexOf(
-                                        "}",
-                                        dailyStart);
+                        String dailyData = json.substring(dailyStart);
 
-                        String dailyData = json.substring(
-                                        dailyStart,
-                                        json.length());
-
-                        // Dates
-                        String datesPart = extractArray(
-                                        dailyData,
-                                        "\"time\":[");
-
-                        // Maximum temperature
-                        String maxPart = extractArray(
-                                        dailyData,
-                                        "\"temperature_2m_max\":[");
-
-                        // Minimum temperature
-                        String minPart = extractArray(
-                                        dailyData,
-                                        "\"temperature_2m_min\":[");
-
-                        // Daily weather codes
-                        String codePart = extractArray(
-                                        dailyData,
-                                        "\"weather_code\":[");
+                        String datesPart = extractArray(dailyData, "\"time\":[");
+                        String maxPart = extractArray(dailyData, "\"temperature_2m_max\":[");
+                        String minPart = extractArray(dailyData, "\"temperature_2m_min\":[");
+                        String codePart = extractArray(dailyData, "\"weather_code\":[");
 
                         String[] dateArray = datesPart.split(",");
-
                         String[] maxArray = maxPart.split(",");
-
                         String[] minArray = minPart.split(",");
-
                         String[] codeArray = codePart.split(",");
 
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(
-                                        "EEE",
-                                        Locale.ENGLISH);
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
 
-                        for (int i = 0; i < 4 && i < days.length; i++) {
-
-                                String date = dateArray[i]
-                                                .replace("\"", "")
-                                                .trim();
-
+                        for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                                String date = dateArray[i].replace("\"", "").trim();
                                 LocalDate localDate = LocalDate.parse(date);
 
-                                double maxTemperature = Double.parseDouble(
-                                                maxArray[i]
-                                                                .trim());
+                                double maxTemperature = Double.parseDouble(maxArray[i].trim());
+                                double minTemperature = Double.parseDouble(minArray[i].trim());
+                                int dailyWeatherCode = Integer.parseInt(codeArray[i].trim());
 
-                                double minTemperature = Double.parseDouble(
-                                                minArray[i]
-                                                                .trim());
+                                String dayName = localDate.format(formatter);
+                                String max = Math.round(maxTemperature) + "°";
+                                String min = Math.round(minTemperature) + "°";
 
-                                int dailyWeatherCode = Integer.parseInt(
-                                                codeArray[i]
-                                                                .trim());
-
-                                String dayName = localDate.format(
-                                                formatter);
-
-                                String max = Math.round(
-                                                maxTemperature) + "°";
-
-                                String min = Math.round(
-                                                minTemperature) + "°";
-
-                                days[i].setText(
-                                                dayName
-                                                                + "  "
-                                                                + getWeatherIcon(
-                                                                                dailyWeatherCode)
-                                                                + "  "
-                                                                + max
-                                                                + "/"
-                                                                + min);
+                                dayNames[i].setText(dayName);
+                                dayIcons[i].setText(getWeatherIcon(dailyWeatherCode));
+                                dayTemps[i].setText(max + "/" + min);
                         }
 
                 } catch (Exception ex) {
-
                         ex.printStackTrace();
-
                         Platform.runLater(() -> {
-
-                                temperature.setText(
-                                                "--°C");
-
-                                condition.setText(
-                                                "Unable to load weather");
-
-                                weatherIcon.setText(
-                                                "☀");
-
-                                for (Text day : days) {
-                                        day.setText(
-                                                        "Loading...");
-                                }
+                                temperature.setText("--°C");
+                                condition.setText("Unable to load weather");
                         });
                 }
         }
@@ -839,49 +856,60 @@ public class Dashboard {
                         String value) {
 
                 Text iconText = new Text(icon);
+                iconText.setStyle("-fx-font-size: 20px;");
 
-                iconText.setStyle(
-                                "-fx-font-size: 25px;");
+                StackPane iconBadge = new StackPane(iconText);
+                iconBadge.setPrefSize(40, 40);
+                iconBadge.setMinSize(40, 40);
+                iconBadge.setMaxSize(40, 40);
+                iconBadge.setStyle(
+                                "-fx-background-color: #E8F5E9;" +
+                                "-fx-background-radius: 10px;" +
+                                "-fx-border-color: #C8E6C9;" +
+                                "-fx-border-radius: 10px;" +
+                                "-fx-border-width: 1px;");
 
                 Text titleText = new Text(title);
 
                 titleText.setStyle(
                                 "-fx-font-size: 13px;" +
-                                                "-fx-fill: #806A5B;");
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-weight: 600;" +
+                                                "-fx-fill: #4B5563;");
 
                 Text valueText = new Text(value);
 
                 valueText.setStyle(
-                                "-fx-font-size: 24px;" +
+                                "-fx-font-size: 26px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-fill: #1B4332;");
 
                 VBox card = new VBox(
-                                8,
-                                iconText,
+                                10,
+                                iconBadge,
                                 titleText,
                                 valueText);
 
                 card.setPrefWidth(220);
-                card.setPrefHeight(135);
+                card.setPrefHeight(142);
 
                 card.setPadding(
-                                new Insets(18));
+                                new Insets(16, 18, 16, 18));
 
                 // Normal style
-                String normalStyle = "-fx-background-color: #F5EFE6;" +
+                String normalStyle = "-fx-background-color: #FFFFFF;" +
                                 "-fx-background-radius: 14;" +
-                                "-fx-border-color: #D8C7B5;" +
-                                "-fx-border-width: 1;" +
+                                "-fx-border-color: #D1E7DD;" +
+                                "-fx-border-width: 1.2;" +
                                 "-fx-border-radius: 14;";
 
                 // Hover style
-                String hoverStyle = "-fx-background-color: #FFF9F0;" +
+                String hoverStyle = "-fx-background-color: #FFFFFF;" +
                                 "-fx-background-radius: 14;" +
-                                "-fx-border-color: #8B6F47;" +
+                                "-fx-border-color: #2D6A4F;" +
                                 "-fx-border-width: 1.5;" +
-                                "-fx-border-radius: 14;" +
-                                "-fx-effect: dropshadow(gaussian, rgba(74,44,32,0.25), 12, 0.2, 0, 4);";
+                                "-fx-border-radius: 14;";
 
                 card.setStyle(normalStyle);
 
@@ -912,11 +940,26 @@ public class Dashboard {
         private static VBox createEquipmentCard(
                         String imagePath,
                         String equipmentName,
-                        String price) {
+                        String price,
+                        String category,
+                        String rating,
+                        String location) {
 
-                Image equipmentImage = new Image(imagePath);
+                Image equipmentImage = null;
+                try {
+                        if (imagePath != null && !imagePath.isEmpty()) {
+                                equipmentImage = new Image(imagePath);
+                        }
+                } catch (Exception ignored) {}
 
-                ImageView imageView = new ImageView(equipmentImage);
+                ImageView imageView = new ImageView();
+                if (equipmentImage != null && !equipmentImage.isError()) {
+                        imageView.setImage(equipmentImage);
+                } else {
+                        try {
+                                imageView.setImage(new Image("file:farm/src/main/resources/assets/Images/tractor.png"));
+                        } catch (Exception ignored) {}
+                }
 
                 imageView.setFitWidth(196);
                 imageView.setFitHeight(110);
@@ -924,35 +967,30 @@ public class Dashboard {
                 imageView.setSmooth(true);
 
                 StackPane imageBox = new StackPane(imageView);
-
                 imageBox.setPrefHeight(110);
                 imageBox.setMaxWidth(Double.MAX_VALUE);
-
-                imageBox.setStyle(
-                                "-fx-background-color: #E4D3C2;" +
-                                                "-fx-background-radius: 10;");
+                imageBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
 
                 Text nameText = new Text(equipmentName);
-
                 nameText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 16px;" +
+                                                "-fx-font-size: 15px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-fill: #1B4332;");
 
                 Text priceText = new Text(price);
-
                 priceText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
-                                                "-fx-fill: #806A5B;");
-                Button viewButton = new Button("View Details");
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-fill: #2D6A4F;");
 
+                Button viewButton = new Button("View Details");
                 viewButton.setPrefWidth(196);
                 viewButton.setPrefHeight(35);
 
                 viewButton.setStyle(
-                                "-fx-background-color: #8B6F47;" +
+                                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                                                 "-fx-background-radius: 8;" +
                                                 "-fx-text-fill: white;" +
                                                 "-fx-font-family: 'Poppins';" +
@@ -961,9 +999,8 @@ public class Dashboard {
                                                 "-fx-cursor: hand;");
 
                 viewButton.setOnMouseEntered(e -> {
-
                         viewButton.setStyle(
-                                        "-fx-background-color: #6F5638;" +
+                                        "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F);" +
                                                         "-fx-background-radius: 8;" +
                                                         "-fx-text-fill: white;" +
                                                         "-fx-font-family: 'Poppins';" +
@@ -973,9 +1010,8 @@ public class Dashboard {
                 });
 
                 viewButton.setOnMouseExited(e -> {
-
                         viewButton.setStyle(
-                                        "-fx-background-color: #8B6F47;" +
+                                        "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                                                         "-fx-background-radius: 8;" +
                                                         "-fx-text-fill: white;" +
                                                         "-fx-font-family: 'Poppins';" +
@@ -983,6 +1019,25 @@ public class Dashboard {
                                                         "-fx-font-weight: bold;" +
                                                         "-fx-cursor: hand;");
                 });
+
+                Runnable openDetails = () -> {
+                        LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                        EquipmentDetailPage detailPage = new EquipmentDetailPage(
+                                equipmentName,
+                                category != null ? category : "Agricultural Equipment",
+                                price.replace("₹", "").replace("/ day", "").trim(),
+                                rating != null ? rating : "4.8",
+                                location != null ? location : "Pune, Maharashtra",
+                                imagePath,
+                                () -> {
+                                        LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
+                                        FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
+                                }
+                        );
+                        FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
+                };
+
+                viewButton.setOnAction(e -> openDetails.run());
 
                 VBox card = new VBox(
                                 10,
@@ -993,15 +1048,16 @@ public class Dashboard {
 
                 card.setPrefWidth(220);
                 card.setPrefHeight(210);
+                card.setCursor(javafx.scene.Cursor.HAND);
+                card.setOnMouseClicked(e -> openDetails.run());
 
-                card.setPadding(
-                                new Insets(12));
+                card.setPadding(new Insets(12));
 
                 card.setStyle(
-                                "-fx-background-color: #F5EFE6;" +
+                                "-fx-background-color: #FFFFFF;" +
                                                 "-fx-background-radius: 14;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-width: 1;" +
+                                                "-fx-border-color: #D1E7DD;" +
+                                                "-fx-border-width: 1.2;" +
                                                 "-fx-border-radius: 14;");
 
                 return card;
@@ -1018,14 +1074,14 @@ public class Dashboard {
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 14px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-fill: #1B4332;");
 
                 Text dateText = new Text(date);
 
                 dateText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
-                                                "-fx-fill: #806A5B;");
+                                                "-fx-fill: #4B5563;");
 
                 Text statusText = new Text(status);
 
@@ -1033,7 +1089,7 @@ public class Dashboard {
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #6B7D45;");
+                                                "-fx-fill: #2E7D32;");
 
                 VBox equipmentBox = new VBox(equipmentText);
 
@@ -1054,13 +1110,20 @@ public class Dashboard {
                                 new Insets(15));
 
                 row.setPrefHeight(55);
+                row.setCursor(javafx.scene.Cursor.HAND);
 
                 row.setStyle(
-                                "-fx-background-color: #F5EFE6;" +
+                                "-fx-background-color: #FFFFFF;" +
                                                 "-fx-background-radius: 10;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-width: 1;" +
+                                                "-fx-border-color: #D1E7DD;" +
+                                                "-fx-border-width: 1.2;" +
                                                 "-fx-border-radius: 10;");
+
+                row.setOnMouseClicked(e -> {
+                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                });
 
                 return row;
         }
@@ -1076,14 +1139,14 @@ public class Dashboard {
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 17px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #4A2C20;");
+                                                "-fx-fill: #1B4332;");
 
                 Text dateText = new Text(bookingDate);
 
                 dateText.setStyle(
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
-                                                "-fx-fill: #806A5B;");
+                                                "-fx-fill: #4B5563;");
 
                 Text statusText = new Text("Status: " + status);
 
@@ -1091,7 +1154,7 @@ public class Dashboard {
                                 "-fx-font-family: 'Poppins';" +
                                                 "-fx-font-size: 13px;" +
                                                 "-fx-font-weight: bold;" +
-                                                "-fx-fill: #6B7D45;");
+                                                "-fx-fill: #2E7D32;");
 
                 Button viewButton = new Button("View Booking");
 
@@ -1099,7 +1162,7 @@ public class Dashboard {
                 viewButton.setPrefHeight(35);
 
                 viewButton.setStyle(
-                                "-fx-background-color: #8B6F47;" +
+                                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                                                 "-fx-background-radius: 8;" +
                                                 "-fx-text-fill: white;" +
                                                 "-fx-font-family: 'Poppins';" +
@@ -1107,11 +1170,31 @@ public class Dashboard {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-cursor: hand;");
 
-                viewButton.setOnAction(e -> {
+                viewButton.setOnMouseEntered(e -> viewButton.setStyle(
+                                "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F);" +
+                                                "-fx-background-radius: 8;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 12px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
 
-                        System.out.println("View Booking clicked");
+                viewButton.setOnMouseExited(e -> viewButton.setStyle(
+                                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                                                "-fx-background-radius: 8;" +
+                                                "-fx-text-fill: white;" +
+                                                "-fx-font-family: 'Poppins';" +
+                                                "-fx-font-size: 12px;" +
+                                                "-fx-font-weight: bold;" +
+                                                "-fx-cursor: hand;"));
 
-                });
+                Runnable openBooking = () -> {
+                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        MyBookings obj = new MyBookings();
+                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                };
+
+                viewButton.setOnAction(e -> openBooking.run());
 
                 VBox card = new VBox(
                                 10,
@@ -1124,12 +1207,14 @@ public class Dashboard {
                                 new Insets(18));
 
                 card.setPrefHeight(150);
+                card.setCursor(javafx.scene.Cursor.HAND);
+                card.setOnMouseClicked(e -> openBooking.run());
 
                 card.setStyle(
-                                "-fx-background-color: #F5EFE6;" +
+                                "-fx-background-color: #FFFFFF;" +
                                                 "-fx-background-radius: 14;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-width: 1;" +
+                                                "-fx-border-color: #D1E7DD;" +
+                                                "-fx-border-width: 1.2;" +
                                                 "-fx-border-radius: 14;");
 
                 return card;
