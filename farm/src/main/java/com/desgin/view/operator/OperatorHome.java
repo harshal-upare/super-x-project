@@ -40,20 +40,20 @@ public class OperatorHome {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 26px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;");
+                "-fx-fill: #1B4332;");
 
         Text dashboardText = new Text("Machinery Operator Cockpit & Field Command");
         dashboardText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 16px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #5C4033;");
+                "-fx-fill: #374151;");
 
         Text descriptionText = new Text("Monitor active machine telemetry, field work orders, engine hours & instant wage payouts");
         descriptionText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-fill: #806A5B;");
+                "-fx-fill: #4B5563;");
 
         VBox headerText = new VBox(4, welcomeText, dashboardText, descriptionText);
         headerText.setAlignment(Pos.TOP_LEFT);
@@ -74,12 +74,12 @@ public class OperatorHome {
         searchField.setStyle(
                 "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
-                "-fx-border-color: #D8C7B5;" +
+                "-fx-border-color: #E2EBE5;" +
                 "-fx-border-radius: 10;" +
                 "-fx-border-width: 1;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-text-fill: #4A2C20;" +
+                "-fx-text-fill: #1B4332;" +
                 "-fx-prompt-text-fill: #A18C7A;");
 
         Text searchIcon = new Text("🔍");
@@ -102,8 +102,8 @@ public class OperatorHome {
 
         // 4 KPI Operator Metric Cards
         VBox cardMachines = createDashboardCard("🚜", "Assigned Machinery", "4 Units", "2 Field Ready • 1 In Shift", "#2E7D32", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.machineryBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorMachinery.getMachinerySection(OperatorDashboard.root));
+            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
         VBox cardActiveJobs = createDashboardCard("📋", "Active Field Jobs", "2 Assigned", "1 Running • 1 Scheduled", "#E65100", () -> {
@@ -112,8 +112,8 @@ public class OperatorHome {
         });
 
         VBox cardHours = createDashboardCard("⏱", "Engine Hours (Month)", "148.5 hrs", "+18.2 hrs this week ↑", "#1976D2", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.fieldLogsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorFieldLogs.getLogsSection(OperatorDashboard.root));
+            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
         VBox cardEarnings = createDashboardCard("💰", "Wages Earned (Month)", "₹28,400", "₹4,200 pending settlement", "#2E7D32", () -> {
@@ -162,7 +162,7 @@ public class OperatorHome {
         shiftStatusBadge = new Text("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
         shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
 
-        Label gpsPill = new Label("● GPS LIVE TRACKING");
+        Label gpsPill = new Label("● GPS LIVE TRACKING (Sector 4 Baramati)");
         gpsPill.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
 
         HBox badgeRow = new HBox(12, shiftStatusBadge, new Region(), gpsPill);
@@ -170,15 +170,15 @@ public class OperatorHome {
         badgeRow.setAlignment(Pos.CENTER_LEFT);
 
         Text title = new Text("John Deere 5310 4WD (55 HP) • Heavy Duty Rotavator (7ft)");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text subInfo = new Text("Client: Balasaheb Shirole  |  Location: Plot B, Sector 4 - Baramati (14.0 Acres)  |  Crop: Sugarcane Seedbed Tillage");
-        subInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #5C4033;");
+        Text subInfo = new Text("Client: Balasaheb Shirole (📞 +91 98220 12345)  |  Location: Plot B, Sector 4 - Baramati (14.0 Acres)  |  Crop: Sugarcane Seedbed Tillage");
+        subInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
         // 4 Telemetry Dials
         VBox tel1 = createTelemetryStat("⛽ Fuel Level", "78% (42 Liters Left)", 0.78, "#2E7D32");
         VBox tel2 = createTelemetryStat("⚡ Engine Speed", "1,850 RPM (Optimal)", 0.74, "#2E7D32");
-        VBox tel3 = createTelemetryStat("🌡 Coolant Temp", "84°C (Normal)", 0.55, "#8B6F47");
+        VBox tel3 = createTelemetryStat("🌡 Coolant Temp", "84°C (Normal)", 0.55, "#2D6A4F");
         VBox tel4 = createTelemetryStat("⏱ Shift Duration", "3h 45m (7.5 Acres Done)", 0.65, "#1976D2");
 
         HBox telRow = new HBox(14, tel1, tel2, tel3, tel4);
@@ -186,12 +186,12 @@ public class OperatorHome {
 
         // Action Buttons
         pauseShiftBtn = new Button("⏸  Pause Shift");
-        pauseShiftBtn.setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+        pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
         pauseShiftBtn.setOnAction(e -> {
             isShiftRunning = !isShiftRunning;
             if (isShiftRunning) {
                 pauseShiftBtn.setText("⏸  Pause Shift");
-                pauseShiftBtn.setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+                pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
                 shiftStatusBadge.setText("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
                 shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
             } else {
@@ -202,27 +202,27 @@ public class OperatorHome {
             }
         });
 
-        Button completeBtn = new Button("✓  Complete Shift & Submit Log");
+        Button otpVerifyBtn = new Button("🔢  Verify Job OTP");
+        otpVerifyBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+        otpVerifyBtn.setOnAction(e -> showOtpModal(OperatorDashboard.root));
+
+        Button completeBtn = new Button("✓  Complete Shift & Payout");
         completeBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
         completeBtn.setOnAction(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.fieldLogsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorFieldLogs.getLogsSection(OperatorDashboard.root));
+            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
-        Button sosBtn = new Button("⚠️  Report Field Breakdown / SOS");
-        sosBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        sosBtn.setOnAction(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.maintenanceBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorMaintenance.getMaintenanceSection(OperatorDashboard.root));
-        });
+        Button callFarmerBtn = new Button("📞  Call Farmer (+91 98220 12345)");
+        callFarmerBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
 
-        HBox btnRow = new HBox(12, pauseShiftBtn, completeBtn, sosBtn);
+        HBox btnRow = new HBox(12, pauseShiftBtn, otpVerifyBtn, completeBtn, callFarmerBtn);
         btnRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(14, badgeRow, title, subInfo, telRow, btnRow);
         card.setPadding(new Insets(20));
         card.setStyle(
-                "-fx-background-color: #F5EFE6;" +
+                "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 14;" +
                 "-fx-border-color: #2E7D32;" +
                 "-fx-border-width: 1.5;" +
@@ -232,12 +232,63 @@ public class OperatorHome {
         return card;
     }
 
+    private static void showOtpModal(StackPane root) {
+        if (root == null) return;
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.55);");
+
+        VBox modal = new VBox(14);
+        modal.setPrefWidth(420);
+        modal.setMaxWidth(420);
+        modal.setPadding(new Insets(24));
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 16; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 16;");
+
+        Text title = new Text("Farmer Job Completion OTP");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Ask farmer Balasaheb Shirole for the 4-digit completion code to verify job finish and unlock instant wage payout.");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
+        sub.setWrappingWidth(370);
+
+        TextField otpField = new TextField();
+        otpField.setPromptText("Enter 4-Digit OTP (e.g. 7421)");
+        otpField.setPrefHeight(40);
+        otpField.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-alignment: center;");
+
+        Label statusMsg = new Label("");
+        statusMsg.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;");
+
+        Button verifyBtn = new Button("Verify & Unlock Wage");
+        verifyBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        verifyBtn.setPrefHeight(36);
+
+        Button cancelBtn = new Button("Cancel");
+        cancelBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        cancelBtn.setPrefHeight(36);
+
+        verifyBtn.setOnAction(e -> {
+            if (!otpField.getText().trim().isEmpty()) {
+                statusMsg.setText("✔ OTP Verified! ₹1,200 Wage Credited Instantly to Balance.");
+                verifyBtn.setDisable(true);
+            }
+        });
+
+        cancelBtn.setOnAction(e -> root.getChildren().remove(overlay));
+
+        HBox btns = new HBox(10, verifyBtn, cancelBtn);
+        btns.setAlignment(Pos.CENTER_RIGHT);
+
+        modal.getChildren().addAll(title, sub, otpField, statusMsg, btns);
+        overlay.getChildren().add(modal);
+        root.getChildren().add(overlay);
+    }
+
     private static VBox createTelemetryStat(String label, String value, double progress, String barColor) {
         Text l = new Text(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
         Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         ProgressBar pb = new ProgressBar(progress);
         pb.setPrefWidth(210);
@@ -247,13 +298,13 @@ public class OperatorHome {
         VBox b = new VBox(4, l, v, pb);
         b.setPrefWidth(225);
         b.setPadding(new Insets(10, 12, 10, 12));
-        b.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 8; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 8;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
         return b;
     }
 
     private static VBox createUpcomingScheduleSection() {
         Text title = new Text("Upcoming Work Orders & Field Schedule");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text viewAll = new Text("View Full Schedule →");
         viewAll.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-cursor: hand;");
@@ -277,27 +328,27 @@ public class OperatorHome {
 
     private static HBox createScheduleRow(String jobName, String details, String timing, String pay, String status, String cropTag) {
         Text t1 = new Text(jobName);
-        t1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text t2 = new Text(details);
-        t2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Label cropBadge = new Label(cropTag);
-        cropBadge.setStyle("-fx-background-color: #EDE3D5; -fx-text-fill: #5C4033; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 6 2 6; -fx-background-radius: 4;");
+        cropBadge.setStyle("-fx-background-color: #F4F9F4; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 6 2 6; -fx-background-radius: 4;");
 
         VBox info = new VBox(3, new HBox(8, t1, cropBadge), t2);
 
         Text timeText = new Text("📅 " + timing);
-        timeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+        timeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #374151;");
 
         Text payText = new Text("💰 " + pay);
         payText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
 
         Text statusBadge = new Text("● " + status);
-        statusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+        statusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
         Button actionBtn = new Button("View Job ➔");
-        actionBtn.setStyle("-fx-background-color: #8B6F47; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        actionBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         actionBtn.setOnAction(e -> {
             OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
@@ -309,17 +360,17 @@ public class OperatorHome {
         HBox row = new HBox(20, info, s1, timeText, payText, statusBadge, actionBtn);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 16, 12, 16));
-        row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
         return row;
     }
 
     private static VBox createSafetyChecklistCard() {
         Text title = new Text("📋 Daily Pre-Operation Safety & Machinery Checklist");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text sub = new Text("Verify standard safety checklist before initiating field operations.");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         CheckBox c1 = new CheckBox("Engine Oil, Coolant & Diesel Levels Verified (OK)");
         CheckBox c2 = new CheckBox("Hydraulic Pressure & Hoses Inspected for Leakage (OK)");
@@ -331,7 +382,7 @@ public class OperatorHome {
         c3.setSelected(true);
         c4.setSelected(true);
 
-        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;";
+        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;";
         c1.setStyle(cbStyle);
         c2.setStyle(cbStyle);
         c3.setStyle(cbStyle);
@@ -350,14 +401,14 @@ public class OperatorHome {
 
         VBox card = new VBox(10, title, sub, grid, submitChecklist);
         card.setPadding(new Insets(16));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
 
         return card;
     }
 
     private static VBox createRecentLogsSection() {
         Text title = new Text("Recent Completed Field Logs");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         HBox r1 = createLogRow("John Deere 5310 (Plowing)", "13 Aug 2026", "6.5 hrs", "12.0 Acres", "₹2,800 Payout", "VERIFIED");
         HBox r2 = createLogRow("Mahindra 575 DI (Cultivator)", "11 Aug 2026", "4.0 hrs", "8.5 Acres", "₹1,900 Payout", "VERIFIED");
@@ -368,16 +419,16 @@ public class OperatorHome {
 
     private static HBox createLogRow(String machine, String date, String hours, String acres, String wage, String status) {
         Text mText = new Text("🚜 " + machine);
-        mText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        mText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text dText = new Text("📅 " + date);
-        dText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        dText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text hText = new Text("⏱ " + hours);
-        hText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+        hText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
 
         Text aText = new Text("🌾 " + acres);
-        aText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+        aText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
 
         Text wText = new Text(wage);
         wText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -391,7 +442,7 @@ public class OperatorHome {
         HBox row = new HBox(25, mText, dText, spacer, hText, aText, wText, sText);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 16, 12, 16));
-        row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
         return row;
     }
@@ -402,13 +453,13 @@ public class OperatorHome {
 
         StackPane iconHolder = new StackPane(iconText);
         iconHolder.setPrefSize(42, 42);
-        iconHolder.setStyle("-fx-background-color: #E4D3C2; -fx-background-radius: 10;");
+        iconHolder.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
 
         Text titleText = new Text(title);
-        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text valueText = new Text(value);
-        valueText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        valueText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subText = new Text(subtitle);
         subText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: " + color + "; -fx-font-weight: bold;");
@@ -421,8 +472,8 @@ public class OperatorHome {
         card.setPrefHeight(115);
         card.setPadding(new Insets(14));
 
-        String normalStyle = "-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14; -fx-cursor: hand;";
-        String hoverStyle = "-fx-background-color: #FFF9F0; -fx-background-radius: 14; -fx-border-color: #8B6F47; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(74,44,32,0.2), 10, 0.2, 0, 4); -fx-cursor: hand;";
+        String normalStyle = "-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14; -fx-cursor: hand;";
+        String hoverStyle = "-fx-background-color: #F0FDF4; -fx-background-radius: 14; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.2), 10, 0.2, 0, 4); -fx-cursor: hand;";
 
         card.setStyle(normalStyle);
 

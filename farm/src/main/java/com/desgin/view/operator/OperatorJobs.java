@@ -63,10 +63,10 @@ public class OperatorJobs {
 
     public static ScrollPane getJobsSection(StackPane root) {
         Text title = new Text("Field Work Orders & Job Dispatch");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subtitle = new Text("Review work orders assigned by farmers and equipment fleet managers, accept dispatches, and track completion.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, title, subtitle);
 
@@ -75,7 +75,7 @@ public class OperatorJobs {
         searchField.setPromptText("Search job ID, farmer name, farm sector, crop task...");
         searchField.setPrefHeight(38);
         searchField.setPrefWidth(320);
-        searchField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #D8C7B5; -fx-border-radius: 8;");
+        searchField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 8;");
         searchField.textProperty().addListener((obs, oldV, newV) -> filterSearch(newV, root));
 
         HBox topBar = new HBox(titleBox, new Region(), searchField);
@@ -147,28 +147,28 @@ public class OperatorJobs {
 
     private static VBox createJobCard(JobOrder j, StackPane root) {
         Text idText = new Text(j.id);
-        idText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+        idText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
         Text titleText = new Text(j.taskTitle);
-        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text farmerText = new Text("👨‍🌾 Farmer: " + j.farmerName + "  |  📞 " + j.phone);
-        farmerText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+        farmerText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
 
         Text locText = new Text("📍 Location: " + j.location);
-        locText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        locText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text machText = new Text("🚜 Machinery: " + j.machineRequired);
         machText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
 
         Text timeText = new Text("📅 Schedule: " + j.schedule);
-        timeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #5C4033;");
+        timeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
 
         VBox infoBox = new VBox(4, idText, titleText, farmerText, locText, machText, timeText);
 
         // Wage Box
         Text wageRateText = new Text("Rate: " + j.wageRate);
-        wageRateText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        wageRateText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text estWageText = new Text(j.estimatedWage);
         estWageText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -179,7 +179,7 @@ public class OperatorJobs {
         } else if (j.status.equals("COMPLETED")) {
             statusLabel.setStyle("-fx-background-color: #E0F2FE; -fx-text-fill: #0284C7; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10 4 10; -fx-background-radius: 4;");
         } else {
-            statusLabel.setStyle("-fx-background-color: #EDE3D5; -fx-text-fill: #5C4033; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10 4 10; -fx-background-radius: 4;");
+            statusLabel.setStyle("-fx-background-color: #F4F9F4; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 4 10 4 10; -fx-background-radius: 4;");
         }
 
         VBox wageBox = new VBox(4, wageRateText, estWageText, statusLabel);
@@ -191,11 +191,11 @@ public class OperatorJobs {
         updateBtn.setOnAction(e -> showStatusModal(j, root));
 
         Button routeBtn = new Button("📍 Farm Route");
-        routeBtn.setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
+        routeBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         routeBtn.setOnAction(e -> showRouteModal(j, root));
 
         Button callBtn = new Button("📞 Call");
-        callBtn.setStyle("-fx-background-color: #8B6F47; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
+        callBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         callBtn.setOnAction(e -> showCallModal(j, root));
 
         HBox btnRow = new HBox(8, routeBtn, callBtn, updateBtn);
@@ -210,13 +210,13 @@ public class OperatorJobs {
         HBox row = new HBox(20, infoBox, spacer, rightSide);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16, 20, 16, 20));
-        row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
 
         row.setOnMouseEntered(e -> {
-            row.setStyle("-fx-background-color: #FFF9F0; -fx-background-radius: 12; -fx-border-color: #8B6F47; -fx-border-width: 1; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(74,44,32,0.15), 8, 0.2, 0, 3);");
+            row.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 12; -fx-border-color: #2D6A4F; -fx-border-width: 1; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.15), 8, 0.2, 0, 3);");
         });
         row.setOnMouseExited(e -> {
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         });
 
         return new VBox(row);
@@ -226,9 +226,9 @@ public class OperatorJobs {
         Button btn = new Button(text);
         btn.setPrefHeight(34);
         if (active) {
-            btn.setStyle("-fx-background-color: #4A2C20; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
+            btn.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
         } else {
-            btn.setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
+            btn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
         }
         return btn;
     }
@@ -236,10 +236,10 @@ public class OperatorJobs {
     private static void setActiveFilter(Button activeBtn, HBox filterBox) {
         for (var node : filterBox.getChildren()) {
             if (node instanceof Button) {
-                ((Button) node).setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
+                ((Button) node).setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
             }
         }
-        activeBtn.setStyle("-fx-background-color: #4A2C20; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
+        activeBtn.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
     }
 
     private static void showStatusModal(JobOrder j, StackPane root) {
@@ -250,13 +250,13 @@ public class OperatorJobs {
         modal.setPrefWidth(460);
         modal.setMaxWidth(460);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
         Text title = new Text("Update Job Status: " + j.id);
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text task = new Text(j.taskTitle + "\nClient: " + j.farmerName);
-        task.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #5C4033;");
+        task.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
 
         Button s1 = new Button("▶  Start Job (In-Progress)");
         s1.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
@@ -285,13 +285,13 @@ public class OperatorJobs {
         modal.setPrefWidth(460);
         modal.setMaxWidth(460);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
         Text title = new Text("📍 Field Navigation & Farm Route");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text desc = new Text("Destination: " + j.location + "\nEstimated Distance: 14.8 km (approx. 25 min by tractor road)\nTurn-by-turn routing available via FarmEquip GPS Navigation.");
-        desc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #5C4033; -fx-line-spacing: 3px;");
+        desc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151; -fx-line-spacing: 3px;");
 
         Button close = new Button("Close Map Directions");
         close.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
@@ -310,13 +310,13 @@ public class OperatorJobs {
         modal.setPrefWidth(420);
         modal.setMaxWidth(420);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
         Text title = new Text("📞 Contact Client Farmer");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text farmerInfo = new Text("Farmer Name: " + j.farmerName + "\nMobile Phone: " + j.phone + "\nFarm: " + j.location);
-        farmerInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #5C4033; -fx-line-spacing: 4px;");
+        farmerInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #374151; -fx-line-spacing: 4px;");
 
         Button callBtn = new Button("Dial " + j.phone);
         callBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");

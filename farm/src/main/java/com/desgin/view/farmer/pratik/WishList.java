@@ -5,10 +5,14 @@ import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
@@ -18,6 +22,53 @@ import com.desgin.view.farmer.om.EquipmentDetailPage;
 
 public class WishList {
 
+    public static class WishlistItem {
+        private String equipmentName;
+        private String category;
+        private String price;
+        private String rating;
+        private String location;
+        private String imagePath;
+
+        public WishlistItem(String equipmentName, String category, String price, String rating, String location, String imagePath) {
+            this.equipmentName = equipmentName;
+            this.category = category;
+            this.price = price;
+            this.rating = rating;
+            this.location = location;
+            this.imagePath = imagePath;
+        }
+
+        public String getEquipmentName() { return equipmentName; }
+        public String getCategory() { return category; }
+        public String getPrice() { return price; }
+        public String getRating() { return rating; }
+        public String getLocation() { return location; }
+        public String getImagePath() { return imagePath; }
+    }
+
+    public static class OperatorWishlistItem {
+        public String id;
+        public String name;
+        public String specialty;
+        public String experience;
+        public String location;
+        public String rate;
+        public double rating;
+        public String phone;
+
+        public OperatorWishlistItem(String id, String name, String specialty, String experience, String location, String rate, double rating, String phone) {
+            this.id = id;
+            this.name = name;
+            this.specialty = specialty;
+            this.experience = experience;
+            this.location = location;
+            this.rate = rate;
+            this.rating = rating;
+            this.phone = phone;
+        }
+    }
+
     // ============================================================
     // WISHLIST DATA
     // ============================================================
@@ -25,10 +76,24 @@ public class WishList {
     private static final ObservableList<WishlistItem> wishlistItems =
             FXCollections.observableArrayList();
 
+    private static final ObservableList<OperatorWishlistItem> operatorWishlist =
+            FXCollections.observableArrayList();
 
-    // ============================================================
-    // ADD TO WISHLIST
-    // ============================================================
+    static {
+        // Initial sample saved operator in wishlist for demonstration
+        if (operatorWishlist.isEmpty()) {
+            operatorWishlist.add(new OperatorWishlistItem(
+                    "OP-101",
+                    "Dilip Shinde",
+                    "🚜 55HP+ Heavy 4WD Tractor Driver",
+                    "8 Years Exp • 142 Jobs",
+                    "Pune (Baramati Hub)",
+                    "₹600 / day",
+                    4.9,
+                    "+91 98901 44552"
+            ));
+        }
+    }
 
     public static void addToWishlist(
             String equipmentName,
@@ -38,11 +103,7 @@ public class WishList {
             String location,
             String imagePath) {
 
-        // Prevent duplicate equipment
         if (isInWishlist(equipmentName)) {
-            System.out.println(
-                    equipmentName + " is already in wishlist."
-            );
             return;
         }
 
@@ -56,61 +117,38 @@ public class WishList {
         );
 
         wishlistItems.add(item);
-
-        System.out.println(
-                equipmentName + " added to wishlist."
-        );
     }
 
-
-    // ============================================================
-    // REMOVE FROM WISHLIST
-    // ============================================================
-
-    public static void removeFromWishlist(
-            String equipmentName) {
-
-        wishlistItems.removeIf(
-                item -> item.getEquipmentName()
-                        .equals(equipmentName)
-        );
-
-        System.out.println(
-                equipmentName + " removed from wishlist."
-        );
+    public static void removeFromWishlist(String equipmentName) {
+        wishlistItems.removeIf(item -> item.getEquipmentName().equals(equipmentName));
     }
 
-
-    // ============================================================
-    // CHECK WISHLIST
-    // ============================================================
-
-    public static boolean isInWishlist(
-            String equipmentName) {
-
+    public static boolean isInWishlist(String equipmentName) {
         for (WishlistItem item : wishlistItems) {
-
-            if (item.getEquipmentName()
-                    .equals(equipmentName)) {
-
+            if (item.getEquipmentName().equals(equipmentName)) {
                 return true;
             }
         }
-
         return false;
     }
 
-
-    // ============================================================
-    // GET WISHLIST ITEMS
-    // ============================================================
-
-    public static ObservableList<WishlistItem>
-    getWishlistItems() {
-
+    public static ObservableList<WishlistItem> getWishlistItems() {
         return wishlistItems;
     }
 
+    public static void addOperatorToWishlist(OperatorWishlistItem op) {
+        if (op == null) return;
+        for (OperatorWishlistItem item : operatorWishlist) {
+            if (item.name.equalsIgnoreCase(op.name)) return;
+        }
+        operatorWishlist.add(op);
+    }
+
+    public static void removeOperatorFromWishlist(String name) {
+        operatorWishlist.removeIf(op -> op.name.equalsIgnoreCase(name));
+    }
+
+    private static boolean isEquipmentTab = true;
 
     // ============================================================
     // WISHLIST PAGE
@@ -119,288 +157,293 @@ public class WishList {
     public static ScrollPane getWishList() {
 
         // --------------------------------------------------------
-        // TITLE
+        // TITLE & SUBTITLE
         // --------------------------------------------------------
 
-        Text wishlistTitle =
-                new Text("My Wishlist");
-
+        Text wishlistTitle = new Text("My Saved Wishlist ❤️");
         wishlistTitle.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 26px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
+                "-fx-fill: #1B4332;"
         );
 
-
-        // --------------------------------------------------------
-        // SUBTITLE
-        // --------------------------------------------------------
-
-        Text subtitle =
-                new Text(
-                        "Equipment you saved for later"
-                );
-
+        Text subtitle = new Text(
+                "Keep track of preferred farm machinery and certified operators for immediate field booking."
+        );
         subtitle.setStyle(
                 "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 14px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-font-size: 13.5px;" +
+                "-fx-fill: #4B5563;"
         );
 
-
-        VBox heading =
-                new VBox(
-                        5,
-                        wishlistTitle,
-                        subtitle
-                );
-
+        VBox heading = new VBox(4, wishlistTitle, subtitle);
 
         // --------------------------------------------------------
-        // WISHLIST COUNT
+        // TAB BUTTONS (EQUIPMENT vs OPERATORS)
         // --------------------------------------------------------
 
-        Text wishlistCount =
-                new Text();
+        Button tabEquipmentBtn = new Button("🚜  Equipment Wishlist (" + wishlistItems.size() + ")");
+        Button tabOperatorBtn = new Button("👷  Operator Wishlist (" + operatorWishlist.size() + ")");
 
-        wishlistCount.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 14px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #6B8E23;"
-        );
-
+        HBox tabBox = new HBox(10, tabEquipmentBtn, tabOperatorBtn);
+        tabBox.setAlignment(Pos.CENTER_LEFT);
 
         // --------------------------------------------------------
-        // CARDS CONTAINER
+        // CARDS & LIST CONTAINERS
         // --------------------------------------------------------
 
-        TilePane wishlistCards =
-                new TilePane();
+        TilePane equipmentCards = new TilePane();
+        equipmentCards.setHgap(16);
+        equipmentCards.setVgap(16);
+        equipmentCards.setPrefColumns(2);
+        equipmentCards.setAlignment(Pos.TOP_LEFT);
 
-        wishlistCards.setHgap(15);
-        wishlistCards.setVgap(15);
-
-        wishlistCards.setPrefColumns(2);
-
-        wishlistCards.setAlignment(
-                Pos.TOP_LEFT
-        );
-
+        VBox operatorCardsBox = new VBox(12);
+        operatorCardsBox.setMaxWidth(Double.MAX_VALUE);
 
         // --------------------------------------------------------
         // EMPTY MESSAGE
         // --------------------------------------------------------
 
-        Text emptyText =
-                new Text(
-                        "❤️  No equipment added to wishlist yet."
-                );
+        Text emptyIcon = new Text("❤️");
+        emptyIcon.setStyle("-fx-font-size: 38px;");
 
+        Text emptyText = new Text("No Items in Your Wishlist");
         emptyText.setStyle(
                 "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 15px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-font-size: 16px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-fill: #1B4332;"
         );
 
-
-        VBox emptyBox =
-                new VBox(emptyText);
-
-        emptyBox.setAlignment(
-                Pos.CENTER
+        Text emptySub = new Text(
+                "Click the heart icon on any equipment in Browse Equipment or bookmark operators in Search Operators to save them here."
+        );
+        emptySub.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 13px;" +
+                "-fx-fill: #4B5563;"
         );
 
-        emptyBox.setPadding(
-                new Insets(50)
+        VBox emptyBox = new VBox(10, emptyIcon, emptyText, emptySub);
+        emptyBox.setAlignment(Pos.CENTER);
+        emptyBox.setPadding(new Insets(50));
+        emptyBox.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
         );
-
 
         // --------------------------------------------------------
         // REFRESH METHOD
         // --------------------------------------------------------
 
-        Runnable refreshWishlist = new Runnable() {
-
+        Runnable refreshView = new Runnable() {
             @Override
             public void run() {
+                tabEquipmentBtn.setText("🚜  Equipment Wishlist (" + wishlistItems.size() + ")");
+                tabOperatorBtn.setText("👷  Operator Wishlist (" + operatorWishlist.size() + ")");
 
-                wishlistCards
-                        .getChildren()
-                        .clear();
+                styleTabPill(tabEquipmentBtn, isEquipmentTab);
+                styleTabPill(tabOperatorBtn, !isEquipmentTab);
 
+                equipmentCards.getChildren().clear();
+                operatorCardsBox.getChildren().clear();
 
-                // Update count
+                if (isEquipmentTab) {
+                    equipmentCards.setVisible(true);
+                    equipmentCards.setManaged(true);
+                    operatorCardsBox.setVisible(false);
+                    operatorCardsBox.setManaged(false);
 
-                wishlistCount.setText(
-                        wishlistItems.size()
-                                + " equipment saved"
-                );
+                    if (wishlistItems.isEmpty()) {
+                        emptyText.setText("No Equipment in Your Wishlist");
+                        emptySub.setText("Click the heart icon on any machinery in Browse Equipment to save it here for fast booking.");
+                        emptyBox.setVisible(true);
+                        emptyBox.setManaged(true);
+                    } else {
+                        emptyBox.setVisible(false);
+                        emptyBox.setManaged(false);
+                        for (WishlistItem item : wishlistItems) {
+                            equipmentCards.getChildren().add(createWishlistCard(item, this));
+                        }
+                    }
+                } else {
+                    equipmentCards.setVisible(false);
+                    equipmentCards.setManaged(false);
+                    operatorCardsBox.setVisible(true);
+                    operatorCardsBox.setManaged(true);
 
-
-                // Empty wishlist
-
-                if (wishlistItems.isEmpty()) {
-
-                    emptyBox.setVisible(true);
-
-                    emptyBox.setManaged(true);
-
-                }
-
-                // Wishlist contains items
-
-                else {
-
-                    emptyBox.setVisible(false);
-
-                    emptyBox.setManaged(false);
-
-
-                    for (WishlistItem item :
-                            wishlistItems) {
-
-                        VBox card =
-                                createWishlistCard(
-                                        item,
-                                        this
-                                );
-
-                        wishlistCards
-                                .getChildren()
-                                .add(card);
+                    if (operatorWishlist.isEmpty()) {
+                        emptyText.setText("No Operators in Your Wishlist");
+                        emptySub.setText("Navigate to Search Operators to bookmark skilled drivers and drone pilots for your farm.");
+                        emptyBox.setVisible(true);
+                        emptyBox.setManaged(true);
+                    } else {
+                        emptyBox.setVisible(false);
+                        emptyBox.setManaged(false);
+                        for (OperatorWishlistItem op : operatorWishlist) {
+                            operatorCardsBox.getChildren().add(createOperatorWishlistCard(op, this));
+                        }
                     }
                 }
             }
         };
 
+        tabEquipmentBtn.setOnAction(e -> {
+            isEquipmentTab = true;
+            refreshView.run();
+        });
 
-        // --------------------------------------------------------
-        // INITIAL DISPLAY
-        // --------------------------------------------------------
+        tabOperatorBtn.setOnAction(e -> {
+            isEquipmentTab = false;
+            refreshView.run();
+        });
 
-        refreshWishlist.run();
-
+        refreshView.run();
 
         // --------------------------------------------------------
         // MAIN CONTENT
         // --------------------------------------------------------
 
-        VBox content =
-                new VBox(
-                        18,
-                        heading,
-                        wishlistCount,
-                        emptyBox,
-                        wishlistCards
-                );
-
-
-        content.setPadding(
-                new Insets(
-                        25,
-                        30,
-                        30,
-                        30
-                )
+        VBox content = new VBox(
+                18,
+                heading,
+                tabBox,
+                emptyBox,
+                equipmentCards,
+                operatorCardsBox
         );
+        content.setPadding(new Insets(20, 30, 35, 30));
+        content.setStyle("-fx-background-color: transparent;");
 
-        content.setAlignment(
-                Pos.TOP_LEFT
-        );
-
-        content.setMaxWidth(
-                Double.MAX_VALUE
-        );
-
-        content.setStyle(
-                "-fx-background-color: #FCF9F5;"
-        );
-
-
-        // --------------------------------------------------------
-        // SCROLL PANE
-        // --------------------------------------------------------
-
-        ScrollPane scrollPane =
-                new ScrollPane();
-
-        scrollPane.setContent(
-                content
-        );
-
+        ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
-
-        scrollPane.setFitToHeight(false);
-
-        scrollPane.setHbarPolicy(
-                ScrollPane.ScrollBarPolicy.NEVER
-        );
-
-        scrollPane.setVbarPolicy(
-                ScrollPane.ScrollBarPolicy.AS_NEEDED
-        );
-
-        scrollPane.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-background: transparent;"
-        );
-
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         return scrollPane;
     }
 
+    private static void styleTabPill(Button btn, boolean active) {
+        if (active) {
+            btn.setStyle(
+                    "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                    "-fx-text-fill: white;" +
+                    "-fx-font-family: 'Poppins';" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-background-radius: 20px;" +
+                    "-fx-padding: 8px 20px;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);"
+            );
+        } else {
+            btn.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                    "-fx-text-fill: #4B5563;" +
+                    "-fx-font-family: 'Poppins';" +
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 500;" +
+                    "-fx-background-radius: 20px;" +
+                    "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                    "-fx-border-width: 1.2px;" +
+                    "-fx-border-radius: 20px;" +
+                    "-fx-padding: 8px 20px;" +
+                    "-fx-cursor: hand;"
+            );
+        }
+    }
 
     // ============================================================
-    // CREATE WISHLIST CARD
+    // CREATE OPERATOR WISHLIST CARD (HORIZONTAL)
+    // ============================================================
+    private static HBox createOperatorWishlistCard(OperatorWishlistItem op, Runnable refreshView) {
+        HBox card = new HBox(16);
+        card.setPadding(new Insets(14, 18, 14, 18));
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+        );
+
+        Text icon = new Text("👨‍🌾");
+        if (op.specialty.contains("Harvester")) icon.setText("🌾");
+        if (op.specialty.contains("Drone")) icon.setText("🚁");
+        if (op.specialty.contains("Tractor")) icon.setText("🚜");
+        icon.setStyle("-fx-font-size: 28px;");
+
+        StackPane iconBox = new StackPane(icon);
+        iconBox.setPrefSize(48, 48);
+        iconBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px;");
+
+        Text nameT = new Text(op.name);
+        nameT.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text specT = new Text(op.specialty);
+        specT.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: 600; -fx-fill: #2D6A4F;");
+
+        Text expT = new Text("⭐ " + op.rating + " • 💼 " + op.experience + " • 📍 " + op.location);
+        expT.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
+
+        VBox center = new VBox(3, nameT, specT, expT);
+        HBox.setHgrow(center, Priority.ALWAYS);
+
+        Text rateT = new Text(op.rate);
+        rateT.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Button removeBtn = new Button("♥");
+        removeBtn.setPrefSize(34, 34);
+        removeBtn.setStyle("-fx-background-color: #FFEBEE; -fx-text-fill: #E53935; -fx-font-size: 16px; -fx-font-weight: bold; -fx-background-radius: 20px; -fx-padding: 0; -fx-cursor: hand;");
+        removeBtn.setOnAction(e -> {
+            removeOperatorFromWishlist(op.name);
+            refreshView.run();
+        });
+
+        HBox right = new HBox(12, rateT, removeBtn);
+        right.setAlignment(Pos.CENTER_RIGHT);
+
+        card.getChildren().addAll(iconBox, center, right);
+        return card;
+    }
+
+    // ============================================================
+    // CREATE WISHLIST CARD (EQUIPMENT)
     // ============================================================
 
     private static VBox createWishlistCard(
             WishlistItem item,
             Runnable refreshWishlist) {
 
-
-        // --------------------------------------------------------
-        // IMAGE
-        // --------------------------------------------------------
         WishList obj = new WishList();
-        Image image =
-                obj.loadImage(
-                        item.getImagePath()
-                );
+        Image image = obj.loadImage(item.getImagePath());
 
-
-        ImageView imageView =
-                new ImageView(image);
-
+        ImageView imageView = new ImageView();
+        if (image != null) {
+            imageView.setImage(image);
+        }
         imageView.setFitWidth(280);
-
         imageView.setFitHeight(150);
-
         imageView.setPreserveRatio(false);
-
         imageView.setSmooth(true);
 
-
-        // --------------------------------------------------------
-        // REMOVE BUTTON
-        // --------------------------------------------------------
-
-        Button removeButton =
-                new Button("♥");
-
+        Button removeButton = new Button("♥");
         removeButton.setPadding(Insets.EMPTY);
-
         removeButton.setMinSize(36, 36);
-
         removeButton.setPrefSize(36, 36);
-
         removeButton.setMaxSize(36, 36);
-
         removeButton.setStyle(
                 "-fx-background-color: #FFEBEE;" +
-                "-fx-background-radius: 20;" +
+                "-fx-background-radius: 20px;" +
                 "-fx-text-fill: #E53935;" +
                 "-fx-font-size: 18px;" +
                 "-fx-font-weight: bold;" +
@@ -409,522 +452,128 @@ public class WishList {
                 "-fx-cursor: hand;"
         );
 
+        removeButton.setOnAction(event -> {
+            removeFromWishlist(item.getEquipmentName());
+            refreshWishlist.run();
+        });
 
-        // Hover
-
-        removeButton.setOnMouseEntered(
-                event ->
-                        removeButton.setStyle(
-                                "-fx-background-color: #FFCDD2;" +
-                                "-fx-background-radius: 20;" +
-                                "-fx-text-fill: #D32F2F;" +
-                                "-fx-font-size: 18px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-padding: 0;" +
-                                "-fx-alignment: center;" +
-                                "-fx-cursor: hand;"
-                        )
-        );
-
-
-        removeButton.setOnMouseExited(
-                event ->
-                        removeButton.setStyle(
-                                "-fx-background-color: #FFEBEE;" +
-                                "-fx-background-radius: 20;" +
-                                "-fx-text-fill: #E53935;" +
-                                "-fx-font-size: 18px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-padding: 0;" +
-                                "-fx-alignment: center;" +
-                                "-fx-cursor: hand;"
-                        )
-        );
-
-
-        // --------------------------------------------------------
-        // REMOVE ACTION
-        // --------------------------------------------------------
-
-        removeButton.setOnAction(
-                event -> {
-
-                    removeFromWishlist(
-                            item.getEquipmentName()
-                    );
-
-                    refreshWishlist.run();
-                }
-        );
-
-
-        // --------------------------------------------------------
-        // IMAGE CONTAINER
-        // --------------------------------------------------------
-
-        StackPane imageContainer =
-                new StackPane(
-                        imageView,
-                        removeButton
-                );
-
+        StackPane imageContainer = new StackPane(imageView, removeButton);
         imageContainer.setPrefWidth(280);
-
         imageContainer.setPrefHeight(150);
-
         imageContainer.setStyle(
-                "-fx-background-color: #E8DED2;" +
-                "-fx-background-radius: 12 12 0 0;"
+                "-fx-background-color: #E8F5E9;" +
+                "-fx-background-radius: 14 14 0 0;"
         );
 
+        StackPane.setAlignment(removeButton, Pos.TOP_RIGHT);
+        StackPane.setMargin(removeButton, new Insets(10));
 
-        StackPane.setAlignment(
-                removeButton,
-                Pos.TOP_RIGHT
-        );
-
-
-        StackPane.setMargin(
-                removeButton,
-                new Insets(10)
-        );
-
-
-        // --------------------------------------------------------
-        // NAME
-        // --------------------------------------------------------
-
-        Text nameText =
-                new Text(
-                        item.getEquipmentName()
-                );
-
+        Text nameText = new Text(item.getEquipmentName());
         nameText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 17px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
+                "-fx-fill: #1B4332;"
         );
 
-
-        // --------------------------------------------------------
-        // CATEGORY
-        // --------------------------------------------------------
-
-        Text categoryText =
-                new Text(
-                        item.getCategory()
-                );
-
+        Text categoryText = new Text(item.getCategory());
         categoryText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-font-weight: 600;" +
+                "-fx-fill: #2D6A4F;"
         );
 
-
-        // --------------------------------------------------------
-        // RATING
-        // --------------------------------------------------------
-
-        Text ratingText =
-                new Text(
-                        "⭐ " +
-                        item.getRating()
-                );
-
+        Text ratingText = new Text("⭐ " + item.getRating());
         ratingText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #5C4033;"
+                "-fx-fill: #B45309;"
         );
 
-
-        // --------------------------------------------------------
-        // LOCATION
-        // --------------------------------------------------------
-
-        Text locationText =
-                new Text(
-                        "📍 " +
-                        item.getLocation()
-                );
-
+        Text locationText = new Text("📍 " + item.getLocation());
         locationText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-fill: #4B5563;"
         );
 
+        HBox infoRow = new HBox(15, ratingText, locationText);
+        infoRow.setAlignment(Pos.CENTER_LEFT);
 
-        // --------------------------------------------------------
-        // INFO ROW
-        // --------------------------------------------------------
-
-        HBox infoRow =
-                new HBox(
-                        15,
-                        ratingText,
-                        locationText
-                );
-
-        infoRow.setAlignment(
-                Pos.CENTER_LEFT
-        );
-
-
-        // --------------------------------------------------------
-        // PRICE
-        // --------------------------------------------------------
-
-        Text priceText =
-                new Text(
-                        "₹" +
-                        item.getPrice() +
-                        " / day"
-                );
-
+        Text priceText = new Text("₹" + item.getPrice() + " / day");
         priceText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 16px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #6B8E23;"
+                "-fx-fill: #1B4332;"
         );
 
-
-        // --------------------------------------------------------
-        // VIEW DETAILS
-        // --------------------------------------------------------
-
-        Button viewButton =
-                new Button(
-                        "View Details"
-                );
-
-        viewButton.setPrefHeight(38);
-
-        viewButton.setMaxWidth(
-                Double.MAX_VALUE
-        );
-
+        Button viewButton = new Button("View Details");
+        viewButton.setPrefHeight(40);
+        viewButton.setMaxWidth(Double.MAX_VALUE);
         viewButton.setStyle(
-                "-fx-background-color: #4A2C20;" +
-                "-fx-background-radius: 8;" +
+                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                "-fx-background-radius: 10px;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 12px;" +
+                "-fx-font-size: 12.5px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;"
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);"
         );
 
-
-        // Hover
-
-        viewButton.setOnMouseEntered(
-                event ->
-                        viewButton.setStyle(
-                                "-fx-background-color: #6B4A3A;" +
-                                "-fx-background-radius: 8;" +
-                                "-fx-text-fill: white;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 12px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;"
-                        )
-        );
-
-
-        viewButton.setOnMouseExited(
-                event ->
-                        viewButton.setStyle(
-                                "-fx-background-color: #4A2C20;" +
-                                "-fx-background-radius: 8;" +
-                                "-fx-text-fill: white;" +
-                                "-fx-font-family: 'Poppins';" +
-                                "-fx-font-size: 12px;" +
-                                "-fx-font-weight: bold;" +
-                                "-fx-cursor: hand;"
-                        )
-        );
-
-
-        viewButton.setOnAction(
-                event -> {
-                    Runnable backAction = () -> {
-                        if (FarmerDashboard.borderPane != null) {
-                            FarmerDashboard.borderPane.setCenter(getWishList());
-                        }
-                    };
-
-                    EquipmentDetailPage detailPage = new EquipmentDetailPage(
-                            item.getEquipmentName(),
-                            item.getCategory(),
-                            item.getPrice(),
-                            item.getRating(),
-                            item.getLocation(),
-                            item.getImagePath(),
-                            backAction
-                    );
-
-                    if (FarmerDashboard.borderPane != null) {
-                        FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
-                    }
+        viewButton.setOnAction(event -> {
+            Runnable backAction = () -> {
+                if (FarmerDashboard.borderPane != null) {
+                    FarmerDashboard.borderPane.setCenter(getWishList());
                 }
-        );
+            };
 
+            EquipmentDetailPage detailPage = new EquipmentDetailPage(
+                    item.getEquipmentName(),
+                    item.getCategory(),
+                    item.getPrice(),
+                    item.getRating(),
+                    item.getLocation(),
+                    item.getImagePath(),
+                    backAction
+            );
 
-        // --------------------------------------------------------
-        // CARD CONTENT
-        // --------------------------------------------------------
+            if (FarmerDashboard.borderPane != null) {
+                FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
+            }
+        });
 
-        VBox cardContent =
-                new VBox(
-                        8,
-                        nameText,
-                        categoryText,
-                        infoRow,
-                        priceText,
-                        viewButton
-                );
+        VBox cardContent = new VBox(8, nameText, categoryText, infoRow, priceText, viewButton);
+        cardContent.setPadding(new Insets(15));
+        cardContent.setMaxWidth(Double.MAX_VALUE);
 
-        cardContent.setPadding(
-                new Insets(15)
-        );
-
-        cardContent.setMaxWidth(
-                Double.MAX_VALUE
-        );
-
-
-        // --------------------------------------------------------
-        // COMPLETE CARD
-        // --------------------------------------------------------
-
-        VBox card =
-                new VBox(
-                        imageContainer,
-                        cardContent
-                );
-
+        VBox card = new VBox(imageContainer, cardContent);
         card.setPrefWidth(280);
-
         card.setMinWidth(260);
-
         card.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: #E0D4C7;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 12;"
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
         );
-
 
         return card;
     }
 
-
-    // ============================================================
-    // LOAD IMAGE FROM MAVEN RESOURCES
-    // ============================================================
-
-    private  Image loadImage(
-            String imagePath) {
-
+    private Image loadImage(String imagePath) {
         try {
-
-            /*
-             * Example:
-             *
-             * /assets/Images/tractor.png
-             */
-
-            if (imagePath == null ||
-                    imagePath.isEmpty()) {
-
-                return createEmptyImage();
-            }
-
-
-            /*
-             * If BrowseEquip sends:
-             *
-             * file:farm/src/main/resources/...
-             *
-             * convert it to resource path.
-             */
-
-            if (imagePath.startsWith("file:")) {
-
-                int resourceIndex =
-                        imagePath.indexOf(
-                                "/assets/"
-                        );
-
-                if (resourceIndex >= 0) {
-
-                    imagePath =
-                            imagePath.substring(
-                                    resourceIndex
-                            );
-                }
-            }
-
-
-            /*
-             * Make sure path starts with /
-             */
-
-            if (!imagePath.startsWith("/")) {
-
-                int resourceIndex =
-                        imagePath.indexOf(
-                                "/assets/"
-                        );
-
-                if (resourceIndex >= 0) {
-
-                    imagePath =
-                            imagePath.substring(
-                                    resourceIndex
-                            );
-                } else {
-
-                    imagePath =
-                            "/" + imagePath;
-                }
-            }
-
-
-            /*
-             * Load Maven resource
-             */
-
-            var resource =
-                    getClass().getResource(
-                            imagePath
-                    );
-
-
-            if (resource != null) {
-
-                return new Image(
-                        resource.toExternalForm()
-                );
-            }
-
-
-            System.out.println(
-                    "Image not found: " +
-                    imagePath
-            );
-
-
+            return new Image(getClass().getResourceAsStream(imagePath));
         } catch (Exception e) {
-
-            e.printStackTrace();
-        }
-
-
-        return createEmptyImage();
-    }
-
-
-    // ============================================================
-    // EMPTY IMAGE
-    // ============================================================
-
-    private static Image createEmptyImage() {
-
-        return new Image(
-                "data:image/png;base64," +
-                "iVBORw0KGgoAAAANSUhEUgAAAAEAAAAB" +
-                "CAQAAAC1HAwCAAAAC0lEQVR42mNk+A8A" +
-                "AQAFAgJp4AAAAABJRU5ErkJggg=="
-        );
-    }
-
-
-    // ============================================================
-    // WISHLIST ITEM MODEL
-    // ============================================================
-
-    public static class WishlistItem {
-
-        private final String equipmentName;
-
-        private final String category;
-
-        private final String price;
-
-        private final String rating;
-
-        private final String location;
-
-        private final String imagePath;
-
-
-        public WishlistItem(
-                String equipmentName,
-                String category,
-                String price,
-                String rating,
-                String location,
-                String imagePath) {
-
-            this.equipmentName =
-                    equipmentName;
-
-            this.category =
-                    category;
-
-            this.price =
-                    price;
-
-            this.rating =
-                    rating;
-
-            this.location =
-                    location;
-
-            this.imagePath =
-                    imagePath;
-        }
-
-
-        public String getEquipmentName() {
-
-            return equipmentName;
-        }
-
-
-        public String getCategory() {
-
-            return category;
-        }
-
-
-        public String getPrice() {
-
-            return price;
-        }
-
-
-        public String getRating() {
-
-            return rating;
-        }
-
-
-        public String getLocation() {
-
-            return location;
-        }
-
-
-        public String getImagePath() {
-
-            return imagePath;
+            try {
+                return new Image(imagePath, true);
+            } catch (Exception ex) {
+                return null;
+            }
         }
     }
 }

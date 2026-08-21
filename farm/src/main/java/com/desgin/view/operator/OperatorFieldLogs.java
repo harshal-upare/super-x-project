@@ -70,10 +70,10 @@ public class OperatorFieldLogs {
 
     public static ScrollPane getLogsSection(StackPane root) {
         Text title = new Text("Field Work Logs & Engine Hour Timesheet");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subtitle = new Text("Digital machine hour logbook, acreage tracking, fuel consumption logs, and daily field operation timesheets.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, title, subtitle);
 
@@ -107,14 +107,14 @@ public class OperatorFieldLogs {
 
     private static HBox createSummaryMetrics() {
         totalHoursText = new Text(String.format("%.1f hrs", totalHours));
-        totalHoursText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        totalHoursText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #1B4332;");
         VBox c1 = createCustomCard("⏱ Total Hours Logged", totalHoursText, "Month of August 2026");
 
         totalAcresText = new Text(String.format("%.1f Acres", totalAcres));
         totalAcresText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
         VBox c2 = createCustomCard("🌾 Total Land Covered", totalAcresText, "Across 24 Field Operations");
 
-        VBox c3 = createMetricCard("⛽ Avg. Fuel Burn Rate", "3.8 L / Hour", "Efficient field operation", "#5C4033");
+        VBox c3 = createMetricCard("⛽ Avg. Fuel Burn Rate", "3.8 L / Hour", "Efficient field operation", "#374151");
         VBox c4 = createMetricCard("✓ Verified Sessions", "24 Completed", "100% Client approval rate", "#2E7D32");
 
         HBox row = new HBox(15, c1, c2, c3, c4);
@@ -124,38 +124,38 @@ public class OperatorFieldLogs {
 
     private static VBox createMetricCard(String title, String value, String sub, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text v = new Text(value);
         v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: " + color + ";");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, v, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createCustomCard(String title, Text valText, String sub) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, valText, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createLogsTable() {
         Text title = new Text("Operating History & Hour Meter Log Entries");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         logsContainer = new VBox(10);
         renderLogs();
@@ -168,24 +168,24 @@ public class OperatorFieldLogs {
 
         for (FieldLogEntry e : logsList) {
             Text id = new Text(e.logId);
-            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
             Text machineText = new Text("🚜 " + e.machine);
-            machineText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            machineText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text details = new Text("Farmer: " + e.farmer + "  |  Date: " + e.date + "  |  Hour Meter: " + e.startMeter + " → " + e.endMeter);
-            details.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+            details.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
             VBox infoBox = new VBox(3, id, machineText, details);
 
             Text hrs = new Text(String.format("%.1f hrs", e.hours));
-            hrs.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            hrs.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text acres = new Text(String.format("%.1f Acres", e.acres));
-            acres.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+            acres.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #374151;");
 
             Text fuel = new Text(String.format("⛽ %.1f L", e.fuelUsed));
-            fuel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+            fuel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
             Text wage = new Text("₹" + String.format("%,d", e.wage));
             wage.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -199,7 +199,7 @@ public class OperatorFieldLogs {
             HBox row = new HBox(25, infoBox, spacer, hrs, acres, fuel, wage, statusLabel);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(12, 16, 12, 16));
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
             logsContainer.getChildren().add(row);
         }
@@ -213,10 +213,10 @@ public class OperatorFieldLogs {
         modal.setPrefWidth(480);
         modal.setMaxWidth(480);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
         Text title = new Text("Log New Field Session & Hours");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(12);
@@ -287,7 +287,7 @@ public class OperatorFieldLogs {
 
     private static Label createLabel(String t) {
         Label l = new Label(t);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }

@@ -1,11 +1,14 @@
 package com.desgin.view.farmer.ashutosh.profile;
 
+import com.desgin.view.farmer.LeftSideBar;
+import com.desgin.view.farmer.Swapnil.FarmerDashboard;
+import com.desgin.view.farmer.Swapnil.FarmerProfileStore;
+import com.desgin.view.farmer.ashutosh.settings.Settings;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
@@ -18,605 +21,720 @@ import javafx.scene.text.Text;
 
 public class ProfileManagement {
 
-        public HBox getProfile(StackPane root) {
-
-                Button notificationBtn1 = new Button("🔔  Notifications");
-                notificationBtn1.setPadding(new Insets(0, 15, 0, 15));
-                notificationBtn1.setStyle("-fx-background-color: transparent;" + "-fx-background-radius: 10;"
-                        + "-fx-border-width: 0;"
-                        + "-fx-border-color: transparent;" + "-fx-text-fill: #5C4033;"
-                        + "-fx-font-family: 'Poppins';"
-                        + "-fx-font-size: 20px;" + "-fx-font-weight: normal;"
-                        + "-fx-cursor: hand;");
-                hoverElement(notificationBtn1);
-                
-                Text profileIcon = new Text("👤");
-                profileIcon.setStyle("-fx-font-size: 28px;");
-
-                Text profileName = new Text("Harshal");
-                profileName.setStyle("-fx-font-family: 'Poppins';" 
-                                + "-fx-font-size: 14px;" 
-                                + "-fx-font-weight: bold;"
-                                + "-fx-fill: #4A2C20;");
-
-                Text profileRole = new Text("Farmer");
-                profileRole.setStyle("-fx-font-family: 'Poppins';" 
-                                + "-fx-font-size: 11px;"
-                                + "-fx-fill: #806A5B;");
-
-                VBox profileText = new VBox(2, profileName, profileRole);
-                profileText.setAlignment(Pos.CENTER_LEFT);
-
-                HBox profileBox = new HBox(10, profileIcon, profileText);
-
-                Button closeButton = new Button("✕");
-
-                // closeButton.setAlignment(Pos.TOP_RIGHT);
-                VBox profilePopup = new VBox(closeButton, profilePopup());
-                profilePopup.setAlignment(Pos.TOP_RIGHT);
-                profilePopup.setPadding(new Insets(10));
-                profilePopup.setPrefSize(500, 700);
-                profilePopup.setMaxSize(500, 700);
-
-                profilePopup.setStyle(
-                                "-fx-background-color: #FFFDF9;" 
-                                + "-fx-background-radius: 15;" 
-                                + "-fx-border-color: #D8C7B5;" 
-                                + "-fx-border-radius: 15;" 
-                                + "-fx-border-width: 1;");
-
-                StackPane.setAlignment(
-                                profilePopup,
-                                Pos.TOP_RIGHT);
-                StackPane.setMargin(
-                                profilePopup,
-                                new Insets(80, 25, 0, 0));
-
-                profilePopup.setVisible(false);
-
-                root.getChildren().addAll(profilePopup);
-
-                hoverElement(profileBox);
-                profileBox.setAlignment(Pos.CENTER_LEFT);
-                profileBox.setPadding(new Insets(10));
-                profileBox.setStyle("-fx-background-color: #EDE3D5;"
-                                + "-fx-background-radius: 10;" 
-                                + "-fx-padding: 20px 20px;");
-
-                profileBox.setOnMouseClicked(event -> {
-
-                        closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;");
-
-                        closeButton.setOnMouseEntered(e -> closeButton.setStyle(
-                                        "-fx-background-color: #c0392b;" 
-                                        + "-fx-text-fill: white;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;"
-                                        + "-fx-cursor: hand;"));
-
-                        closeButton.setOnMouseExited(e -> closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;"));
-
-                        profilePopup.setVisible(true);
-                });
-                closeButton.setOnMouseClicked(event -> {
-
-                        closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;");
-
-                        closeButton.setOnMouseEntered(e -> closeButton.setStyle(
-                                        "-fx-background-color: #c0392b;" 
-                                        + "-fx-text-fill: white;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;"
-                                        + "-fx-cursor: hand;"));
-
-                        closeButton.setOnMouseExited(e -> closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;"));
-                                        
-                        profilePopup.setVisible(false);
-                });
-
-                HBox rightHBox = new HBox(notificationBtn1, profileBox);
-                rightHBox.setAlignment(Pos.CENTER_RIGHT);
-
-                Button closeButton2 = new Button("✕");
-
-                // closeButton.setAlignment(Pos.TOP_RIGHT);
-                VBox notificationPopUp = new VBox(closeButton2, getNotification());
-                notificationPopUp.setAlignment(Pos.TOP_RIGHT);
-                notificationPopUp.setPadding(new Insets(10));
-
-                notificationPopUp.setPrefSize(500, 450);
-                // profilePopup.setMinSize(350, 250);
-                notificationPopUp.setMaxSize(500, 450);
-
-                notificationPopUp.setStyle(
-                                "-fx-background-color: #FFFDF9;" 
-                                + "-fx-background-radius: 15;" 
-                                + "-fx-border-color: #D8C7B5;" 
-                                + "-fx-border-radius: 15;" 
-                                + "-fx-border-width: 1;");
-
-                StackPane.setAlignment(
-                                notificationPopUp,
-                                Pos.TOP_RIGHT);
-                StackPane.setMargin(
-                                notificationPopUp,
-                                new Insets(80, 25, 0, 0));
-                notificationPopUp.setVisible(false);
-
-                root.getChildren().addAll(notificationPopUp);
-
-                hoverElement(notificationBtn1);
-                notificationBtn1.setAlignment(Pos.CENTER_LEFT);
-                notificationBtn1.setPadding(new Insets(10));
-                notificationBtn1.setStyle("-fx-background-color: #EDE3D5;"
-                                + "-fx-background-radius: 10;"
-                                + "-fx-padding: 20px 20px;");
-
-                notificationBtn1.setOnMouseClicked(event -> {
-                        closeButton2.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;");
-
-                        closeButton2.setOnMouseEntered(e -> closeButton.setStyle(
-                                        "-fx-background-color: #c0392b;" 
-                                        + "-fx-text-fill: white;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;"
-                                        + "-fx-cursor: hand;"));
-
-                        closeButton2.setOnMouseExited(e -> closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;"));
-                                        
-                        notificationPopUp.setVisible(true);
-                });
-                closeButton2.setOnMouseClicked(event -> {
-                        closeButton2.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;");
-
-                        closeButton2.setOnMouseEntered(e -> closeButton.setStyle(
-                                        "-fx-background-color: #c0392b;" 
-                                        + "-fx-text-fill: white;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;"
-                                        + "-fx-cursor: hand;"));
-
-                        closeButton2.setOnMouseExited(e -> closeButton.setStyle(
-                                        "-fx-background-color: transparent;" 
-                                        + "-fx-text-fill: red;" 
-                                        + "-fx-font-size: 18px;" 
-                                        + "-fx-font-weight: bold;" 
-                                        + "-fx-cursor: hand;"));
-                                        
-                        notificationPopUp.setVisible(false);
-                });
-
-                return rightHBox;
-        }
-
-        static void hoverElement(Node node) {
-
-                node.setOnMouseEntered(e -> {
-
-                        node.setTranslateY(-2);
-                        node.setOpacity(0.75);
-
-                });
-
-                node.setOnMouseExited(e -> {
-
-                        node.setTranslateY(0);
-                        node.setOpacity(1.0);
-
-                });
-        }
-
-        public static ScrollPane profilePopup() {
-
-                VBox profileContent = new VBox(20);
-                profileContent.setPadding(new Insets(30));
-                profileContent.setStyle(
-                                "-fx-background-color: #f5f7f5;");
-
-                HBox profileHeader = new HBox(15);
-                profileHeader.setAlignment(Pos.CENTER_LEFT);
-
-                Text profileIcon = new Text("👤");
-                profileIcon.setStyle(
-                                "-fx-font-size: 35px;");
-
-                Text profileTitle = new Text("My Profile");
-                profileTitle.setStyle(
-                                "-fx-font-size: 28px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-fill: #263238;");
-
-                VBox titleBox = new VBox(3);
-
-                Text subtitle = new Text("Manage your personal and farm information");
-                subtitle.setStyle(
-                                "-fx-font-size: 13px;" 
-                                + "-fx-fill: #78909c;");
-
-                titleBox.getChildren().addAll(profileTitle, subtitle);
-
-                profileHeader.getChildren().addAll(profileIcon, titleBox);
-
-                Text personalTitle = new Text("Personal Information");
-                personalTitle.setStyle(
-                                "-fx-font-size: 18px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-fill: #37474f;");
-
-                TextField nameField = new TextField("Harshal");
-                nameField.setPromptText("Full Name");
-
-                TextField emailField = new TextField("harshal@gmail.com");
-                emailField.setPromptText("Email");
-
-                TextField phoneField = new TextField();
-                phoneField.setPromptText("Mobile Number");
-
-                styleField(nameField);
-                styleField(emailField);
-                styleField(phoneField);
-
-                GridPane personalGrid = new GridPane();
-                personalGrid.setHgap(20);
-                personalGrid.setVgap(15);
-
-                personalGrid.add(createFieldBox("Full Name", nameField), 0, 0);
-                personalGrid.add(createFieldBox("Email", emailField), 1, 0);
-                personalGrid.add(createFieldBox("Mobile Number", phoneField), 0, 1);
-
-                Text locationTitle = new Text("Location");
-                locationTitle.setStyle(
-                                "-fx-font-size: 18px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-fill: #37474f;");
-
-                TextField villageField = new TextField();
-                villageField.setPromptText("Village");
-
-                TextField districtField = new TextField();
-                districtField.setPromptText("District");
-
-                TextField stateField = new TextField("Maharashtra");
-                stateField.setPromptText("State");
-
-                TextField pincodeField = new TextField();
-                pincodeField.setPromptText("Pincode");
-
-                styleField(villageField);
-                styleField(districtField);
-                styleField(stateField);
-                styleField(pincodeField);
-
-                GridPane locationGrid = new GridPane();
-                locationGrid.setHgap(20);
-                locationGrid.setVgap(15);
-
-                locationGrid.add(createFieldBox("Village", villageField), 0, 0);
-                locationGrid.add(createFieldBox("District", districtField), 1, 0);
-                locationGrid.add(createFieldBox("State", stateField), 0, 1);
-                locationGrid.add(createFieldBox("Pincode", pincodeField), 1, 1);
-
-                Text farmTitle = new Text("Farm Information");
-                farmTitle.setStyle(
-                                "-fx-font-size: 18px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-fill: #37474f;");
-
-                TextField farmSizeField = new TextField();
-                farmSizeField.setPromptText("Farm Size (acres)");
-
-                TextField cropsField = new TextField();
-                cropsField.setPromptText("Primary Crops");
-
-                TextField irrigationField = new TextField();
-                irrigationField.setPromptText("Irrigation Type");
-
-                TextField soilField = new TextField();
-                soilField.setPromptText("Soil Type");
-
-                TextField equipmentField = new TextField();
-                equipmentField.setPromptText("Preferred Equipment");
-
-                styleField(farmSizeField);
-                styleField(cropsField);
-                styleField(irrigationField);
-                styleField(soilField);
-                styleField(equipmentField);
-
-                GridPane farmGrid = new GridPane();
-                farmGrid.setHgap(20);
-                farmGrid.setVgap(15);
-
-                farmGrid.add(createFieldBox("Farm Size", farmSizeField), 0, 0);
-                farmGrid.add(createFieldBox("Primary Crops", cropsField), 1, 0);
-                farmGrid.add(createFieldBox("Irrigation Type", irrigationField), 0, 1);
-                farmGrid.add(createFieldBox("Soil Type", soilField), 1, 1);
-                farmGrid.add(createFieldBox("Preferred Equipment", equipmentField), 0, 2);
-
-                Text accountTitle = new Text("Account Settings");
-                accountTitle.setStyle(
-                                "-fx-font-size: 18px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-fill: #37474f;");
-
-                PasswordField passwordField = new PasswordField();
-                passwordField.setPromptText("New Password");
-
-                styleField(passwordField);
-
-                Button saveButton = new Button("Save Changes");
-                saveButton.setPrefWidth(150);
-                saveButton.setPrefHeight(40);
-
-                saveButton.setStyle(
-                                "-fx-background-color: #2e7d32;" 
-                                + "-fx-text-fill: white;" 
-                                + "-fx-font-size: 14px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-background-radius: 8px;" 
-                                + "-fx-cursor: hand;");
-
-                Button changePasswordButton = new Button("Change Password");
-                changePasswordButton.setPrefWidth(150);
-                changePasswordButton.setPrefHeight(40);
-
-                changePasswordButton.setStyle(
-                                "-fx-background-color: #ffffff;" 
-                                + "-fx-text-fill: #2e7d32;" 
-                                + "-fx-font-size: 14px;" 
-                                + "-fx-font-weight: bold;"
-                                + "-fx-border-color: #2e7d32;" 
-                                + "-fx-border-radius: 8px;" 
-                                + "-fx-background-radius: 8px;" 
-                                + "-fx-cursor: hand;");
-
-                Button logoutButton = new Button("Logout");
-                logoutButton.setPrefWidth(100);
-                logoutButton.setPrefHeight(40);
-
-                logoutButton.setStyle(
-                                "-fx-background-color: #ffffff;" 
-                                + "-fx-text-fill: #d32f2f;" 
-                                + "-fx-font-size: 14px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-border-color: #d32f2f;" 
-                                + "-fx-border-radius: 8px;" 
-                                + "-fx-background-radius: 8px;" 
-                                + "-fx-cursor: hand;");
-
-                HBox buttonBox = new HBox(15);
-                buttonBox.setAlignment(Pos.CENTER_LEFT);
-
-                buttonBox.getChildren().addAll(
-                                saveButton,
-                                changePasswordButton,
-                                logoutButton);
-
-                profileContent.getChildren().addAll(
-                                profileHeader,
-
-                                personalTitle,
-                                personalGrid,
-
-                                locationTitle,
-                                locationGrid,
-
-                                farmTitle,
-                                farmGrid,
-
-                                accountTitle,
-                                passwordField,
-
-                                buttonBox);
-
-                ScrollPane scrollPane = new ScrollPane();
-                scrollPane.setContent(profileContent);
-                scrollPane.setFitToWidth(true);
-                scrollPane.setStyle(
-                                "-fx-background-color: transparent;" +
-                                                "-fx-background: #f5f7f5;");
-
-                return scrollPane;
-        }
-
-        private static void styleField(TextField field) {
-
-                field.setPrefHeight(42);
-                field.setPrefWidth(280);
-
-                field.setStyle(
-                                "-fx-background-color: white;" 
-                                + "-fx-border-color: #d5ddd5;" 
-                                + "-fx-border-radius: 7px;" 
-                                + "-fx-background-radius: 7px;" 
-                                + "-fx-padding: 0 12px;" 
-                                + "-fx-font-size: 14px;");
-        }
-
-        private static VBox createFieldBox(String labelText, TextField field) {
-
-                Label label = new Label(labelText);
-
-                label.setStyle(
-                                "-fx-font-size: 13px;" 
-                                + "-fx-font-weight: bold;" 
-                                + "-fx-text-fill: #546e7a;");
-
-                VBox box = new VBox(6);
-                box.getChildren().addAll(label, field);
-
-                return box;
-        }
-
-        public static VBox getNotification() {
-
-        HBox header = new HBox();
-        
-        Button notificationBtn1 = new Button("🔔  Notifications");
-
-        notificationBtn1.setPadding(
-                new Insets(0, 15, 0, 15)
-        );
-
-        notificationBtn1.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-background-radius: 10;" +
-                "-fx-border-width: 0;" +
-                "-fx-border-color: transparent;" +
-                "-fx-text-fill: #5C4033;" +
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 16px;" +
-                "-fx-font-weight: normal;" +
-                "-fx-cursor: hand;"
-        );
-        
+    private static VBox profilePopupRef;
+
+    public HBox getProfile(StackPane root) {
+
+        // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
+        Button guideBtn = createPillButton("📖", "User Guide", null);
+        Button schemesBtn = createPillButton("🏛️", "Govt Schemes", "3 Active");
+        Button advisoryBtn = createPillButton("🌱", "Crop Advisory", "Live");
+        Button helplineBtn = createPillButton("📞", "Kisan Helpline", "24x7");
+
+        HBox leftButtonsBox = new HBox(8, guideBtn, schemesBtn, advisoryBtn, helplineBtn);
+        leftButtonsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Popups for Top Left Buttons
+        VBox guidePopup = createInfoPopup("📖", "FarmEquip User Guide", "Step-by-step mechanization & rental handbook for farmers", createGuideContent());
+        VBox schemesPopup = createInfoPopup("🏛️", "Government Schemes & Subsidies", "Active financial assistance and machinery subsidy schemes for farmers", createSchemesContent());
+        VBox advisoryPopup = createInfoPopup("🌱", "Agri Advisory & Live Mandi Prices", "Today's market rates, crop calendar & mechanization advisory", createAdvisoryContent());
+        VBox helplinePopup = createInfoPopup("📞", "Kisan Helplines & Emergency Desk", "Direct toll-free contact numbers for farmer support & breakdown assistance", createHelplineContent());
+
+        root.getChildren().addAll(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+
+        // Click handlers for top left buttons
+        guideBtn.setOnAction(e -> togglePopup(guidePopup, schemesPopup, advisoryPopup, helplinePopup));
+        schemesBtn.setOnAction(e -> togglePopup(schemesPopup, guidePopup, advisoryPopup, helplinePopup));
+        advisoryBtn.setOnAction(e -> togglePopup(advisoryPopup, guidePopup, schemesPopup, helplinePopup));
+        helplineBtn.setOnAction(e -> togglePopup(helplinePopup, guidePopup, schemesPopup, advisoryPopup));
+
+        // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
+        Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
+
+        // Profile Pill Button
+        HBox profileBox = createProfilePill();
+
+        // Profile Popup
+        profilePopupRef = createProfileModal();
+        root.getChildren().add(profilePopupRef);
+
+        profileBox.setOnMouseClicked(event -> {
+            boolean isVis = profilePopupRef.isVisible();
+            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+            profilePopupRef.setVisible(!isVis);
+        });
+
+        // Notifications Popup
+        VBox notificationPopUp = createNotificationModal();
+        root.getChildren().add(notificationPopUp);
+
+        notificationBtn1.setOnAction(e -> {
+            boolean isVis = notificationPopUp.isVisible();
+            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+            if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
+            notificationPopUp.setVisible(!isVis);
+        });
+
+        HBox rightHBox = new HBox(10, notificationBtn1, profileBox);
+        rightHBox.setAlignment(Pos.CENTER_RIGHT);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button markAllRead = new Button("Mark all as read");
+        HBox topBar = new HBox(10, leftButtonsBox, spacer, rightHBox);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        topBar.setPadding(new Insets(10, 22, 10, 22));
 
-        markAllRead.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-text-fill: #2e7d32;" +
-                "-fx-font-size: 12px;" +
-                "-fx-cursor: hand;");
-
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.getChildren().addAll(
-                notificationBtn1,
-                spacer,
-                markAllRead);
-
-        VBox notificationList = new VBox(10);
-
-        notificationList.setPadding(new Insets(5));
-
-        notificationList.getChildren().addAll(
-
-                createNotification(
-                        "Booking Confirmed",
-                        "Your tractor booking has been confirmed.",
-                        "10 min ago"),
-
-                createNotification(
-                        "New Equipment Available",
-                        "A new tractor is available near your location.",
-                        "1 hour ago"),
-
-                createNotification(
-                        "Booking Reminder",
-                        "Your equipment rental starts tomorrow.",
-                        "2 hours ago"),
-
-                createNotification(
-                        "Booking Accepted",
-                        "The equipment provider accepted your request.",
-                        "Yesterday"));
-
-        ScrollPane scrollPane = new ScrollPane();
-
-        scrollPane.setContent(notificationList);
-        scrollPane.setFitToWidth(true);
-
-        scrollPane.setPrefHeight(450);
-        scrollPane.setPrefWidth(500);
-        scrollPane.setStyle(
-                "-fx-background-color: transparent;" +
-                "-fx-border-color: transparent;");
-
-        VBox notificationContentVBox = new VBox(15);
-        // notificationContentVBox.setPadding(new Insets(20));
-        notificationContentVBox.setPrefWidth(500);
-
-        notificationContentVBox.getChildren().addAll(
-                header,
-                scrollPane);
-
-        return notificationContentVBox;
+        return topBar;
     }
-     private static HBox createNotification(
-            String title,
-            String message,
-            String time) {
 
-        Text notificationTitle = new Text(title);
+    // ============================================================
+    // ENGAGING PILL BUTTON CREATOR WITH MINI BADGES
+    // ============================================================
+    private Button createPillButton(String icon, String title, String badge) {
+        Button btn = new Button();
+        btn.setPrefHeight(38);
+        btn.setMinHeight(38);
+        btn.setMaxHeight(38);
 
-        notificationTitle.setStyle(
-                "-fx-font-size: 14px;" +
+        HBox content = new HBox(6);
+        content.setAlignment(Pos.CENTER);
+
+        Text iconText = new Text(icon);
+        iconText.setStyle("-fx-font-size: 13.5px;");
+
+        Text titleText = new Text(title);
+        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        content.getChildren().addAll(iconText, titleText);
+
+        if (badge != null && !badge.isEmpty()) {
+            Label badgeLabel = new Label(badge);
+            badgeLabel.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 10px;");
+            content.getChildren().add(badgeLabel);
+        }
+
+        btn.setGraphic(content);
+
+        String normalStyle = "-fx-background-color: #FFFFFF;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #C2E0CE;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-padding: 0 14px 0 12px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);";
+
+        String hoverStyle = "-fx-background-color: #F0FDF4;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #2D6A4F;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-padding: 0 14px 0 12px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.18), 8, 0, 0, 2);";
+
+        btn.setStyle(normalStyle);
+        btn.setOnMouseEntered(e -> btn.setStyle(hoverStyle));
+        btn.setOnMouseExited(e -> btn.setStyle(normalStyle));
+        return btn;
+    }
+
+    private HBox createProfilePill() {
+        Text profileIcon = new Text("👤");
+        profileIcon.setStyle("-fx-font-size: 14px;");
+
+        Text profileName = new Text(FarmerProfileStore.name);
+        profileName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Label verifiedDot = new Label("✓");
+        verifiedDot.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 5px; -fx-background-radius: 8px;");
+
+        Text dropdownArrow = new Text("▾");
+        dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
+
+        HBox profileBox = new HBox(6, profileIcon, profileName, verifiedDot, dropdownArrow);
+        profileBox.setAlignment(Pos.CENTER);
+        profileBox.setPrefHeight(38);
+        profileBox.setMinHeight(38);
+        profileBox.setMaxHeight(38);
+        profileBox.setPadding(new Insets(0, 14, 0, 12));
+
+        String normalStyle = "-fx-background-color: #FFFFFF;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #C2E0CE;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);";
+
+        String hoverStyle = "-fx-background-color: #F0FDF4;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #2D6A4F;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.18), 8, 0, 0, 2);";
+
+        profileBox.setStyle(normalStyle);
+        profileBox.setOnMouseEntered(e -> profileBox.setStyle(hoverStyle));
+        profileBox.setOnMouseExited(e -> profileBox.setStyle(normalStyle));
+        return profileBox;
+    }
+
+    private static Button createCloseButton(Runnable onClose) {
+        Button close = new Button("✕");
+        close.setPrefSize(30, 30);
+        close.setMinSize(30, 30);
+        close.setMaxSize(30, 30);
+        close.setStyle(
+                "-fx-background-color: #F3F4F6;" +
+                "-fx-background-radius: 15px;" +
+                "-fx-text-fill: #6B7280;" +
+                "-fx-font-size: 13px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #263238;");
-
-        Text notificationMessage = new Text(message);
-
-        notificationMessage.setWrappingWidth(300);
-
-        notificationMessage.setStyle(
-                "-fx-font-size: 12px;" +
-                        "-fx-fill: #607d8b;");
-
-        Text notificationTime = new Text(time);
-
-        notificationTime.setStyle(
-                "-fx-font-size: 10px;" +
-                        "-fx-fill: #9e9e9e;");
-
-        VBox textBox = new VBox(4);
-
-        textBox.getChildren().addAll(
-                notificationTitle,
-                notificationMessage,
-                notificationTime);
-
-        HBox notification = new HBox(textBox);
-
-        notification.setPadding(new Insets(12));
-
-        notification.setPrefWidth(380);
-
-        notification.setStyle(
-                "-fx-background-color: #f7faf7;" +
-                "-fx-background-radius: 10px;" +
-                "-fx-border-color: #e0e8e0;" +
-                "-fx-border-radius: 10px;");
-
-
-        return notification;
+                "-fx-cursor: hand;" +
+                "-fx-padding: 0;"
+        );
+        close.setOnMouseEntered(e -> close.setStyle(
+                "-fx-background-color: #FEE2E2;" +
+                "-fx-background-radius: 15px;" +
+                "-fx-text-fill: #DC2626;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 0;"
+        ));
+        close.setOnMouseExited(e -> close.setStyle(
+                "-fx-background-color: #F3F4F6;" +
+                "-fx-background-radius: 15px;" +
+                "-fx-text-fill: #6B7280;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;" +
+                "-fx-padding: 0;"
+        ));
+        close.setOnAction(e -> {
+            if (onClose != null) onClose.run();
+        });
+        return close;
     }
 
+    private void togglePopup(VBox target, VBox... others) {
+        boolean vis = target.isVisible();
+        hideAllPopups(others);
+        if (profilePopupRef != null) profilePopupRef.setVisible(false);
+        target.setVisible(!vis);
+    }
+
+    private void hideAllPopups(VBox... popups) {
+        for (VBox p : popups) {
+            if (p != null) p.setVisible(false);
+        }
+    }
+
+    // ============================================================
+    // REUSABLE MODERN POPUP CONTAINER WITH DEEP VERTICAL SCROLL
+    // ============================================================
+    private VBox createInfoPopup(String icon, String title, String subtitle, Node content) {
+        VBox box = new VBox(14);
+        box.setPadding(new Insets(18, 20, 18, 20));
+        box.setPrefSize(500, 520);
+        box.setMaxSize(500, 520);
+        box.setStyle(
+                "-fx-background-color: #FFFFFF;" +
+                "-fx-background-radius: 18px;" +
+                "-fx-border-color: #D1E7DD;" +
+                "-fx-border-radius: 18px;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0, 0, 8);"
+        );
+
+        // Header
+        Text iconText = new Text(icon);
+        iconText.setStyle("-fx-font-size: 18px;");
+        StackPane iconBox = new StackPane(iconText);
+        iconBox.setPrefSize(38, 38);
+        iconBox.setMinSize(38, 38);
+        iconBox.setMaxSize(38, 38);
+        iconBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
+
+        Text t = new Text(title);
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text s = new Text(subtitle);
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
+
+        VBox titleBox = new VBox(2, t, s);
+        HBox titleGroup = new HBox(10, iconBox, titleBox);
+        titleGroup.setAlignment(Pos.CENTER_LEFT);
+
+        Button close = createCloseButton(() -> box.setVisible(false));
+
+        HBox topBar = new HBox(titleGroup, close);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(titleGroup, Priority.ALWAYS);
+        topBar.setPadding(new Insets(0, 0, 12, 0));
+        topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
+
+        box.getChildren().addAll(topBar, content);
+
+        StackPane.setAlignment(box, Pos.TOP_LEFT);
+        StackPane.setMargin(box, new Insets(60, 0, 0, 22));
+        box.setVisible(false);
+
+        return box;
+    }
+
+    // 1. RICH USER GUIDE CONTENT
+    private ScrollPane createGuideContent() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(0, 6, 0, 0));
+        box.getChildren().addAll(
+                createRichCard("🚜 1. Browse & Reserve Machinery", 
+                        "• Search implements by power rating (HP), farm size, and rental duration.\n" +
+                        "• Select booking start & return dates with real-time slot availability.\n" +
+                        "• Choose optional verified machine operator during checkout.",
+                        "Step 1 • Search & Select", "#E8F5E9", "#1B4332"),
+
+                createRichCard("💳 2. Secure Escrow Payment Protection", 
+                        "• Your payment remains in 100% secure escrow vault.\n" +
+                        "• Provider only receives payout after machine completes satisfactory field operation.\n" +
+                        "• Full refund guarantee if machinery fails on-field inspection.",
+                        "Step 2 • Escrow Security", "#FEF3C7", "#B45309"),
+
+                createRichCard("👷 3. Hiring Certified Field Operators", 
+                        "• Filter operators by machinery specialization (Tractor, Harvester, Drone).\n" +
+                        "• Direct contact unlocks instantly once booking request is accepted.\n" +
+                        "• Daily wage settlement handled safely through platform.",
+                        "Step 3 • Operator Dispatch", "#E0E7FF", "#4338CA"),
+
+                createRichCard("📋 4. Machinery Check-in & Check-out", 
+                        "• Inspect engine hours, diesel tank level, and implements with provider.\n" +
+                        "• Take quick mobile photos of machinery condition at start of rental.\n" +
+                        "• Sign digital completion handover note upon job finish.",
+                        "Step 4 • On-Field Checklist", "#DCFCE7", "#15803D"),
+
+                createRichCard("⭐ 5. Rate & Review for Karma Badges", 
+                        "• Rate equipment efficiency and operator punctuality (1 to 5 Stars).\n" +
+                        "• Earn Kisan Karma rewards for priority rental bookings.",
+                        "Step 5 • Feedback", "#F3F4F6", "#374151")
+        );
+        ScrollPane sp = new ScrollPane(box);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(420);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return sp;
+    }
+
+    // 2. RICH GOVT SCHEMES & SUBSIDIES CONTENT
+    private ScrollPane createSchemesContent() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(0, 6, 0, 0));
+        box.getChildren().addAll(
+                createRichCard("🏛️ PM-Kisan Samman Nidhi Yojana", 
+                        "• Financial Benefit: ₹6,000 per year in 3 installments of ₹2,000 directly via DBT.\n" +
+                        "• Eligibility: Small and marginal landholding farmer families across India.\n" +
+                        "• Required Docs: Aadhaar Card, 7/12 Land Extract, Active Bank Account.",
+                        "100% Direct Cash Support", "#DCFCE7", "#15803D"),
+
+                createRichCard("🚜 SMAM (Sub-Mission on Agricultural Mechanization)", 
+                        "• Subsidy Benefit: 40% to 50% capital subsidy on Tractors, Power Tillers, Rotavators & Harvesters.\n" +
+                        "• Custom Hiring Centers (CHC): Up to ₹10 Lakh subsidy to establish village machinery hubs.\n" +
+                        "• Application Portal: agrimachinery.nic.in (Direct Bank Transfer).",
+                        "Up to 50% Machinery Subsidy", "#FEF3C7", "#B45309"),
+
+                createRichCard("⚡ PM Kusum Solar Water Pump Scheme", 
+                        "• Solar Subsidy: 60% subsidy for standalone solar agriculture pumps (3HP to 7.5HP).\n" +
+                        "• Additional Benefit: Grid-connected solar power generation with surplus power sale.",
+                        "60% Solar Pump Subsidy", "#E0E7FF", "#4338CA"),
+
+                createRichCard("🌾 Pradhan Mantri Fasal Bima Yojana (PMFBY)", 
+                        "• Premium Rate: Only 1.5% to 2% subsidized premium for Kharif & Rabi crops.\n" +
+                        "• Coverage: Comprehensive risk cover for unseasonal rains, drought & pest attacks.",
+                        "Subsidized Crop Insurance", "#FCE7F3", "#BE185D")
+        );
+        ScrollPane sp = new ScrollPane(box);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(420);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return sp;
+    }
+
+    // 3. RICH AGRI ADVISORY & LIVE MANDI PRICES CONTENT
+    private ScrollPane createAdvisoryContent() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(0, 6, 0, 0));
+        box.getChildren().addAll(
+                createRichCard("📈 Live APMC Mandi Rates (Pune & Western Hubs)", 
+                        "• Wheat (Sharbati): ₹2,450 / qtl  [▲ +₹60]\n" +
+                        "• Soybean (Yellow): ₹4,850 / qtl  [▲ +₹110]\n" +
+                        "• Cotton (Medium Staple): ₹7,200 / qtl  [Stable]\n" +
+                        "• Gram (Desi Chana): ₹5,150 / qtl  [▲ +₹40]\n" +
+                        "• Sugarcane (FRP Rate): ₹3,150 / ton  [Govt Fixed]",
+                        "Today's Live Commodity Ticker", "#E8F5E9", "#1B4332"),
+
+                createRichCard("🌱 Sowing & Soil Preparation Advisory", 
+                        "• Soil Moisture: 18% to 22% ideal moisture detected across Pune & Solapur belt.\n" +
+                        "• Recommended Implement: 7ft Rotary Tiller with dual-speed gearbox for fine tilth.\n" +
+                        "• Seed Treatment: Treat seeds with Trichoderma viride @ 4g/kg seed before drilling.",
+                        "Kharif Pre-Sowing Protocol", "#FEF3C7", "#B45309"),
+
+                createRichCard("🌧 Western Maharashtra Weather Forecast", 
+                        "• Temperature: 28°C Day / 21°C Night • Humidity: 76%\n" +
+                        "• Rain Alert: Light to moderate scattered showers expected over next 48 hours.\n" +
+                        "• Drone Advisory: Spraying recommended before 10:00 AM to avoid wind drift.",
+                        "48-Hour Microclimate Radar", "#E0E7FF", "#4338CA")
+        );
+        ScrollPane sp = new ScrollPane(box);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(420);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return sp;
+    }
+
+    // 4. RICH KISAN HELPLINES & EMERGENCY CONTENT
+    private ScrollPane createHelplineContent() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(0, 6, 0, 0));
+        box.getChildren().addAll(
+                createRichCard("📞 National Kisan Call Center", 
+                        "• Toll-Free Number: 1800-180-1551\n" +
+                        "• Operational Hours: 6:00 AM – 10:00 PM (365 Days)\n" +
+                        "• Languages: Marathi, Hindi, English, Kannada & 18 regional dialects.",
+                        "Toll-Free National Helpline", "#DCFCE7", "#15803D"),
+
+                createRichCard("💬 WhatsApp Farm Support Desk", 
+                        "• WhatsApp Hotline: +91 98220 54321\n" +
+                        "• Instant assistance: Share field geo-location, machinery photos or video clips.\n" +
+                        "• Average response time: Under 4 minutes.",
+                        "Instant Field WhatsApp", "#DCFCE7", "#15803D"),
+
+                createRichCard("🚜 Machinery Breakdown Emergency Hub", 
+                        "• Emergency Helpline: 1800-266-9911\n" +
+                        "• On-Field Mobile Mechanic Van dispatched within 45 minutes across Pune region.\n" +
+                        "• Genuine spare parts & mobile diesel refill assist.",
+                        "Roadside Field Assistance", "#FEF3C7", "#B45309"),
+
+                createRichCard("🌾 District Agriculture Officer (Pune HQ)", 
+                        "• Direct Office: +91 20 2612 3456\n" +
+                        "• Address: Central Building, Agriculture Commissionerate, Pune 411001.",
+                        "District Govt Office", "#F3F4F6", "#374151")
+        );
+        ScrollPane sp = new ScrollPane(box);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(420);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        return sp;
+    }
+
+    private VBox createRichCard(String title, String details, String tag, String tagBg, String tagColor) {
+        Text titleText = new Text(title);
+        titleText.setStyle("-fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332; -fx-font-family: 'Poppins';");
+
+        Label tagLabel = new Label(tag);
+        tagLabel.setStyle("-fx-background-color: " + tagBg + "; -fx-text-fill: " + tagColor + "; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3px 8px; -fx-background-radius: 6px;");
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        HBox headerRow = new HBox(8, titleText, sp, tagLabel);
+        headerRow.setAlignment(Pos.CENTER_LEFT);
+
+        Text descText = new Text(details);
+        descText.setWrappingWidth(420);
+        descText.setStyle("-fx-font-size: 12px; -fx-fill: #4B5563; -fx-font-family: 'Poppins'; -fx-line-spacing: 3px;");
+
+        VBox card = new VBox(8, headerRow, descText);
+        card.setPadding(new Insets(14, 16, 14, 16));
+        card.setStyle(
+            "-fx-background-color: #F8FAF8;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-border-color: #E2EBE5;" +
+            "-fx-border-radius: 12px;" +
+            "-fx-border-width: 1px;"
+        );
+        return card;
+    }
+
+    // ============================================================
+    // STUNNING PROFILE POPUP
+    // ============================================================
+    private VBox createProfileModal() {
+        VBox modal = new VBox(14);
+        modal.setPadding(new Insets(18, 20, 18, 20));
+        modal.setPrefSize(500, 520);
+        modal.setMaxSize(500, 520);
+        modal.setStyle(
+                "-fx-background-color: #FFFFFF;" +
+                "-fx-background-radius: 18px;" +
+                "-fx-border-color: #D1E7DD;" +
+                "-fx-border-radius: 18px;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0, 0, 8);"
+        );
+
+        // Header
+        Text avatar = new Text("👤");
+        avatar.setStyle("-fx-font-size: 18px;");
+        StackPane avatarBox = new StackPane(avatar);
+        avatarBox.setPrefSize(38, 38);
+        avatarBox.setMinSize(38, 38);
+        avatarBox.setMaxSize(38, 38);
+        avatarBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
+
+        Text title = new Text("Farmer Profile & Location");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Personal credentials & operational farm location");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
+
+        VBox titleBox = new VBox(2, title, sub);
+        HBox titleGroup = new HBox(10, avatarBox, titleBox);
+        titleGroup.setAlignment(Pos.CENTER_LEFT);
+
+        Button close = createCloseButton(() -> modal.setVisible(false));
+
+        HBox topBar = new HBox(titleGroup, close);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(titleGroup, Priority.ALWAYS);
+        topBar.setPadding(new Insets(0, 0, 12, 0));
+        topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
+
+        // Content
+        VBox content = new VBox(14);
+        content.setPadding(new Insets(0, 6, 0, 0));
+
+        // Section 1: Personal Credentials
+        Text sec1 = new Text("Personal Credentials");
+        sec1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        VBox credCard = new VBox(8);
+        credCard.setPadding(new Insets(12, 14, 12, 14));
+        credCard.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
+
+        HBox nameRow = createInfoRowWithEdit("Full Name:", FarmerProfileStore.name);
+        HBox emailRow = createInfoRowWithEdit("Email Address:", FarmerProfileStore.email);
+        HBox phoneRow = createInfoRowWithEdit("Mobile No.:", FarmerProfileStore.phone);
+        credCard.getChildren().addAll(nameRow, emailRow, phoneRow);
+
+        // Section 2: Location
+        Text sec2 = new Text("📍 Operational Farm Location (For Machinery Matching)");
+        sec2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        VBox locCard = new VBox(10);
+        locCard.setPadding(new Insets(12, 14, 12, 14));
+        locCard.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
+
+        TextField townField = new TextField(FarmerProfileStore.town);
+        townField.setPromptText("Village / Town (e.g. Pune, Baramati)");
+        styleField(townField);
+
+        TextField districtField = new TextField(FarmerProfileStore.district);
+        districtField.setPromptText("District");
+        styleField(districtField);
+
+        TextField stateField = new TextField(FarmerProfileStore.state);
+        stateField.setPromptText("State");
+        styleField(stateField);
+
+        TextField pincodeField = new TextField(FarmerProfileStore.pincode);
+        pincodeField.setPromptText("Pincode");
+        styleField(pincodeField);
+
+        GridPane locGrid = new GridPane();
+        locGrid.setHgap(12);
+        locGrid.setVgap(8);
+        locGrid.add(createFieldGroup("Village / Town", townField), 0, 0);
+        locGrid.add(createFieldGroup("District", districtField), 1, 0);
+        locGrid.add(createFieldGroup("State", stateField), 0, 1);
+        locGrid.add(createFieldGroup("Pincode", pincodeField), 1, 1);
+
+        Label locMsg = new Label();
+        locMsg.setVisible(false);
+        locMsg.setManaged(false);
+
+        Button saveLocBtn = new Button("Save Location 📍");
+        saveLocBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 18px; -fx-cursor: hand;");
+        saveLocBtn.setOnAction(e -> {
+            String t = townField.getText();
+            String d = districtField.getText();
+            String s = stateField.getText();
+            String p = pincodeField.getText();
+            FarmerProfileStore.setLocation(t, d, s, p);
+
+            locMsg.setText("✓ Location set to " + FarmerProfileStore.town + "! Matching active.");
+            locMsg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
+            locMsg.setVisible(true);
+            locMsg.setManaged(true);
+        });
+
+        HBox locActionBox = new HBox(10, saveLocBtn, locMsg);
+        locActionBox.setAlignment(Pos.CENTER_LEFT);
+
+        locCard.getChildren().addAll(locGrid, locActionBox);
+
+        content.getChildren().addAll(sec1, credCard, sec2, locCard);
+
+        ScrollPane sp = new ScrollPane(content);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(420);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        modal.getChildren().addAll(topBar, sp);
+
+        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
+        StackPane.setMargin(modal, new Insets(60, 22, 0, 0));
+        modal.setVisible(false);
+
+        return modal;
+    }
+
+    private static HBox createInfoRowWithEdit(String label, String value) {
+        Label lbl = new Label(label);
+        lbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+        lbl.setPrefWidth(110);
+
+        Text valText = new Text(value != null ? value : "Not Set");
+        valText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        Button editBtn = new Button("✏️ Edit");
+        editBtn.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #2D6A4F; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3px 10px; -fx-background-radius: 6px; -fx-cursor: hand; -fx-border-color: #D1E7DD; -fx-border-radius: 6px;");
+        editBtn.setOnAction(e -> {
+            if (profilePopupRef != null) {
+                profilePopupRef.setVisible(false);
+            }
+            if (FarmerDashboard.borderPane != null) {
+                FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+            }
+            if (LeftSideBar.settingsBtn1 != null && LeftSideBar.navigationButtons != null) {
+                LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
+            }
+        });
+
+        HBox row = new HBox(8, lbl, valText, sp, editBtn);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static void styleField(TextField field) {
+        field.setPrefHeight(36);
+        field.setPrefWidth(190);
+        field.setStyle(
+                "-fx-background-color: #FFFFFF;" 
+                + "-fx-border-color: #D1E7DD;" 
+                + "-fx-border-radius: 8px;" 
+                + "-fx-background-radius: 8px;" 
+                + "-fx-padding: 0 10px;" 
+                + "-fx-font-family: 'Poppins';"
+                + "-fx-font-size: 12px;");
+    }
+
+    private static VBox createFieldGroup(String labelText, TextField field) {
+        Label label = new Label(labelText);
+        label.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+        VBox box = new VBox(3, label, field);
+        return box;
+    }
+
+    // ============================================================
+    // STUNNING NOTIFICATIONS MODAL
+    // ============================================================
+    private VBox createNotificationModal() {
+        VBox modal = new VBox(14);
+        modal.setPadding(new Insets(18, 20, 18, 20));
+        modal.setPrefSize(500, 480);
+        modal.setMaxSize(500, 480);
+        modal.setStyle(
+                "-fx-background-color: #FFFFFF;" +
+                "-fx-background-radius: 18px;" +
+                "-fx-border-color: #D1E7DD;" +
+                "-fx-border-radius: 18px;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0, 0, 8);"
+        );
+
+        // Header
+        Text bell = new Text("🔔");
+        bell.setStyle("-fx-font-size: 18px;");
+        StackPane bellBox = new StackPane(bell);
+        bellBox.setPrefSize(38, 38);
+        bellBox.setMinSize(38, 38);
+        bellBox.setMaxSize(38, 38);
+        bellBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
+
+        Text title = new Text("Recent Activity & Alerts");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Rental confirmations, operator dispatches & farm alerts");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
+
+        VBox titleBox = new VBox(2, title, sub);
+        HBox titleGroup = new HBox(10, bellBox, titleBox);
+        titleGroup.setAlignment(Pos.CENTER_LEFT);
+
+        Button close = createCloseButton(() -> modal.setVisible(false));
+
+        HBox topBar = new HBox(titleGroup, close);
+        topBar.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(titleGroup, Priority.ALWAYS);
+        topBar.setPadding(new Insets(0, 0, 12, 0));
+        topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
+
+        // Items
+        VBox n1 = createNotifCard("✅ Booking Confirmed", "Your John Deere 5050D rental request was confirmed by Provider Rajesh. Dispatch scheduled tomorrow at 6:30 AM.", "10 mins ago", "CONFIRMED", "#DCFCE7", "#15803D");
+        VBox n2 = createNotifCard("👷 Operator Assigned", "Driver Dilip Shinde accepted your field assignment for laser land leveling in Baramati.", "1 hour ago", "OPERATOR", "#E0E7FF", "#4338CA");
+        VBox n3 = createNotifCard("🌧 Monsoon Sowing Advisory", "Favorable soil moisture (20%) detected in Pune district for the next 48 hours. Optimal time for seed drilling.", "3 hours ago", "ADVISORY", "#FEF3C7", "#B45309");
+        VBox n4 = createNotifCard("💰 Escrow Payment Locked", "₹3,200 held in secure platform escrow for Rotavator booking. Released after satisfactory delivery.", "Yesterday", "ESCROW", "#F3F4F6", "#374151");
+
+        VBox list = new VBox(10, n1, n2, n3, n4);
+        list.setPadding(new Insets(0, 6, 0, 0));
+        ScrollPane sp = new ScrollPane(list);
+        sp.setFitToWidth(true);
+        sp.setPrefHeight(380);
+        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        modal.getChildren().addAll(topBar, sp);
+
+        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
+        StackPane.setMargin(modal, new Insets(60, 22, 0, 0));
+        modal.setVisible(false);
+
+        return modal;
+    }
+
+    private static VBox createNotifCard(String title, String desc, String time, String tag, String tagBg, String tagColor) {
+        Text t = new Text(title);
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Label tagLabel = new Label(tag);
+        tagLabel.setStyle("-fx-background-color: " + tagBg + "; -fx-text-fill: " + tagColor + "; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+
+        HBox topRow = new HBox(8, t, sp, tagLabel);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        Text d = new Text(desc);
+        d.setWrappingWidth(410);
+        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563; -fx-line-spacing: 2px;");
+
+        Text tm = new Text(time);
+        tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #9CA3AF;");
+
+        VBox card = new VBox(5, topRow, d, tm);
+        card.setPadding(new Insets(12, 14, 12, 14));
+        card.setStyle(
+                "-fx-background-color: #F8FAF8;" +
+                "-fx-background-radius: 12px;" +
+                "-fx-border-color: #E2EBE5;" +
+                "-fx-border-radius: 12px;" +
+                "-fx-border-width: 1px;"
+        );
+        return card;
+    }
 }

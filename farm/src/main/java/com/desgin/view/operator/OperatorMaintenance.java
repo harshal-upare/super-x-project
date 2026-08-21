@@ -57,10 +57,10 @@ public class OperatorMaintenance {
 
     public static ScrollPane getMaintenanceSection(StackPane root) {
         Text title = new Text("Machinery Maintenance & Field Defect SOS");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subtitle = new Text("Report field breakdowns, request urgent mobile mechanic dispatch, and monitor scheduled service countdowns.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, title, subtitle);
 
@@ -96,7 +96,7 @@ public class OperatorMaintenance {
     }
 
     private static HBox createSummaryMetrics() {
-        VBox c1 = createMetricCard("🚜 Assigned Fleet", "5 Machines", "All units telemetry-linked", "#4A2C20");
+        VBox c1 = createMetricCard("🚜 Assigned Fleet", "5 Machines", "All units telemetry-linked", "#1B4332");
         VBox c2 = createMetricCard("✓ Field Operational", "4 Ready", "80% fleet available for duty", "#2E7D32");
         VBox c3 = createMetricCard("🛠 In Workshop / Tune", "1 Under Service", "Preet 987 Harvester", "#E65100");
         VBox c4 = createMetricCard("🚨 Active Field SOS", "0 Active", "No emergency breakdown", "#2E7D32");
@@ -108,41 +108,41 @@ public class OperatorMaintenance {
 
     private static VBox createMetricCard(String title, String value, String sub, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text v = new Text(value);
         v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: " + color + ";");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, v, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createCountdownSection() {
         Text title = new Text("Scheduled Maintenance & Service Intervals");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         VBox s1 = createServiceRow("John Deere 5310 4WD", "Engine Oil & Filter 250-Hr Service", "Due in 42 Engine Hours", 0.83, "#2E7D32");
         VBox s2 = createServiceRow("Preet 987 Combine Harvester", "Cutter Bar Knife Sharpening & Chain Lubrication", "Due in 18 Engine Hours (Attention Required)", 0.93, "#E65100");
-        VBox s3 = createServiceRow("Mahindra 575 DI Bhoomiputra", "Hydraulic Fluid & Transmission Filter Flush", "Due in 110 Engine Hours", 0.56, "#8B6F47");
+        VBox s3 = createServiceRow("Mahindra 575 DI Bhoomiputra", "Hydraulic Fluid & Transmission Filter Flush", "Due in 110 Engine Hours", 0.56, "#2D6A4F");
 
         VBox card = new VBox(12, title, s1, s2, s3);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static VBox createServiceRow(String machine, String serviceDesc, String dueText, double progress, String barColor) {
         Text m = new Text("🚜 " + machine);
-        m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        m.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text d = new Text(serviceDesc);
-        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         VBox left = new VBox(2, m, d);
 
@@ -164,7 +164,7 @@ public class OperatorMaintenance {
 
     private static VBox createTicketsSection() {
         Text title = new Text("Defect Reports & Repair Tickets");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         ticketContainer = new VBox(10);
         renderTickets();
@@ -177,13 +177,13 @@ public class OperatorMaintenance {
 
         for (DefectTicket t : ticketList) {
             Text id = new Text(t.ticketId);
-            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
             Text machine = new Text(t.machine + " • " + t.issueTitle);
-            machine.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            machine.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text dt = new Text("Category: " + t.category + "  |  Reported: " + t.reportedDate);
-            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
             VBox info = new VBox(2, id, machine, dt);
 
@@ -207,7 +207,7 @@ public class OperatorMaintenance {
             HBox row = new HBox(20, info, spacer, sevLabel, statusLabel);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(12, 16, 12, 16));
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
             ticketContainer.getChildren().add(row);
         }
@@ -221,10 +221,10 @@ public class OperatorMaintenance {
         modal.setPrefWidth(480);
         modal.setMaxWidth(480);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
 
         Text title = new Text("⚠️ Report Machine Breakdown / Field Issue");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(10);
@@ -272,7 +272,7 @@ public class OperatorMaintenance {
         });
 
         Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #5C4033; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        cancelBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         cancelBtn.setOnAction(e -> root.getChildren().remove(overlay));
 
         HBox btnBox = new HBox(10, submitBtn, cancelBtn);
@@ -285,7 +285,7 @@ public class OperatorMaintenance {
 
     private static Label createLabel(String t) {
         Label l = new Label(t);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }
