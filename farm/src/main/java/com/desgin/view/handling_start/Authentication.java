@@ -172,6 +172,7 @@ public class Authentication {
         farmerRadio.setToggleGroup(loginRoleGroup);
         providerRadio.setToggleGroup(loginRoleGroup);
         operatorRadio.setToggleGroup(loginRoleGroup);
+        farmerRadio.setSelected(true);
 
         HBox roleHBox = new HBox(16, farmerRadio, providerRadio, operatorRadio);
         roleHBox.setAlignment(Pos.CENTER_LEFT);

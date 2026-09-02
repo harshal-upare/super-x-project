@@ -43,40 +43,6 @@ public class Dashboard {
 
         public static ScrollPane getPage() {
 
-                String userName = "Harshal";
-                Text welcomeText = new Text("Welcome back, " + userName + " 👋");
-
-                welcomeText.setStyle(
-                                "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 28px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-fill: #1B4332;");
-
-                Text subText = new Text("Farmer Dashboard");
-
-                subText.setStyle(
-                                "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 16px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-fill: #2D6A4F;");
-
-                Text descText = new Text(
-                                "Find the right equipment for your farm");
-
-                descText.setStyle(
-                                "-fx-font-family: 'Poppins';" +
-                                                "-fx-font-size: 13px;" +
-                                                "-fx-fill: #4B5563;");
-
-                VBox headerText = new VBox(
-                                3,
-                                welcomeText,
-                                subText,
-                                descText);
-
-                headerText.setAlignment(
-                                Pos.CENTER_LEFT);
-
                 Text searchIcon = new Text("🔍");
 
                 searchIcon.setStyle(
@@ -144,32 +110,41 @@ public class Dashboard {
 
                         if (q.contains("book") || q.contains("order") || q.contains("rent") || q.contains("hist")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                                 MyBookings obj = new MyBookings();
                                 FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                         } else if (q.contains("wish") || q.contains("save") || q.contains("fav") || q.contains("like")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.wishlistBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
                                 FarmerDashboard.borderPane.setCenter(WishList.getWishList());
                         } else if (q.contains("oper") || q.contains("driver") || q.contains("pilot") || q.contains("worker") || q.contains("hire") || q.contains("manpower") || q.contains("pay") || q.contains("bill")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.paymentBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
                                 FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(FarmerDashboard.root));
                         } else if (q.contains("review") || q.contains("rat") || q.contains("star") || q.contains("feed")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.reviewBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Reviews & Field Ratings ⭐", "Rate your completed rentals and machine operators");
                                 FarmerDashboard.borderPane.setCenter(ReviewRating.getReviewRatingPage(FarmerDashboard.root));
                         } else if (q.contains("sett") || q.contains("pref") || q.contains("pass") || q.contains("notif")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
                                 FarmerDashboard.borderPane.setCenter(Settings.getSetting());
                         } else if (q.contains("help") || q.contains("supp") || q.contains("ai") || q.contains("faq") || q.contains("chat") || q.contains("bot") || q.contains("issue")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.supportBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "Get 24x7 farmer assistance and AI advisory");
                                 FarmerDashboard.borderPane.setCenter(Help.getHelp());
                         } else if (q.contains("prof") || q.contains("user") || q.contains("acc") || q.contains("harshal")) {
                                 ProfileManagement obj = new ProfileManagement();
                                 FarmerDashboard.borderPane.setCenter(obj.getProfile(FarmerDashboard.root));
                         } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("pune") || q.contains("clim")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
+                                String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
+                                ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
                                 FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                         } else {
                                 // Equipment keyword, category, or general machinery search
                                 LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                                 FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
                                 BrowseEquip.setSearchQuery(raw);
                         }
@@ -202,6 +177,7 @@ public class Dashboard {
                         LeftSideBar.setActiveButton(
                                         LeftSideBar.equipmentBtn1,
                                         LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                         FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
                 });
 
@@ -214,6 +190,7 @@ public class Dashboard {
                         LeftSideBar.setActiveButton(
                                         LeftSideBar.bookingBtn1,
                                         LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 });
@@ -227,6 +204,7 @@ public class Dashboard {
                         LeftSideBar.setActiveButton(
                                         LeftSideBar.bookingBtn1,
                                         LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 });
@@ -240,6 +218,7 @@ public class Dashboard {
                         LeftSideBar.setActiveButton(
                                         LeftSideBar.bookingBtn1,
                                         LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 });
@@ -318,6 +297,7 @@ public class Dashboard {
 
                         viewMore.setOnMouseClicked(event -> {
                                 LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                                ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                                 FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
                         });
 
@@ -353,6 +333,7 @@ public class Dashboard {
 
                 viewMore2.setOnMouseClicked(e -> {
                         LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 });
@@ -419,7 +400,7 @@ public class Dashboard {
 
                 VBox centerContent = new VBox(
                                 18,
-                                headerText,
+
                                 weatherCard,
                                 searchBox,
                                 cards,
@@ -429,7 +410,7 @@ public class Dashboard {
                                 recentBookingTitle,
                                 recentBookingNode);
 
-                centerContent.setPadding(new Insets(20, 30, 30, 30));
+                centerContent.setPadding(new Insets(14, 30, 30, 30));
                 centerContent.setStyle("-fx-background-color: #F4F9F4;");
 
                 ScrollPane scrollPane = new ScrollPane();
@@ -1022,6 +1003,7 @@ public class Dashboard {
 
                 Runnable openDetails = () -> {
                         LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("Equipment Details ⚒", "Detailed machinery specifications, rent & operator options");
                         EquipmentDetailPage detailPage = new EquipmentDetailPage(
                                 equipmentName,
                                 category != null ? category : "Agricultural Equipment",
@@ -1031,6 +1013,8 @@ public class Dashboard {
                                 imagePath,
                                 () -> {
                                         LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
+                                        String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
+                                        ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
                                         FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                                 }
                         );
@@ -1121,6 +1105,7 @@ public class Dashboard {
 
                 row.setOnMouseClicked(e -> {
                         LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 });
@@ -1190,6 +1175,7 @@ public class Dashboard {
 
                 Runnable openBooking = () -> {
                         LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
                 };

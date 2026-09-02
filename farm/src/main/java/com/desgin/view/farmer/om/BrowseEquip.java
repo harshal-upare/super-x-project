@@ -142,41 +142,7 @@ public class BrowseEquip {
     public static ScrollPane getBrowseEquip() {
         loadEquipment();
 
-        /*
-         * --------------------------------
-         * TITLE
-         * --------------------------------
-         */
 
-        Text browseTitle =
-                new Text("Browse Equipment");
-
-        browseTitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-
-        Text subtitle =
-                new Text(
-                        "Find the right equipment for your farm"
-                );
-
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 14px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-
-        VBox heading =
-                new VBox(
-                        5,
-                        browseTitle,
-                        subtitle
-                );
 
 
         /*
@@ -525,7 +491,6 @@ public class BrowseEquip {
         VBox root =
                 new VBox(
                         18,
-                        heading,
                         searchBox,
                         filterBox,
                         equipmentTitle,
@@ -1148,6 +1113,7 @@ public class BrowseEquip {
                 e -> {
                     Runnable backAction = () -> {
                         if (FarmerDashboard.borderPane != null) {
+                            com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                             FarmerDashboard.borderPane.setCenter(getBrowseEquip());
                         }
                     };
@@ -1163,6 +1129,7 @@ public class BrowseEquip {
                     );
 
                     if (FarmerDashboard.borderPane != null) {
+                        com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("Equipment Details ⚒", "Detailed machinery specifications, rent & operator options");
                         FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
                     }
                 }
