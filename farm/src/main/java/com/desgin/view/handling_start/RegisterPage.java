@@ -255,7 +255,7 @@ public class RegisterPage {
         providerRadio.setStyle(radioStyle);
         operatorRadio.setStyle(radioStyle);
 
-        farmerRadio.setSelected(true);
+        
         farmerRadio.setFocusTraversable(false);
         providerRadio.setFocusTraversable(false);
         operatorRadio.setFocusTraversable(false);

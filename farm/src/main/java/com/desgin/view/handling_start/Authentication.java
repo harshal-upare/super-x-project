@@ -160,7 +160,7 @@ public class Authentication {
         providerRadio.setStyle(radioStyle);
         operatorRadio.setStyle(radioStyle);
 
-        farmerRadio.setSelected(true);
+        
         farmerRadio.setFocusTraversable(false);
         providerRadio.setFocusTraversable(false);
         operatorRadio.setFocusTraversable(false);
@@ -169,6 +169,7 @@ public class Authentication {
         farmerRadio.setToggleGroup(loginRoleGroup);
         providerRadio.setToggleGroup(loginRoleGroup);
         operatorRadio.setToggleGroup(loginRoleGroup);
+        farmerRadio.setSelected(true);
 
         HBox roleHBox = new HBox(16, farmerRadio, providerRadio, operatorRadio);
         roleHBox.setAlignment(Pos.CENTER_LEFT);
@@ -267,15 +268,20 @@ public class Authentication {
 
                 Runnable backToLogin = () -> backtologin();
 
-                if ("Provider".equalsIgnoreCase(targetRole)) {
-                    com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
-                } else if ("Operator".equalsIgnoreCase(targetRole)) {
-                    com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
-                } else {
-                    com.desgin.view.farmer.Swapnil.FarmerDashboard obj = new com.desgin.view.farmer.Swapnil.FarmerDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+                try {
+                    if ("Provider".equalsIgnoreCase(targetRole)) {
+                        com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
+                        WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
+                    } else if ("Operator".equalsIgnoreCase(targetRole)) {
+                        com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
+                        WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+                    } else {
+                        com.desgin.view.farmer.Swapnil.FarmerDashboard obj = new com.desgin.view.farmer.Swapnil.FarmerDashboard();
+                        WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+                    }
+                } catch (Exception ex) {
+                    System.err.println("Error navigating to dashboard: " + ex.getMessage());
+                    ex.printStackTrace();
                 }
             }));
         });

@@ -119,25 +119,6 @@ public class ReviewRating {
 
     public static ScrollPane getReviewRatingPage(StackPane root) {
 
-        // ================= HEADER & STATS =================
-        Text pageTitle = new Text("Reviews & Field Ratings ⭐");
-        pageTitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text pageSubtitle = new Text("Rate your completed equipment rentals and certified operators based on on-field performance.");
-        pageSubtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox titleBox = new VBox(4, pageTitle, pageSubtitle);
-        titleBox.setAlignment(Pos.CENTER_LEFT);
-
         // ================= 2 OPTIONS: EQUIPMENT vs OPERATOR =================
         Button optEquipmentBtn = new Button("🚜  Equipment Reviews");
         Button optOperatorBtn = new Button("👷  Operator Reviews");
@@ -217,7 +198,7 @@ public class ReviewRating {
         historyView.setManaged(false);
 
         // ================= ROOT CONTAINER =================
-        VBox mainContainer = new VBox(20, titleBox, modeSelector, statsBox, tabBar, writeReviewView, historyView);
+        VBox mainContainer = new VBox(20, modeSelector, statsBox, tabBar, writeReviewView, historyView);
         mainContainer.setPadding(new Insets(20, 30, 35, 30));
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");

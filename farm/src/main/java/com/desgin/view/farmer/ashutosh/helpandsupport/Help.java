@@ -18,26 +18,6 @@ public class Help {
 
     public static ScrollPane getHelp() {
 
-        // ================= HEADER =================
-        Text titleLabel = new Text("Help & Support Desk 🛟");
-        titleLabel.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text subtitleLabel = new Text(
-                "Get instant answers regarding equipment bookings, roadside breakdown dispatch, escrow payments, and farming AI advisory."
-        );
-        subtitleLabel.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox headerBox = new VBox(4, titleLabel, subtitleLabel);
-
         // ================= TOP CONTACT CARDS =================
         VBox callCard = createContactCard("📞 National Kisan Helpline", "1800-180-1551 (Toll-Free)\nAvailable 6:00 AM – 10:00 PM (All Languages)", "#E8F5E9", "#1B4332");
         VBox whatsappCard = createContactCard("💬 WhatsApp Farm Support", "+91 98220 54321 (Instant Chat)\nShare machinery photos & live field location", "#DCFCE7", "#15803D");
@@ -221,7 +201,7 @@ public class Help {
         faqCard.getChildren().addAll(faqTitle, faq1, faq2, faq3, faq4);
 
         // ================= MAIN CONTAINER =================
-        VBox mainContainer = new VBox(20, headerBox, contactBox, aiCard, faqCard);
+        VBox mainContainer = new VBox(20, contactBox, aiCard, faqCard);
         mainContainer.setPadding(new Insets(20, 30, 35, 30));
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");

@@ -23,32 +23,34 @@ public class ProfileManagement {
 
     private static VBox profilePopupRef;
 
+    public static Text headerTitleText = new Text("Welcome back, " + ((FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal") + " 👋");
+    public static Text headerSubtitleText = new Text("Farmer Dashboard • Find the right equipment for your farm");
+    public static VBox headerTitleBox;
+
+    static {
+        headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
+        headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
+        headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+    }
+
+    public static void setHeaderTitle(String title, String subtitle) {
+        if (headerTitleText != null) headerTitleText.setText(title);
+        if (headerSubtitleText != null) {
+            if (subtitle != null && !subtitle.isEmpty()) {
+                headerSubtitleText.setText(subtitle);
+                headerSubtitleText.setVisible(true);
+                headerSubtitleText.setManaged(true);
+            } else {
+                headerSubtitleText.setVisible(false);
+                headerSubtitleText.setManaged(false);
+            }
+        }
+    }
+
     public HBox getProfile(StackPane root) {
 
-        // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
-        Button guideBtn = createPillButton("📖", "User Guide", null);
-        Button schemesBtn = createPillButton("🏛️", "Govt Schemes", "3 Active");
-        Button advisoryBtn = createPillButton("🌱", "Crop Advisory", "Live");
-        Button helplineBtn = createPillButton("📞", "Kisan Helpline", "24x7");
-
-        HBox leftButtonsBox = new HBox(8, guideBtn, schemesBtn, advisoryBtn, helplineBtn);
-        leftButtonsBox.setAlignment(Pos.CENTER_LEFT);
-
-        // Popups for Top Left Buttons
-        VBox guidePopup = createInfoPopup("📖", "FarmEquip User Guide", "Step-by-step mechanization & rental handbook for farmers", createGuideContent());
-        VBox schemesPopup = createInfoPopup("🏛️", "Government Schemes & Subsidies", "Active financial assistance and machinery subsidy schemes for farmers", createSchemesContent());
-        VBox advisoryPopup = createInfoPopup("🌱", "Agri Advisory & Live Mandi Prices", "Today's market rates, crop calendar & mechanization advisory", createAdvisoryContent());
-        VBox helplinePopup = createInfoPopup("📞", "Kisan Helplines & Emergency Desk", "Direct toll-free contact numbers for farmer support & breakdown assistance", createHelplineContent());
-
-        root.getChildren().addAll(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
-
-        // Click handlers for top left buttons
-        guideBtn.setOnAction(e -> togglePopup(guidePopup, schemesPopup, advisoryPopup, helplinePopup));
-        schemesBtn.setOnAction(e -> togglePopup(schemesPopup, guidePopup, advisoryPopup, helplinePopup));
-        advisoryBtn.setOnAction(e -> togglePopup(advisoryPopup, guidePopup, schemesPopup, helplinePopup));
-        helplineBtn.setOnAction(e -> togglePopup(helplinePopup, guidePopup, schemesPopup, advisoryPopup));
-
-        // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
+        // ================= TOP RIGHT: NOTIFICATIONS & PROFILE ================
         Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
 
         // Profile Pill Button
@@ -60,7 +62,6 @@ public class ProfileManagement {
 
         profileBox.setOnMouseClicked(event -> {
             boolean isVis = profilePopupRef.isVisible();
-            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             profilePopupRef.setVisible(!isVis);
         });
 
@@ -70,7 +71,6 @@ public class ProfileManagement {
 
         notificationBtn1.setOnAction(e -> {
             boolean isVis = notificationPopUp.isVisible();
-            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notificationPopUp.setVisible(!isVis);
         });
@@ -81,9 +81,10 @@ public class ProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(10, leftButtonsBox, spacer, rightHBox);
+        HBox topBar = new HBox(12, headerTitleBox, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(10, 22, 10, 22));
+        topBar.setPadding(new Insets(12, 24, 12, 24));
+        topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topBar;
     }
