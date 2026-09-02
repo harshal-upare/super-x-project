@@ -50,7 +50,30 @@ public class ProfileManagement {
 
     public HBox getProfile(StackPane root) {
 
-        // ================= TOP RIGHT: NOTIFICATIONS & PROFILE ================
+      /*  // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
+        Button guideBtn = createPillButton("📖", "User Guide", null);
+        Button schemesBtn = createPillButton("🏛️", "Govt Schemes", "3 Active");
+        Button advisoryBtn = createPillButton("🌱", "Crop Advisory", "Live");
+        Button helplineBtn = createPillButton("📞", "Kisan Helpline", "24x7");
+
+        HBox leftButtonsBox = new HBox(8, guideBtn, schemesBtn, advisoryBtn, helplineBtn);
+        leftButtonsBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Popups for Top Left Buttons
+        VBox guidePopup = createInfoPopup("📖", "FarmEquip User Guide", "Step-by-step mechanization & rental handbook for farmers", createGuideContent());
+        VBox schemesPopup = createInfoPopup("🏛️", "Government Schemes & Subsidies", "Active financial assistance and machinery subsidy schemes for farmers", createSchemesContent());
+        VBox advisoryPopup = createInfoPopup("🌱", "Agri Advisory & Live Mandi Prices", "Today's market rates, crop calendar & mechanization advisory", createAdvisoryContent());
+        VBox helplinePopup = createInfoPopup("📞", "Kisan Helplines & Emergency Desk", "Direct toll-free contact numbers for farmer support & breakdown assistance", createHelplineContent());
+
+        root.getChildren().addAll(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+
+        // Click handlers for top left buttons
+        guideBtn.setOnAction(e -> togglePopup(guidePopup, schemesPopup, advisoryPopup, helplinePopup));
+        schemesBtn.setOnAction(e -> togglePopup(schemesPopup, guidePopup, advisoryPopup, helplinePopup));
+        advisoryBtn.setOnAction(e -> togglePopup(advisoryPopup, guidePopup, schemesPopup, helplinePopup));
+        helplineBtn.setOnAction(e -> togglePopup(helplinePopup, guidePopup, schemesPopup, advisoryPopup));
+*/
+        // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
         Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
 
         // Profile Pill Button
@@ -62,6 +85,7 @@ public class ProfileManagement {
 
         profileBox.setOnMouseClicked(event -> {
             boolean isVis = profilePopupRef.isVisible();
+            //hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             profilePopupRef.setVisible(!isVis);
         });
 
@@ -71,6 +95,7 @@ public class ProfileManagement {
 
         notificationBtn1.setOnAction(e -> {
             boolean isVis = notificationPopUp.isVisible();
+           // hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notificationPopUp.setVisible(!isVis);
         });
@@ -81,7 +106,7 @@ public class ProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(12, headerTitleBox, spacer, rightHBox);
+        HBox topBar = new HBox(10, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(12, 24, 12, 24));
         topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
