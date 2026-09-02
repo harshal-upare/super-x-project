@@ -89,7 +89,7 @@ public class OperatorLeftSideBar {
         logoTextHBox.setPadding(new Insets(4, 6, 16, 6));
         logoTextHBox.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
-        dashboardBtn = new Button("🟢  Live Shift Cockpit");
+        dashboardBtn = new Button("⌂  Dashboard");
         styleMenuButton(dashboardBtn);
 
         jobsBtn = new Button("📋  Field Tasks & Schedule");
@@ -98,16 +98,18 @@ public class OperatorLeftSideBar {
         earningsBtn = new Button("💵  Daily Wages & Cashout");
         styleMenuButton(earningsBtn);
 
-        settingsBtn = new Button("⚙   Settings & Support");
+        settingsBtn = new Button("⚙   Settings");
         styleMenuButton(settingsBtn);
+
+        supportBtn = new Button("❓  Help & Support");
+        styleMenuButton(supportBtn);
 
         // Retain references for backward compatibility
         machineryBtn = new Button("🚜  Assigned Machinery");
         fieldLogsBtn = new Button("⏱  Field Logs");
         analyticsBtn = new Button("📊  Performance");
-        supportBtn = new Button("❓  Help");
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, earningsBtn, settingsBtn);
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, earningsBtn);
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -117,7 +119,7 @@ public class OperatorLeftSideBar {
         });
         styleLogoutButton(logoutBtn);
 
-        VBox vBoxBtn2 = new VBox(6, logoutBtn);
+        VBox vBoxBtn2 = new VBox(6, settingsBtn, supportBtn, logoutBtn);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -141,6 +143,7 @@ public class OperatorLeftSideBar {
         navigationButtons.add(jobsBtn);
         navigationButtons.add(earningsBtn);
         navigationButtons.add(settingsBtn);
+        navigationButtons.add(supportBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
 
@@ -162,6 +165,11 @@ public class OperatorLeftSideBar {
         settingsBtn.setOnAction(event -> {
             setActiveButton(settingsBtn, navigationButtons);
             OperatorDashboard.borderPane.setCenter(OperatorSettings.getSettingsSection());
+        });
+
+        supportBtn.setOnAction(event -> {
+            setActiveButton(supportBtn, navigationButtons);
+            OperatorDashboard.borderPane.setCenter(OperatorHelp.getHelpSection());
         });
 
         return leftVB;

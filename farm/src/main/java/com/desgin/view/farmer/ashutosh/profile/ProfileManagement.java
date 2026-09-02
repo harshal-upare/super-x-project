@@ -25,7 +25,7 @@ public class ProfileManagement {
 
     public HBox getProfile(StackPane root) {
 
-        // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
+      /*  // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
         Button guideBtn = createPillButton("📖", "User Guide", null);
         Button schemesBtn = createPillButton("🏛️", "Govt Schemes", "3 Active");
         Button advisoryBtn = createPillButton("🌱", "Crop Advisory", "Live");
@@ -47,7 +47,7 @@ public class ProfileManagement {
         schemesBtn.setOnAction(e -> togglePopup(schemesPopup, guidePopup, advisoryPopup, helplinePopup));
         advisoryBtn.setOnAction(e -> togglePopup(advisoryPopup, guidePopup, schemesPopup, helplinePopup));
         helplineBtn.setOnAction(e -> togglePopup(helplinePopup, guidePopup, schemesPopup, advisoryPopup));
-
+*/
         // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
         Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
 
@@ -60,7 +60,7 @@ public class ProfileManagement {
 
         profileBox.setOnMouseClicked(event -> {
             boolean isVis = profilePopupRef.isVisible();
-            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+            //hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             profilePopupRef.setVisible(!isVis);
         });
 
@@ -70,7 +70,7 @@ public class ProfileManagement {
 
         notificationBtn1.setOnAction(e -> {
             boolean isVis = notificationPopUp.isVisible();
-            hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+           // hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notificationPopUp.setVisible(!isVis);
         });
@@ -81,7 +81,7 @@ public class ProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(10, leftButtonsBox, spacer, rightHBox);
+        HBox topBar = new HBox(10, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setPadding(new Insets(10, 22, 10, 22));
 

@@ -26,6 +26,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+
 /**
  * Enhanced Provider Earnings & Financial Settlements View
  * Featuring real JavaFX Charts (AreaChart, BarChart, PieChart),
