@@ -9,25 +9,17 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import com.desgin.view.farmer.LeftSideBar;
-import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
 import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
-import com.desgin.view.farmer.ashutosh.settings.Settings;
-import com.desgin.view.farmer.om.BrowseEquip;
-
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;

@@ -1,7 +1,5 @@
 package com.desgin.view.farmer.harshal;
 
-import javax.swing.text.View;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
