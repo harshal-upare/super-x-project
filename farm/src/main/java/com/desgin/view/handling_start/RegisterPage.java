@@ -255,7 +255,6 @@ public class RegisterPage {
         providerRadio.setStyle(radioStyle);
         operatorRadio.setStyle(radioStyle);
 
-        
         farmerRadio.setFocusTraversable(false);
         providerRadio.setFocusTraversable(false);
         operatorRadio.setFocusTraversable(false);
@@ -416,33 +415,31 @@ public class RegisterPage {
             }
 
             RadioButton valRadioButton = (RadioButton) roleGroup.getSelectedToggle();
-            String redirect = valRadioButton != null ? valRadioButton.getText() : "Farmer";
+            String redirect = valRadioButton.getText();
 
-            // Persist credentials locally
-            FarmerProfileStore.setCredentials(name, email, mobile);
+            
+            AuthenticateController objController = new AuthenticateController();
+            if(objController.signUp(email, password)) {
+                
+                objController.addUser(name, email, mobile, password, redirect);
+                if ("Provider".equals(redirect)) {
 
-            // Attempt Firebase Auth & Firestore registration asynchronously
-            java.util.concurrent.CompletableFuture.runAsync(() -> {
-                try {
-                    AuthenticateController objController = new AuthenticateController();
-                    objController.signUp(email, password);
-                    objController.addUser(name, email, mobile, password, redirect);
-                } catch (Exception e) {
-                    System.err.println("Registration persistence notice: " + e.getMessage());
+                    com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
+                } else if ("Operator".equals(redirect)) 
+                    {
+                    com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+                } else if ("Farmer".equals(redirect)) {
+                    
+                    FarmerDashboard obj = new FarmerDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
                 }
-            });
+            }
+            
+                
 
             // Route to respective role portal immediately
-            if ("Provider".equals(redirect)) {
-                com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
-            } else if ("Operator".equals(redirect)) {
-                com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
-            } else {
-                FarmerDashboard obj = new FarmerDashboard();
-                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
-            }
         });
 
         // ================= LOGIN TEXT (BRIGHT & CLICKABLE) =================
