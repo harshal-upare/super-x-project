@@ -2,34 +2,44 @@ package com.desgin.dao;
 
 import com.desgin.config.FirestoreConfig;
 import com.desgin.model.AuthenticateModel;
+import com.google.api.core.ApiFuture;
 import com.google.cloud.firestore.DocumentSnapshot;
 import com.google.cloud.firestore.Firestore;
 
 public class AuthDAO {
 
+    private Firestore db = FirestoreConfig.getFirestore();;
+
     public void addUser(AuthenticateModel objModel) {
+
         try {
-            Firestore db = FirestoreConfig.getFirestore();
-            if (db != null && objModel != null && objModel.getMail() != null) {
-                db.collection("users").document(objModel.getMail().toLowerCase().trim()).set(objModel);
-            }
+           
+            db.collection(objModel.getRole()).document(objModel.getMail()).create(objModel).get();
+
         } catch(Exception e) {
-            System.err.println("AuthDAO addUser error: " + e.getMessage());
+            
+            e.printStackTrace();
         }
     }
 
-    public AuthenticateModel getUserByEmail(String email) {
+    public boolean isUser(String mail, String role) {
+
         try {
-            Firestore db = FirestoreConfig.getFirestore();
-            if (db != null && email != null) {
-                DocumentSnapshot document = db.collection("users").document(email.toLowerCase().trim()).get().get();
-                if (document.exists()) {
-                    return document.toObject(AuthenticateModel.class);
-                }
-            }
-        } catch (Exception e) {
-            System.err.println("AuthDAO getUser error: " + e.getMessage());
+
+            ApiFuture<DocumentSnapshot> future = db.collection(role).document(mail).get();  
+            DocumentSnapshot doc = future.get();
+
+            boolean valid = doc.exists();
+            
+            if(valid)
+                return true;
+        } catch(Exception e) {
+            
+            e.printStackTrace();
         }
-        return null;
+
+        return false;
     }
+
+   
 }

@@ -12,59 +12,32 @@ import com.google.firebase.cloud.FirestoreClient;
 
 public class FirestoreConfig {
     
-    private static boolean initialized = false;
 
     static {
+
         getFirebaseConfig();
     }
 
-    public static synchronized void getFirebaseConfig() {
-        if (initialized || !FirebaseApp.getApps().isEmpty()) {
-            initialized = true;
-            return;
-        }
+    public static void getFirebaseConfig() {
 
         try {
-            InputStream serviceAccount = FirestoreConfig.class.getResourceAsStream("/auth.json");
-            if (serviceAccount == null) {
-                serviceAccount = FirestoreConfig.class.getClassLoader().getResourceAsStream("auth.json");
-            }
-            if (serviceAccount == null) {
-                File f = new File("src/main/resources/auth.json");
-                if (f.exists()) {
-                    serviceAccount = new FileInputStream(f);
-                } else {
-                    f = new File("farm/src/main/resources/auth.json");
-                    if (f.exists()) {
-                        serviceAccount = new FileInputStream(f);
-                    }
-                }
-            }
+            FileInputStream serviceAccount =
+            new FileInputStream("farm\\src\\main\\resources\\api\\titan-edfd2-firebase-adminsdk-fbsvc-61bea2a63d.json");
 
-            if (serviceAccount != null) {
-                FirebaseOptions options = new FirebaseOptions.Builder()
-                        .setCredentials(GoogleCredentials.fromStream(serviceAccount))
-                        .build();
+            FirebaseOptions options = new FirebaseOptions.Builder()
+            .setCredentials(GoogleCredentials.fromStream(serviceAccount))
+            .build();
 
-                if (FirebaseApp.getApps().isEmpty()) {
-                    FirebaseApp.initializeApp(options);
-                }
-                initialized = true;
-            }
+            FirebaseApp.initializeApp(options);
+
         } catch(Exception e) {
-            System.err.println("Firebase init warning: " + e.getMessage());
+
+            e.printStackTrace();
         }
     }
 
     public static Firestore getFirestore() {
-        try {
-            getFirebaseConfig();
-            if (!FirebaseApp.getApps().isEmpty()) {
-                return FirestoreClient.getFirestore();
-            }
-        } catch (Exception e) {
-            System.err.println("Firestore client warning: " + e.getMessage());
-        }
-        return null;
+        
+        return FirestoreClient.getFirestore();
     }
 }
