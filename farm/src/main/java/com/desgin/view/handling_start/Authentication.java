@@ -5,7 +5,11 @@ import java.util.concurrent.CompletableFuture;
 import com.desgin.controller.AuthenticateController;
 import com.desgin.model.AuthenticateModel;
 import com.desgin.view.components.PasswordEyeField;
+import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.Swapnil.FarmerProfileStore;
+import com.desgin.view.operator.OperatorDashboard;
+import com.desgin.view.provider.ProviderDashboard;
+
 import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -82,7 +86,7 @@ public class Authentication {
         label1.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins';");
 
         TextField mailAndPhoneTextField = new TextField();
-        mailAndPhoneTextField.setPromptText("Enter email or 10-digit mobile");
+        mailAndPhoneTextField.setPromptText("Enter email");
         mailAndPhoneTextField.setPrefSize(290, 40);
         mailAndPhoneTextField.setMaxSize(290, 40);
         mailAndPhoneTextField.setFocusTraversable(false);
@@ -160,7 +164,6 @@ public class Authentication {
         providerRadio.setStyle(radioStyle);
         operatorRadio.setStyle(radioStyle);
 
-        farmerRadio.setSelected(true);
         farmerRadio.setFocusTraversable(false);
         providerRadio.setFocusTraversable(false);
         operatorRadio.setFocusTraversable(false);
@@ -211,73 +214,47 @@ public class Authentication {
             String inputPassword = passwordTextField.getText();
 
             RadioButton valRadio = (RadioButton) loginRoleGroup.getSelectedToggle();
-            String selectedRole = valRadio != null ? valRadio.getText() : "Farmer";
+            String selectedRole = valRadio.getText();
 
-            loginButton.setText("Verifying...");
-            loginButton.setDisable(true);
+            Runnable backToLogin = () -> backtologin();
 
-            CompletableFuture.supplyAsync(() -> {
-                AuthenticateController authController = new AuthenticateController();
-                String authStatus = "SUCCESS";
-                AuthenticateModel userModel = null;
+            AuthenticateController objController = new AuthenticateController();
 
-                if (inputUser.contains("@")) {
-                    authStatus = authController.authenticateUser(inputUser, inputPassword);
-                    if ("SUCCESS".equals(authStatus)) {
-                        userModel = authController.getUser(inputUser);
-                    }
-                }
-                return new Object[]{authStatus, userModel};
-            }).thenAccept(result -> Platform.runLater(() -> {
-                loginButton.setText("Login");
-                loginButton.setDisable(false);
-                loginButton.setStyle(buttonNormalStyle);
+            if ("Provider".equalsIgnoreCase(selectedRole)) {
+                
+                boolean validUser = objController.isUser(inputUser,selectedRole);
 
-                String authStatus = (String) result[0];
-                AuthenticateModel userModel = (AuthenticateModel) result[1];
+                if(validUser) {
 
-                if ("EMAIL_NOT_FOUND".equals(authStatus)) {
-                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
-                    showAuthErrorPopup("Username / Email Error", "No registered account found with this email (" + inputUser + ").\n\nPlease check your email address or click 'Register here' to create a new account.");
-                    return;
-                } else if ("INVALID_PASSWORD".equals(authStatus)) {
-                    passwordTextField.getHiddenField().setStyle(PWD_ERROR_STYLE);
-                    passwordTextField.getShownField().setStyle(PWD_ERROR_STYLE);
-                    showAuthErrorPopup("Incorrect Password", "The password you entered is incorrect.\n\nPlease verify your password and try again.");
-                    return;
-                } else if ("USER_DISABLED".equals(authStatus)) {
-                    showAuthErrorPopup("Account Suspended", "This account has been disabled by platform administration.");
-                    return;
-                } else if ("TOO_MANY_ATTEMPTS".equals(authStatus)) {
-                    showAuthErrorPopup("Access Temporarily Blocked", "Too many failed login attempts detected. Please wait a few moments before trying again.");
-                    return;
-                }
-
-                String targetRole = selectedRole;
-                if (userModel != null) {
-                    if (userModel.getRole() != null && !userModel.getRole().trim().isEmpty()) {
-                        targetRole = userModel.getRole();
-                    }
-                    FarmerProfileStore.setCredentials(userModel.getName(), userModel.getMail(), userModel.getNum());
-                } else if (inputUser.contains("@")) {
-                    FarmerProfileStore.setCredentials(null, inputUser, null);
-                } else {
-                    FarmerProfileStore.setCredentials(null, null, inputUser);
-                }
-
-                Runnable backToLogin = () -> backtologin();
-
-                if ("Provider".equalsIgnoreCase(targetRole)) {
-                    com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
+                    ProviderDashboard obj = new ProviderDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
-                } else if ("Operator".equalsIgnoreCase(targetRole)) {
-                    com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
+                } else {
+
+                }
+            } else if ("Operator".equalsIgnoreCase(selectedRole)) {
+
+                boolean validUser = objController.isUser(inputUser,selectedRole);
+
+                if(validUser) {
+
+                    OperatorDashboard obj = new OperatorDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
                 } else {
-                    com.desgin.view.farmer.Swapnil.FarmerDashboard obj = new com.desgin.view.farmer.Swapnil.FarmerDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+
                 }
-            }));
+                
+            } else if ("Farmer".equalsIgnoreCase(selectedRole)) {
+
+                boolean validUser = objController.isUser(inputUser,selectedRole);
+
+                if(validUser) {
+
+                    FarmerDashboard obj = new FarmerDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
+                } else {
+
+                }
+            }
         });
 
         // ------------------ REGISTER LINK ------------------
@@ -375,68 +352,6 @@ public class Authentication {
         authenticationScene = new Scene(rootStackPane);
 
         return authenticationScene;
-    }
-
-    // ============================================================
-    // AUTH ERROR POPUP DIALOG (MODERN & CLEAR)
-    // ============================================================
-    private void showAuthErrorPopup(String title, String message) {
-        if (rootStackPane == null) return;
-
-        VBox dialogBox = new VBox(14);
-        dialogBox.setAlignment(Pos.CENTER);
-        dialogBox.setPadding(new Insets(24, 28, 22, 28));
-        dialogBox.setPrefWidth(380);
-        dialogBox.setMaxWidth(380);
-        dialogBox.setStyle(
-            "-fx-background-color: #FFFFFF;" +
-            "-fx-background-radius: 20px;" +
-            "-fx-border-color: #FCA5A5;" +
-            "-fx-border-radius: 20px;" +
-            "-fx-border-width: 1.5px;" +
-            "-fx-effect: dropshadow(gaussian, rgba(220, 38, 38, 0.25), 24, 0, 0, 8);"
-        );
-
-        Text iconText = new Text("❌");
-        iconText.setStyle("-fx-font-size: 26px;");
-        StackPane iconCircle = new StackPane(iconText);
-        iconCircle.setPrefSize(50, 50);
-        iconCircle.setMinSize(50, 50);
-        iconCircle.setMaxSize(50, 50);
-        iconCircle.setStyle("-fx-background-color: #FEE2E2; -fx-background-radius: 25px;");
-
-        Text titleText = new Text(title);
-        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #991B1B;");
-
-        Text msgText = new Text(message);
-        msgText.setWrappingWidth(320);
-        msgText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563; -fx-line-spacing: 3px; -fx-text-alignment: center;");
-
-        VBox detailsBox = new VBox(6, titleText, msgText);
-        detailsBox.setAlignment(Pos.CENTER);
-
-        Button dismissBtn = new Button("Try Again");
-        dismissBtn.setPrefHeight(38);
-        dismissBtn.setPrefWidth(140);
-        dismissBtn.setStyle(
-            "-fx-background-color: #DC2626; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-cursor: hand;"
-        );
-        dismissBtn.setOnMouseEntered(e -> dismissBtn.setStyle("-fx-background-color: #B91C1C; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-cursor: hand;"));
-        dismissBtn.setOnMouseExited(e -> dismissBtn.setStyle("-fx-background-color: #DC2626; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 10px; -fx-cursor: hand;"));
-
-        StackPane overlay = new StackPane();
-        overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
-        overlay.getChildren().add(dialogBox);
-
-        dismissBtn.setOnAction(e -> rootStackPane.getChildren().remove(overlay));
-        overlay.setOnMouseClicked(e -> {
-            if (e.getTarget() == overlay) {
-                rootStackPane.getChildren().remove(overlay);
-            }
-        });
-
-        dialogBox.getChildren().addAll(iconCircle, detailsBox, dismissBtn);
-        rootStackPane.getChildren().add(overlay);
     }
 
     // ============================================================
