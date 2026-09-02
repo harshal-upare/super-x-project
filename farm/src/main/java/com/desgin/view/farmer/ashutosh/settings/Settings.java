@@ -32,26 +32,6 @@ public class Settings {
 
     public static ScrollPane getSetting() {
 
-        // ================= HEADER =================
-        Text settingTitle = new Text("Settings & Preferences ⚙");
-        settingTitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text subtitle = new Text(
-                "Manage your farmer account credentials, security password, and notification alerts."
-        );
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox header = new VBox(4, settingTitle, subtitle);
-
         // Feedback Banner
         feedbackLabel = new Label();
         feedbackLabel.setVisible(false);
@@ -168,7 +148,7 @@ public class Settings {
         actionToolbar.setAlignment(Pos.CENTER_LEFT);
 
         // ================= MAIN CONTAINER =================
-        VBox mainContainer = new VBox(20, header, feedbackLabel, accountCard, notifCard, actionToolbar);
+        VBox mainContainer = new VBox(20, feedbackLabel, accountCard, notifCard, actionToolbar);
         mainContainer.setPadding(new Insets(20, 30, 35, 30));
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");

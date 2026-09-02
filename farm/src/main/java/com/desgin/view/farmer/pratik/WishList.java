@@ -157,29 +157,6 @@ public class WishList {
     public static ScrollPane getWishList() {
 
         // --------------------------------------------------------
-        // TITLE & SUBTITLE
-        // --------------------------------------------------------
-
-        Text wishlistTitle = new Text("My Saved Wishlist ❤️");
-        wishlistTitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text subtitle = new Text(
-                "Keep track of preferred farm machinery and certified operators for immediate field booking."
-        );
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox heading = new VBox(4, wishlistTitle, subtitle);
-
-        // --------------------------------------------------------
         // TAB BUTTONS (EQUIPMENT vs OPERATORS)
         // --------------------------------------------------------
 
@@ -312,7 +289,6 @@ public class WishList {
 
         VBox content = new VBox(
                 18,
-                heading,
                 tabBox,
                 emptyBox,
                 equipmentCards,
@@ -527,6 +503,7 @@ public class WishList {
         viewButton.setOnAction(event -> {
             Runnable backAction = () -> {
                 if (FarmerDashboard.borderPane != null) {
+                    com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
                     FarmerDashboard.borderPane.setCenter(getWishList());
                 }
             };
@@ -542,6 +519,7 @@ public class WishList {
             );
 
             if (FarmerDashboard.borderPane != null) {
+                com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("Equipment Details ⚒", "Detailed machinery specifications, rent & operator options");
                 FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
             }
         });

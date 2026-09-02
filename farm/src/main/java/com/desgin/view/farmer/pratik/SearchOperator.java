@@ -152,26 +152,6 @@ public class SearchOperator {
 
     public static ScrollPane getSearchOperatorSection(StackPane root) {
 
-        // ================= HEADER =================
-        Text title = new Text("Search Nearby Machinery Operators 👷");
-        title.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text subtitle = new Text(
-                "Find, contact and hire certified tractor drivers, combine harvester operators, and agri-drone pilots in " + FarmerProfileStore.town + "."
-        );
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox heading = new VBox(4, title, subtitle);
-
         // Feedback Banner
         feedbackBanner = new Label();
         feedbackBanner.setVisible(false);
@@ -257,7 +237,7 @@ public class SearchOperator {
         });
 
         // ================= MAIN CONTAINER =================
-        VBox mainContainer = new VBox(20, heading, feedbackBanner, summaryCards, filterBar, operatorsContainer);
+        VBox mainContainer = new VBox(20, feedbackBanner, summaryCards, filterBar, operatorsContainer);
         mainContainer.setPadding(new Insets(20, 30, 35, 30));
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");

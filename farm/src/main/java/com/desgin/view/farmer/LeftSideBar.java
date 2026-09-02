@@ -5,11 +5,14 @@ import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.Dashboard;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
+import com.desgin.view.farmer.Swapnil.FarmerProfileStore;
 import com.desgin.view.farmer.ashutosh.helpandsupport.Help;
+import com.desgin.view.farmer.ashutosh.profile.ProfileManagement;
 import com.desgin.view.farmer.ashutosh.settings.Settings;
 import com.desgin.view.farmer.harshal.MyBookings;
 import com.desgin.view.farmer.om.BrowseEquip;
 import com.desgin.view.farmer.pratik.WishList;
+// import com.desgin.view.farmer.review.ReviewRating;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -45,7 +48,18 @@ public class LeftSideBar {
 
         public VBox getSideBar(Runnable ref) {
 
-                Image logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
+                navigationButtons.clear();
+
+                Image logoImage;
+                try {
+                    logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.png");
+                    if (logoImage.isError()) {
+                        logoImage = new Image(getClass().getResourceAsStream("/assets/Images/logo.png"));
+                    }
+                } catch (Exception e) {
+                    logoImage = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
+                }
+
                 ImageView logoImageView = new ImageView(logoImage);
                 logoImageView.setFitWidth(30);
                 logoImageView.setFitHeight(30);
@@ -71,7 +85,7 @@ public class LeftSideBar {
                                 "-fx-font-family: 'Poppins';" +
                                 "-fx-fill: #FFFFFF;");
 
-                Text subText = new Text("🌱 Agri Rental Hub");
+                Text subText = new Text("🌱 Farmer Portal");
                 subText.setStyle(
                                 "-fx-font-size: 11px;" +
                                 "-fx-font-weight: 600;" +
@@ -96,7 +110,7 @@ public class LeftSideBar {
                 bookingBtn1 = new Button("📅  My Bookings");
                 styleMenuButton(bookingBtn1);
 
-                wishlistBtn1 = new Button("♥  My Wishlist");
+                wishlistBtn1 = new Button("❤️  Saved Wishlist");
                 styleMenuButton(wishlistBtn1);
 
                 paymentBtn1 = new Button("👷  Search Operators");
@@ -105,14 +119,13 @@ public class LeftSideBar {
                 reviewBtn1 = new Button("⭐  Reviews & Ratings");
                 styleMenuButton(reviewBtn1);
 
-                VBox vBoxBtn1 = new VBox(6, dashboardBtn1, equipmentBtn1, bookingBtn1, wishlistBtn1, paymentBtn1, reviewBtn1);
-
-                // Settings, Support & Logout
                 settingsBtn1 = new Button("⚙  Settings");
                 styleMenuButton(settingsBtn1);
 
-                supportBtn1 = new Button("❓ Help & Support");
+                supportBtn1 = new Button("🛟  Help & Support");
                 styleMenuButton(supportBtn1);
+
+                VBox vBoxBtn1 = new VBox(6, dashboardBtn1, equipmentBtn1, bookingBtn1, wishlistBtn1, paymentBtn1, reviewBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
                 logoutBtn1.setOnAction(e -> {
@@ -142,7 +155,6 @@ public class LeftSideBar {
                                 "-fx-border-width: 0 1px 0 0;" +
                                 "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0, 3, 0);");
 
-                navigationButtons.clear();
                 navigationButtons.add(dashboardBtn1);
                 navigationButtons.add(equipmentBtn1);
                 navigationButtons.add(bookingBtn1);
@@ -156,42 +168,51 @@ public class LeftSideBar {
 
                 dashboardBtn1.setOnAction(event -> {
                         setActiveButton(dashboardBtn1, navigationButtons);
+                        String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
+                        ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
                         FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                 });
 
                 equipmentBtn1.setOnAction(event -> {
                         setActiveButton(equipmentBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                         FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
                 });
 
                 bookingBtn1.setOnAction(event -> {
                         setActiveButton(bookingBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
                         MyBookings obj = new MyBookings();
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(root));
                 });
 
                 paymentBtn1.setOnAction(event -> {
                         setActiveButton(paymentBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
                         FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(root));
                 });
 
                 wishlistBtn1.setOnAction(event -> {
                         setActiveButton(wishlistBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
                         FarmerDashboard.borderPane.setCenter(WishList.getWishList());
                 });
 
                 reviewBtn1.setOnAction(event -> {
                         setActiveButton(reviewBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Reviews & Field Ratings ⭐", "Rate your completed rentals and machine operators");
                         FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.review.ReviewRating.getReviewRatingPage(root));
                 });
 
                 settingsBtn1.setOnAction(event -> {
                         setActiveButton(settingsBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
                         FarmerDashboard.borderPane.setCenter(Settings.getSetting());
                 });
 
                 supportBtn1.setOnAction(event -> {
                         setActiveButton(supportBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "Get 24x7 farmer assistance and AI advisory");
                         FarmerDashboard.borderPane.setCenter(Help.getHelp());
                 });
 

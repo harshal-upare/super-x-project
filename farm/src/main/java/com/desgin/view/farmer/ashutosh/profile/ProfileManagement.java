@@ -23,6 +23,31 @@ public class ProfileManagement {
 
     private static VBox profilePopupRef;
 
+    public static Text headerTitleText = new Text("Welcome back, " + ((FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal") + " 👋");
+    public static Text headerSubtitleText = new Text("Farmer Dashboard • Find the right equipment for your farm");
+    public static VBox headerTitleBox;
+
+    static {
+        headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
+        headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
+        headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+    }
+
+    public static void setHeaderTitle(String title, String subtitle) {
+        if (headerTitleText != null) headerTitleText.setText(title);
+        if (headerSubtitleText != null) {
+            if (subtitle != null && !subtitle.isEmpty()) {
+                headerSubtitleText.setText(subtitle);
+                headerSubtitleText.setVisible(true);
+                headerSubtitleText.setManaged(true);
+            } else {
+                headerSubtitleText.setVisible(false);
+                headerSubtitleText.setManaged(false);
+            }
+        }
+    }
+
     public HBox getProfile(StackPane root) {
 
       /*  // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
@@ -83,7 +108,8 @@ public class ProfileManagement {
 
         HBox topBar = new HBox(10, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(10, 22, 10, 22));
+        topBar.setPadding(new Insets(12, 24, 12, 24));
+        topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topBar;
     }

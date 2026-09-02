@@ -36,27 +36,10 @@ public class MyBookings {
     public VBox getBooking(StackPane root) {
         innerRoot = root;
 
-        // ================= HEADER =================
-        Text title = new Text("My Bookings 📅");
-        title.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;"
-        );
-
-        Text subtitle = new Text("Track and manage all your equipment rentals, upcoming schedules, and active deployments.");
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-fill: #4B5563;"
-        );
-
-        VBox titleBox = new VBox(4, title, subtitle);
-
+        // ================= SEARCH FIELD =================
         TextField searchField = new TextField();
         searchField.setPromptText("🔍  Search by equipment, booking ID, or status...");
-        searchField.setPrefWidth(340);
+        searchField.setPrefWidth(420);
         searchField.setPrefHeight(44);
         searchField.setStyle(
                 "-fx-background-color: rgba(255, 255, 255, 0.95);" +
@@ -71,10 +54,7 @@ public class MyBookings {
         );
         searchField.textProperty().addListener((obs, oldV, newV) -> searchBookings(newV));
 
-        Region headerSpacer = new Region();
-        HBox.setHgrow(headerSpacer, Priority.ALWAYS);
-
-        HBox header = new HBox(12, titleBox, headerSpacer, searchField);
+        HBox header = new HBox(12, searchField);
         header.setAlignment(Pos.CENTER_LEFT);
 
         // ================= KPI SUMMARY CARDS =================
