@@ -17,25 +17,98 @@ import javafx.scene.text.Text;
 public class OperatorProfileManagement {
 
     private static VBox profilePopupRef;
+    private static Text profilePillNameText;
+    private static TextField modalNameField;
+    private static TextField modalContactField;
+    private static TextField modalLocationField;
+    private static TextField modalLicenseField;
+
+    public static String getFormattedFirstName() {
+        String raw = OperatorProfileStore.name;
+        if (raw == null || raw.trim().isEmpty()) {
+            return "Operator";
+        }
+        raw = raw.trim();
+        if (raw.contains("@")) {
+            raw = raw.split("@")[0];
+        }
+        String first = raw.split("[ ._]")[0];
+        if (first.isEmpty()) {
+            return "Operator";
+        }
+        return Character.toUpperCase(first.charAt(0)) + (first.length() > 1 ? first.substring(1) : "");
+    }
+
+    public static Text headerTitleText = new Text("Welcome back, " + getFormattedFirstName() + " 👨‍🌾");
+    public static Text headerSubtitleText = new Text("Machinery Operator Dashboard • Telematics & Daily Wages");
+    public static VBox headerTitleBox;
+
+    static {
+        headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
+        headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
+        headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+
+        OperatorProfileStore.addProfileListener(() -> {
+            javafx.application.Platform.runLater(OperatorProfileManagement::refreshDynamicProfileUI);
+        });
+    }
+
+    public static void updateHeaderGreeting() {
+        String fName = getFormattedFirstName();
+        setHeaderTitle("Welcome back, " + fName + " 👨‍🌾", "Machinery Operator Dashboard • Telematics & Daily Wages");
+    }
+
+    public static void setHeaderTitle(String title, String subtitle) {
+        if (headerTitleText != null) headerTitleText.setText(title);
+        if (headerSubtitleText != null) {
+            if (subtitle != null && !subtitle.isEmpty()) {
+                headerSubtitleText.setText(subtitle);
+                headerSubtitleText.setVisible(true);
+                headerSubtitleText.setManaged(true);
+            } else {
+                headerSubtitleText.setVisible(false);
+                headerSubtitleText.setManaged(false);
+            }
+        }
+    }
+
+    public static void refreshDynamicProfileUI() {
+        updateHeaderGreeting();
+        if (profilePillNameText != null) {
+            profilePillNameText.setText(OperatorProfileStore.name != null ? OperatorProfileStore.name : "Operator");
+        }
+        if (modalNameField != null && !modalNameField.isFocused()) {
+            modalNameField.setText(OperatorProfileStore.name != null ? OperatorProfileStore.name : "");
+        }
+        if (modalContactField != null && !modalContactField.isFocused()) {
+            modalContactField.setText(OperatorProfileStore.phone != null ? OperatorProfileStore.phone : "");
+        }
+        if (modalLocationField != null && !modalLocationField.isFocused()) {
+            modalLocationField.setText(OperatorProfileStore.zone != null ? OperatorProfileStore.zone : "");
+        }
+        if (modalLicenseField != null && !modalLicenseField.isFocused()) {
+            modalLicenseField.setText(OperatorProfileStore.licenseNo != null ? OperatorProfileStore.licenseNo : "");
+        }
+    }
 
     public HBox getProfile(StackPane root) {
-        // Quick Stats Pill
-        Label statusPill = new Label("🟢 Available for Field Shifts • Pune Sector");
-        statusPill.setPrefHeight(38);
-        statusPill.setMinHeight(38);
-        statusPill.setMaxHeight(38);
-        statusPill.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-padding: 0 14px; -fx-background-radius: 20px; -fx-border-color: #A5D6A7; -fx-border-radius: 20px; -fx-border-width: 1.2px;");
+        updateHeaderGreeting();
 
         Button notificationBtn1 = createPillButton("🔔", "Notifications", "2");
 
-        HBox profileBox = createProfilePill("👷", "Ramesh Chavan", "Certified Pro");
+        HBox profileBox = createProfilePill("👷", OperatorProfileStore.name, OperatorProfileStore.badge);
 
         // Profile Popup
         profilePopupRef = createProfileModal();
         root.getChildren().add(profilePopupRef);
 
         profileBox.setOnMouseClicked(event -> {
-            profilePopupRef.setVisible(!profilePopupRef.isVisible());
+            boolean isVis = profilePopupRef.isVisible();
+            if (!isVis) {
+                refreshDynamicProfileUI();
+            }
+            profilePopupRef.setVisible(!isVis);
         });
 
         // Notifications Popup
@@ -51,9 +124,10 @@ public class OperatorProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(12, statusPill, spacer, notificationBtn1, profileBox);
+        HBox topBar = new HBox(16, headerTitleBox, spacer, notificationBtn1, profileBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(10, 22, 10, 22));
+        topBar.setPadding(new Insets(10, 24, 10, 24));
+        topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topBar;
     }
@@ -111,16 +185,16 @@ public class OperatorProfileManagement {
         Text profileIcon = new Text(icon);
         profileIcon.setStyle("-fx-font-size: 14px;");
 
-        Text profileName = new Text(name);
-        profileName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        profilePillNameText = new Text(name != null ? name : "Operator");
+        profilePillNameText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Label verifiedDot = new Label(tag);
+        Label verifiedDot = new Label(tag != null ? tag : "Certified");
         verifiedDot.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 6px; -fx-background-radius: 8px;");
 
         Text dropdownArrow = new Text("▾");
         dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
 
-        HBox profileBox = new HBox(6, profileIcon, profileName, verifiedDot, dropdownArrow);
+        HBox profileBox = new HBox(6, profileIcon, profilePillNameText, verifiedDot, dropdownArrow);
         profileBox.setAlignment(Pos.CENTER);
         profileBox.setPrefHeight(38);
         profileBox.setMinHeight(38);
@@ -232,15 +306,15 @@ public class OperatorProfileManagement {
         VBox content = new VBox(14);
         content.setPadding(new Insets(0, 6, 0, 0));
 
-        TextField nameF = new TextField("Ramesh Chavan");
-        TextField contactF = new TextField("+91 94231 98765");
-        TextField locationF = new TextField("Pune / Baramati Sector");
-        TextField licenseF = new TextField("MH-12-HM-88492 (Valid Heavy Agri)");
+        modalNameField = new TextField(OperatorProfileStore.name);
+        modalContactField = new TextField(OperatorProfileStore.phone);
+        modalLocationField = new TextField(OperatorProfileStore.zone);
+        modalLicenseField = new TextField(OperatorProfileStore.licenseNo);
 
-        styleField(nameF);
-        styleField(contactF);
-        styleField(locationF);
-        styleField(licenseF);
+        styleField(modalNameField);
+        styleField(modalContactField);
+        styleField(modalLocationField);
+        styleField(modalLicenseField);
 
         VBox card = new VBox(10);
         card.setPadding(new Insets(14));
@@ -249,10 +323,10 @@ public class OperatorProfileManagement {
         GridPane grid = new GridPane();
         grid.setHgap(12);
         grid.setVgap(10);
-        grid.add(createFieldGroup("Full Name", nameF), 0, 0);
-        grid.add(createFieldGroup("Contact Mobile", contactF), 1, 0);
-        grid.add(createFieldGroup("Operational Zone", locationF), 0, 1);
-        grid.add(createFieldGroup("Operator License No.", licenseF), 1, 1);
+        grid.add(createFieldGroup("Full Name", modalNameField), 0, 0);
+        grid.add(createFieldGroup("Contact Mobile", modalContactField), 1, 0);
+        grid.add(createFieldGroup("Operational Zone", modalLocationField), 0, 1);
+        grid.add(createFieldGroup("Operator License No.", modalLicenseField), 1, 1);
 
         Label msg = new Label();
         msg.setVisible(false);
@@ -261,6 +335,12 @@ public class OperatorProfileManagement {
         Button saveBtn = new Button("Save Profile Changes");
         saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 20px; -fx-cursor: hand;");
         saveBtn.setOnAction(e -> {
+            String n = modalNameField.getText();
+            String c = modalContactField.getText();
+            String l = modalLocationField.getText();
+            String lic = modalLicenseField.getText();
+            OperatorProfileStore.setProfile(n, c, l, lic);
+
             msg.setText("✓ Operator profile saved successfully!");
             msg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
             msg.setVisible(true);

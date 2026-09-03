@@ -51,10 +51,45 @@ public class Authentication {
     private static final String PWD_ERROR_STYLE = 
         "-fx-background-color: #FFF8F8; -fx-border-color: #DC2626; -fx-border-width: 1.5px; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 0 36px 0 12px; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #1F2937;";
 
-    Scene getAuthenticationScene() {
-
+    public Scene getAuthenticationScene() {
         BorderPane borderPane = new BorderPane();
 
+        // ------------------ MAIN CARD IN CENTER ------------------
+        VBox userCard = createStandardUserLoginCard(borderPane);
+        borderPane.setCenter(userCard);
+        borderPane.setStyle("-fx-background-color: transparent;");
+
+        // ------------------ BACKGROUND ------------------
+        Image backgroundImage;
+        try {
+            backgroundImage = new Image("/assets/Images/background.jpeg");
+            if (backgroundImage.isError()) {
+                backgroundImage = new Image("file:farm/src/main/resources/assets/Images/background.jpeg");
+            }
+        } catch (Exception e) {
+            backgroundImage = new Image("file:farm/src/main/resources/assets/Images/background.jpeg");
+        }
+
+        ImageView backgroundImageView = new ImageView(backgroundImage);
+        backgroundImageView.setPreserveRatio(false);
+        backgroundImageView.setSmooth(true);
+        backgroundImageView.setMouseTransparent(true);
+
+        rootStackPane = new StackPane();
+        rootStackPane.getChildren().addAll(backgroundImageView, borderPane);
+
+        backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
+        backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());
+
+        authenticationScene = new Scene(rootStackPane);
+
+        return authenticationScene;
+    }
+
+    // ============================================================
+    // 1. STANDARD USER LOGIN CARD (FARMER, PROVIDER, OPERATOR)
+    // ============================================================
+    private VBox createStandardUserLoginCard(BorderPane borderPane) {
         // ------------------ LOGO & HEADER ------------------
         Image img;
         try {
@@ -129,7 +164,6 @@ public class Authentication {
         passwordErrorLabel.setVisible(false);
         passwordErrorLabel.setManaged(false);
 
-        // Password focus handling
         passwordTextField.getHiddenField().focusedProperty().addListener((obs, oldV, isFocused) -> {
             if (passwordErrorLabel.isVisible()) return;
             passwordTextField.getHiddenField().setStyle(isFocused ? PWD_FOCUS_STYLE : PWD_NORMAL_STYLE);
@@ -204,7 +238,6 @@ public class Authentication {
         loginButton.setMaxWidth(290);
         loginButton.setFocusTraversable(false);
 
-        // Fast Asynchronous Action on Login (Zero UI Delay)
         loginButton.setOnAction(e -> {
             boolean isValid = validateCredentials(mailAndPhoneTextField, emailErrorLabel, passwordTextField, passwordErrorLabel);
             if (!isValid) {
@@ -222,38 +255,51 @@ public class Authentication {
             AuthenticateController objController = new AuthenticateController();
 
             if ("Provider".equalsIgnoreCase(selectedRole)) {
-                
-                boolean validUser = objController.isUser(inputUser,selectedRole);
-
-                if(validUser) {
-
+                boolean validUser = objController.isUser(inputUser, selectedRole);
+                if (validUser) {
                     ProviderDashboard obj = new ProviderDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
                 } else {
-
+                    emailErrorLabel.setText("Invalid Provider credentials or user not found.");
+                    emailErrorLabel.setVisible(true);
+                    emailErrorLabel.setManaged(true);
+                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
                 }
             } else if ("Operator".equalsIgnoreCase(selectedRole)) {
-
-                boolean validUser = objController.isUser(inputUser,selectedRole);
-
-                if(validUser) {
-
+                boolean validUser = objController.isUser(inputUser, selectedRole);
+                if (validUser) {
+                    AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
+                    if (userDoc != null) {
+                        com.desgin.view.operator.OperatorProfileStore.setProfile(userDoc.getName(), userDoc.getNum(), null, null);
+                    }
                     OperatorDashboard obj = new OperatorDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
                 } else {
-
+                    emailErrorLabel.setText("Invalid Operator credentials or user not found.");
+                    emailErrorLabel.setVisible(true);
+                    emailErrorLabel.setManaged(true);
+                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
                 }
-                
             } else if ("Farmer".equalsIgnoreCase(selectedRole)) {
-
-                boolean validUser = objController.isUser(inputUser,selectedRole);
-
-                if(validUser) {
-
+                boolean validUser = objController.isUser(inputUser, selectedRole);
+                if (validUser) {
+                    AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
+                    if (userDoc != null) {
+                        FarmerProfileStore.setCredentials(userDoc.getName(), userDoc.getMail(), userDoc.getNum());
+                        if (userDoc.getTown() != null && !userDoc.getTown().isEmpty()) {
+                            FarmerProfileStore.setLocation(userDoc.getTown(), userDoc.getDistrict(), userDoc.getState(), userDoc.getPincode());
+                        }
+                    } else {
+                        FarmerProfileStore.setCredentials(null, inputUser, null);
+                    }
+                    com.desgin.view.farmer.ashutosh.profile.ProfileManagement.updateHeaderGreeting();
                     FarmerDashboard obj = new FarmerDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
                 } else {
-
+                    emailErrorLabel.setText("Invalid Farmer credentials or user not found.");
+                    emailErrorLabel.setVisible(true);
+                    emailErrorLabel.setManaged(true);
+                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
                 }
             }
         });
@@ -295,14 +341,9 @@ public class Authentication {
         adminLoginLabel.setOnMouseExited(e -> adminLoginLabel.setStyle(adminNormalStyle));
 
         adminLoginLabel.setOnMouseClicked(event -> {
-            boolean isValid = validateCredentials(mailAndPhoneTextField, emailErrorLabel, passwordTextField, passwordErrorLabel);
-            if (!isValid) {
-                return;
-            }
-
-            Runnable backToLogin = () -> backtologin();
-            com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
-            WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
+            String initialUser = mailAndPhoneTextField.getText() != null ? mailAndPhoneTextField.getText().trim() : "";
+            String initialPass = passwordTextField.getText() != null ? passwordTextField.getText() : "";
+            borderPane.setCenter(createAdminLoginCard(borderPane, initialUser, initialPass));
         });
 
         VBox adminBox = new VBox(8, divider, adminLoginLabel);
@@ -325,34 +366,632 @@ public class Authentication {
         loginVBox.setMaxWidth(420);
         loginVBox.setMaxHeight(Region.USE_PREF_SIZE);
 
-        borderPane.setCenter(loginVBox);
-        borderPane.setStyle("-fx-background-color: transparent;");
+        return loginVBox;
+    }
 
-        // ------------------ BACKGROUND ------------------
-        Image backgroundImage;
+    // ============================================================
+    // 2. ADMIN LOGIN CARD (IDENTICAL FROSTED GLASS UI DESIGN)
+    // ============================================================
+    private VBox createAdminLoginCard(BorderPane borderPane, String initialUser, String initialPass) {
+        // ------------------ LOGO & HEADER ------------------
+        Image img;
         try {
-            backgroundImage = new Image("/assets/Images/background.jpeg");
-            if (backgroundImage.isError()) {
-                backgroundImage = new Image("file:farm/src/main/resources/assets/Images/background.jpeg");
+            img = new Image("file:farm/src/main/resources/assets/Images/logo.png");
+            if (img.isError()) {
+                img = new Image(getClass().getResourceAsStream("/assets/Images/logo.png"));
             }
         } catch (Exception e) {
-            backgroundImage = new Image("file:farm/src/main/resources/assets/Images/background.jpeg");
+            img = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
         }
 
-        ImageView backgroundImageView = new ImageView(backgroundImage);
-        backgroundImageView.setPreserveRatio(false);
-        backgroundImageView.setSmooth(true);
-        backgroundImageView.setMouseTransparent(true);
+        ImageView loginPageImageView = new ImageView(img);
+        loginPageImageView.setFitWidth(54);
+        loginPageImageView.setFitHeight(54);
+        loginPageImageView.setPreserveRatio(true);
+        loginPageImageView.setSmooth(true);
 
-        rootStackPane = new StackPane();
-        rootStackPane.getChildren().addAll(backgroundImageView, borderPane);
+        Text wlcBack = new Text("Welcome Back");
+        wlcBack.setStyle("-fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332; -fx-font-family: 'Poppins';");
 
-        backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
-        backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());
+        Text loginToFarmEquipText = new Text("Login to FarmEquip Admin Console");
+        loginToFarmEquipText.setStyle("-fx-font-size: 13.5px; -fx-font-weight: 600; -fx-fill: #4B5563; -fx-font-family: 'Poppins';");
 
-        authenticationScene = new Scene(rootStackPane);
+        VBox primaryVBox = new VBox(5, loginPageImageView, wlcBack, loginToFarmEquipText);
+        primaryVBox.setAlignment(Pos.CENTER);
 
-        return authenticationScene;
+        // ------------------ INPUT FIELDS & LABELS ------------------
+        Label label1 = new Label("Email or Mobile No.");
+        label1.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins';");
+
+        TextField mailAndPhoneTextField = new TextField(initialUser != null ? initialUser : "");
+        mailAndPhoneTextField.setPromptText("Enter admin email");
+        mailAndPhoneTextField.setPrefSize(290, 40);
+        mailAndPhoneTextField.setMaxSize(290, 40);
+        mailAndPhoneTextField.setFocusTraversable(false);
+        mailAndPhoneTextField.setStyle(INPUT_NORMAL_STYLE);
+
+        Label emailErrorLabel = new Label();
+        emailErrorLabel.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 11px; -fx-font-weight: bold; -fx-font-family: 'Poppins';");
+        emailErrorLabel.setWrapText(true);
+        emailErrorLabel.setMaxWidth(290);
+        emailErrorLabel.setVisible(false);
+        emailErrorLabel.setManaged(false);
+
+        mailAndPhoneTextField.focusedProperty().addListener((obs, oldV, isFocused) -> {
+            if (emailErrorLabel.isVisible()) return;
+            mailAndPhoneTextField.setStyle(isFocused ? INPUT_FOCUS_STYLE : INPUT_NORMAL_STYLE);
+        });
+
+        mailAndPhoneTextField.textProperty().addListener((obs, oldV, newV) -> {
+            if (emailErrorLabel.isVisible()) {
+                emailErrorLabel.setText("");
+                emailErrorLabel.setVisible(false);
+                emailErrorLabel.setManaged(false);
+                mailAndPhoneTextField.setStyle(mailAndPhoneTextField.isFocused() ? INPUT_FOCUS_STYLE : INPUT_NORMAL_STYLE);
+            }
+        });
+
+        Label label2 = new Label("Password");
+        label2.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins';");
+
+        PasswordEyeField passwordTextField = new PasswordEyeField("Enter admin password");
+        passwordTextField.setCustomPrefSize(290, 40);
+        if (initialPass != null && !initialPass.isEmpty()) {
+            passwordTextField.setText(initialPass);
+        }
+        passwordTextField.setFocusTraversable(false);
+        passwordTextField.getHiddenField().setStyle(PWD_NORMAL_STYLE);
+        passwordTextField.getShownField().setStyle(PWD_NORMAL_STYLE);
+
+        Label passwordErrorLabel = new Label();
+        passwordErrorLabel.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 11px; -fx-font-weight: bold; -fx-font-family: 'Poppins';");
+        passwordErrorLabel.setWrapText(true);
+        passwordErrorLabel.setMaxWidth(290);
+        passwordErrorLabel.setVisible(false);
+        passwordErrorLabel.setManaged(false);
+
+        passwordTextField.getHiddenField().focusedProperty().addListener((obs, oldV, isFocused) -> {
+            if (passwordErrorLabel.isVisible()) return;
+            passwordTextField.getHiddenField().setStyle(isFocused ? PWD_FOCUS_STYLE : PWD_NORMAL_STYLE);
+        });
+        passwordTextField.getShownField().focusedProperty().addListener((obs, oldV, isFocused) -> {
+            if (passwordErrorLabel.isVisible()) return;
+            passwordTextField.getShownField().setStyle(isFocused ? PWD_FOCUS_STYLE : PWD_NORMAL_STYLE);
+        });
+
+        passwordTextField.textProperty().addListener((obs, oldV, newV) -> {
+            if (passwordErrorLabel.isVisible()) {
+                passwordErrorLabel.setText("");
+                passwordErrorLabel.setVisible(false);
+                passwordErrorLabel.setManaged(false);
+                boolean isFoc = passwordTextField.getHiddenField().isFocused() || passwordTextField.getShownField().isFocused();
+                String st = isFoc ? PWD_FOCUS_STYLE : PWD_NORMAL_STYLE;
+                passwordTextField.getHiddenField().setStyle(st);
+                passwordTextField.getShownField().setStyle(st);
+            }
+        });
+
+        // ------------------ ADMIN QUOTA BADGE ------------------
+        AuthenticateController controller = new AuthenticateController();
+        int adminCount = controller.getAdminCount();
+
+        Label roleLabel = new Label("Portal Access");
+        roleLabel.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins';");
+
+        Label quotaBadge = new Label("👑 Authorized Admin (" + adminCount + "/5 Seats Allocated)");
+        quotaBadge.setStyle("-fx-background-color: " + (adminCount >= 5 ? "#FEF2F2" : "#E8F5E9") + "; -fx-text-fill: " + (adminCount >= 5 ? "#DC2626" : "#15803D") + "; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3px 8px; -fx-background-radius: 6px;");
+
+        HBox adminRoleBox = new HBox(roleLabel, quotaBadge);
+        adminRoleBox.setAlignment(Pos.CENTER_LEFT);
+        adminRoleBox.setSpacing(8);
+
+        VBox emailBox = new VBox(3, label1, mailAndPhoneTextField, emailErrorLabel);
+        VBox passwordBox = new VBox(3, label2, passwordTextField, passwordErrorLabel);
+        VBox roleBox = new VBox(3, adminRoleBox);
+
+        VBox secondaryVBox = new VBox(10, emailBox, passwordBox, roleBox);
+        secondaryVBox.setMaxWidth(290);
+        secondaryVBox.setAlignment(Pos.CENTER_LEFT);
+
+        // ------------------ LOGIN BUTTON ------------------
+        Button loginButton = new Button("Login as Admin");
+        String buttonNormalStyle = "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-background-radius: 10px; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-family: 'Poppins'; -fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.35), 8, 0, 0, 3);";
+        String buttonHoverStyle = "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F); -fx-text-fill: white; -fx-background-radius: 10px; -fx-font-size: 15px; -fx-font-weight: bold; -fx-cursor: hand; -fx-font-family: 'Poppins'; -fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.45), 10, 0, 0, 4);";
+
+        loginButton.setStyle(buttonNormalStyle);
+        loginButton.setOnMouseEntered(e -> {
+            if (!loginButton.isDisable()) loginButton.setStyle(buttonHoverStyle);
+        });
+        loginButton.setOnMouseExited(e -> {
+            if (!loginButton.isDisable()) loginButton.setStyle(buttonNormalStyle);
+        });
+
+        loginButton.setPrefHeight(42);
+        loginButton.setPrefWidth(290);
+        loginButton.setMaxWidth(290);
+        loginButton.setFocusTraversable(false);
+
+        loginButton.setOnAction(e -> {
+            boolean isValid = validateCredentials(mailAndPhoneTextField, emailErrorLabel, passwordTextField, passwordErrorLabel);
+            if (!isValid) {
+                return;
+            }
+
+            String inputUser = mailAndPhoneTextField.getText().trim();
+            String inputPassword = passwordTextField.getText();
+
+            loginButton.setText("Verifying...");
+            loginButton.setDisable(true);
+
+            javafx.concurrent.Task<AuthenticateController.AdminAuthResult> authTask = new javafx.concurrent.Task<>() {
+                @Override
+                protected AuthenticateController.AdminAuthResult call() {
+                    return controller.authenticateAndAuthorizeAdmin(inputUser, inputPassword);
+                }
+            };
+
+            authTask.setOnSucceeded(ev -> {
+                loginButton.setText("Login as Admin");
+                loginButton.setDisable(false);
+                AuthenticateController.AdminAuthResult result = authTask.getValue();
+
+                if (result != null && result.isSuccess()) {
+                    if (result.getUser() != null) {
+                        com.desgin.view.admin.AdminProfileStore.setAdminProfile(
+                            result.getUser().getName(),
+                            result.getUser().getMail(),
+                            result.getUser().getNum(),
+                            "Master Admin"
+                        );
+                    }
+                    com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
+
+                    Runnable backToLogin = () -> backtologin();
+                    com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
+                } else {
+                    String msg = result != null ? result.getMessage() : "Authentication or authorization failed.";
+                    emailErrorLabel.setText(msg);
+                    emailErrorLabel.setVisible(true);
+                    emailErrorLabel.setManaged(true);
+                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+                }
+            });
+
+            authTask.setOnFailed(ev -> {
+                loginButton.setText("Login as Admin");
+                loginButton.setDisable(false);
+                emailErrorLabel.setText("System error during admin verification. Please try again.");
+                emailErrorLabel.setVisible(true);
+                emailErrorLabel.setManaged(true);
+                mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+            });
+
+            new Thread(authTask).start();
+        });
+
+        // ------------------ REGISTER AS ADMIN LINK ------------------
+        Text noAdminAccText = new Text("Need an admin account? ");
+        noAdminAccText.setStyle("-fx-font-size: 13px; -fx-fill: #374151; -fx-font-weight: 500; -fx-font-family: 'Poppins';");
+
+        Text registerAdminText = new Text("Register as Admin");
+        registerAdminText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';");
+
+        HBox registerAdminHBox = new HBox(4, noAdminAccText, registerAdminText);
+        registerAdminHBox.setAlignment(Pos.CENTER);
+        registerAdminHBox.setStyle("-fx-cursor: hand; -fx-padding: 2px 0 0 0;");
+
+        registerAdminHBox.setOnMouseEntered(e -> registerAdminText.setStyle("-fx-font-size: 13.5px; -fx-fill: #1B4332; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
+        registerAdminHBox.setOnMouseExited(e -> registerAdminText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
+
+        registerAdminHBox.setOnMouseClicked(event -> {
+            borderPane.setCenter(createAdminRegisterCard(borderPane, mailAndPhoneTextField.getText()));
+        });
+
+        // ------------------ SWITCH TO USER LOGIN LINK ------------------
+        Text notAdminText = new Text("Not an administrator? ");
+        notAdminText.setStyle("-fx-font-size: 13px; -fx-fill: #374151; -fx-font-weight: 500; -fx-font-family: 'Poppins';");
+
+        Text backToUserText = new Text("User Login");
+        backToUserText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';");
+
+        HBox backToUserHBox = new HBox(4, notAdminText, backToUserText);
+        backToUserHBox.setAlignment(Pos.CENTER);
+        backToUserHBox.setStyle("-fx-cursor: hand; -fx-padding: 2px 0 0 0;");
+
+        backToUserHBox.setOnMouseEntered(e -> backToUserText.setStyle("-fx-font-size: 13.5px; -fx-fill: #1B4332; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
+        backToUserHBox.setOnMouseExited(e -> backToUserText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
+
+        backToUserHBox.setOnMouseClicked(event -> {
+            borderPane.setCenter(createStandardUserLoginCard(borderPane));
+        });
+
+        // ------------------ USER LOGIN FOOTER PILL ------------------
+        HBox divider = new HBox();
+        divider.setPrefHeight(1);
+        divider.setMaxHeight(1);
+        divider.setPrefWidth(290);
+        divider.setMaxWidth(290);
+        divider.setStyle("-fx-background-color: rgba(45, 106, 79, 0.2);");
+
+        Label userPortalPill = new Label("👨‍🌾 Farmer / Provider Portal");
+        String adminNormalStyle = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2D6A4F; -fx-background-color: #E8F5E9; -fx-background-radius: 16px; -fx-padding: 5px 14px; -fx-cursor: hand; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';";
+        String adminHoverStyle = "-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-background-color: #2D6A4F; -fx-background-radius: 16px; -fx-padding: 5px 14px; -fx-cursor: hand; -fx-border-color: #2D6A4F; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';";
+
+        userPortalPill.setStyle(adminNormalStyle);
+        userPortalPill.setOnMouseEntered(e -> userPortalPill.setStyle(adminHoverStyle));
+        userPortalPill.setOnMouseExited(e -> userPortalPill.setStyle(adminNormalStyle));
+        userPortalPill.setOnMouseClicked(e -> borderPane.setCenter(createStandardUserLoginCard(borderPane)));
+
+        VBox userPortalBox = new VBox(8, divider, userPortalPill);
+        userPortalBox.setAlignment(Pos.CENTER);
+
+        // ------------------ MAIN ADMIN LOGIN CARD (TRANSLUCENT) ------------------
+        VBox adminVBox = new VBox(13, primaryVBox, secondaryVBox, loginButton, registerAdminHBox, backToUserHBox, userPortalBox);
+        adminVBox.setAlignment(Pos.CENTER);
+        adminVBox.setStyle(
+            "-fx-background-color: rgba(255, 255, 255, 0.58);" +
+            "-fx-background-radius: 22px;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.60);" +
+            "-fx-border-radius: 22px;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.20), 24, 0.12, 0, 8);" +
+            "-fx-padding: 22px 34px 20px 34px;"
+        );
+
+        adminVBox.setPrefWidth(420);
+        adminVBox.setMaxWidth(420);
+        adminVBox.setMaxHeight(Region.USE_PREF_SIZE);
+
+        return adminVBox;
+    }
+
+    // ============================================================
+    // 3. ADMIN REGISTRATION CARD (IDENTICAL FROSTED GLASS UI DESIGN)
+    // ============================================================
+    private VBox createAdminRegisterCard(BorderPane borderPane, String initialEmail) {
+        // Logo & Header
+        Image img;
+        try {
+            img = new Image("file:farm/src/main/resources/assets/Images/logo.png");
+            if (img.isError()) {
+                img = new Image(getClass().getResourceAsStream("/assets/Images/logo.png"));
+            }
+        } catch (Exception e) {
+            img = new Image("file:farm/src/main/resources/assets/Images/logo.jpeg");
+        }
+
+        ImageView regLogo = new ImageView(img);
+        regLogo.setFitWidth(46);
+        regLogo.setFitHeight(46);
+        regLogo.setPreserveRatio(true);
+        regLogo.setSmooth(true);
+
+        Text title = new Text("Register Administrator");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text subtitle = new Text("Create Platform Administrator Account");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: 500; -fx-fill: #4B5563;");
+
+        VBox headerVBox = new VBox(3, regLogo, title, subtitle);
+        headerVBox.setAlignment(Pos.CENTER);
+
+        // 1. Quota Pill
+        AuthenticateController controller = new AuthenticateController();
+        int adminCount = controller.getAdminCount();
+        Label quotaPill = new Label(adminCount >= 5 
+            ? "🚫 Quota Full (5/5 Admin Seats Reached)" 
+            : "👑 Admin Quota: " + adminCount + " / 5 Seats Allocated (" + (5 - adminCount) + " Remaining)");
+        quotaPill.setStyle("-fx-background-color: " + (adminCount >= 5 ? "#FEF2F2" : "#E8F5E9") + "; -fx-text-fill: " + (adminCount >= 5 ? "#DC2626" : "#15803D") + "; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3px 8px; -fx-background-radius: 6px;");
+
+        // 2. Full Name
+        Label nameLbl = new Label("Full Name");
+        nameLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        TextField nameF = new TextField();
+        nameF.setPromptText("Enter admin full name");
+        nameF.setPrefSize(300, 35);
+        nameF.setMaxSize(300, 35);
+        nameF.setFocusTraversable(false);
+        nameF.setStyle(INPUT_NORMAL_STYLE);
+
+        Label nameErr = new Label();
+        nameErr.setStyle("-fx-font-family: 'Poppins'; -fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+        nameErr.setVisible(false);
+        nameErr.setManaged(false);
+
+        nameF.textProperty().addListener((obs, oldV, newV) -> {
+            if (nameErr.isVisible()) {
+                nameErr.setText("");
+                nameErr.setVisible(false);
+                nameErr.setManaged(false);
+                nameF.setStyle(INPUT_NORMAL_STYLE);
+            }
+        });
+
+        // 3. Email
+        Label emailLbl = new Label("Admin Email");
+        emailLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        TextField emailF = new TextField(initialEmail != null ? initialEmail : "");
+        emailF.setPromptText("admin@farmequip.com");
+        emailF.setPrefSize(300, 35);
+        emailF.setMaxSize(300, 35);
+        emailF.setFocusTraversable(false);
+        emailF.setStyle(INPUT_NORMAL_STYLE);
+
+        Label emailErr = new Label();
+        emailErr.setStyle("-fx-font-family: 'Poppins'; -fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+        emailErr.setVisible(false);
+        emailErr.setManaged(false);
+
+        emailF.textProperty().addListener((obs, oldV, newV) -> {
+            if (emailErr.isVisible()) {
+                emailErr.setText("");
+                emailErr.setVisible(false);
+                emailErr.setManaged(false);
+                emailF.setStyle(INPUT_NORMAL_STYLE);
+            }
+        });
+
+        // 4. Mobile Number
+        Label mobLbl = new Label("Mobile Number (10 Digits)");
+        mobLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        TextField mobF = new TextField();
+        mobF.setPromptText("10-digit mobile number");
+        mobF.setPrefSize(300, 35);
+        mobF.setMaxSize(300, 35);
+        mobF.setFocusTraversable(false);
+        mobF.setStyle(INPUT_NORMAL_STYLE);
+
+        Label mobErr = new Label();
+        mobErr.setStyle("-fx-font-family: 'Poppins'; -fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+        mobErr.setVisible(false);
+        mobErr.setManaged(false);
+
+        mobF.textProperty().addListener((obs, oldV, newV) -> {
+            if (mobErr.isVisible()) {
+                mobErr.setText("");
+                mobErr.setVisible(false);
+                mobErr.setManaged(false);
+                mobF.setStyle(INPUT_NORMAL_STYLE);
+            }
+        });
+
+        // 5. Password
+        Label passLbl = new Label("Password");
+        passLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        PasswordEyeField passF = new PasswordEyeField("Create password");
+        passF.setCustomPrefSize(300, 35);
+        passF.setFocusTraversable(false);
+        passF.getHiddenField().setStyle(PWD_NORMAL_STYLE);
+        passF.getShownField().setStyle(PWD_NORMAL_STYLE);
+
+        Label passErr = new Label();
+        passErr.setStyle("-fx-font-family: 'Poppins'; -fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+        passErr.setVisible(false);
+        passErr.setManaged(false);
+
+        passF.textProperty().addListener((obs, oldV, newV) -> {
+            if (passErr.isVisible()) {
+                passErr.setText("");
+                passErr.setVisible(false);
+                passErr.setManaged(false);
+                passF.getHiddenField().setStyle(PWD_NORMAL_STYLE);
+                passF.getShownField().setStyle(PWD_NORMAL_STYLE);
+            }
+        });
+
+        // 6. Confirm Password
+        Label confirmLbl = new Label("Confirm Password");
+        confirmLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        PasswordEyeField confirmF = new PasswordEyeField("Confirm password");
+        confirmF.setCustomPrefSize(300, 35);
+        confirmF.setFocusTraversable(false);
+        confirmF.getHiddenField().setStyle(PWD_NORMAL_STYLE);
+        confirmF.getShownField().setStyle(PWD_NORMAL_STYLE);
+
+        Label confirmErr = new Label();
+        confirmErr.setStyle("-fx-font-family: 'Poppins'; -fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+        confirmErr.setVisible(false);
+        confirmErr.setManaged(false);
+
+        confirmF.textProperty().addListener((obs, oldV, newV) -> {
+            if (confirmErr.isVisible()) {
+                confirmErr.setText("");
+                confirmErr.setVisible(false);
+                confirmErr.setManaged(false);
+                confirmF.getHiddenField().setStyle(PWD_NORMAL_STYLE);
+                confirmF.getShownField().setStyle(PWD_NORMAL_STYLE);
+            }
+        });
+
+        VBox formVBox = new VBox(5, 
+            quotaPill,
+            new VBox(1, nameLbl, nameF, nameErr),
+            new VBox(1, emailLbl, emailF, emailErr),
+            new VBox(1, mobLbl, mobF, mobErr),
+            new VBox(1, passLbl, passF, passErr),
+            new VBox(1, confirmLbl, confirmF, confirmErr)
+        );
+        formVBox.setMaxWidth(300);
+        formVBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Submit Button
+        Button regBtn = new Button("Register as Admin");
+        regBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-background-radius: 10px; -fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.35), 8, 0, 0, 3);");
+        regBtn.setPrefHeight(38);
+        regBtn.setPrefWidth(300);
+        regBtn.setMaxWidth(300);
+
+        regBtn.setOnAction(e -> {
+            String name = nameF.getText() != null ? nameF.getText().trim() : "";
+            String email = emailF.getText() != null ? emailF.getText().trim() : "";
+            String mobile = mobF.getText() != null ? mobF.getText().trim() : "";
+            String pwd = passF.getText() != null ? passF.getText() : "";
+            String cpwd = confirmF.getText() != null ? confirmF.getText() : "";
+
+            boolean valid = true;
+
+            // Name
+            if (name.isEmpty() || name.length() < 2) {
+                nameErr.setText("Name must be at least 2 characters.");
+                nameErr.setVisible(true);
+                nameErr.setManaged(true);
+                nameF.setStyle(INPUT_ERROR_STYLE);
+                valid = false;
+            }
+
+            // Email
+            if (email.isEmpty() || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$")) {
+                emailErr.setText("Enter a valid admin email (e.g. name@domain.com).");
+                emailErr.setVisible(true);
+                emailErr.setManaged(true);
+                emailF.setStyle(INPUT_ERROR_STYLE);
+                valid = false;
+            }
+
+            // Mobile
+            if (mobile.isEmpty() || !mobile.matches("^(?:\\+91|0)?[6-9]\\d{9}$")) {
+                mobErr.setText("Enter a valid 10-digit Indian Mobile Number.");
+                mobErr.setVisible(true);
+                mobErr.setManaged(true);
+                mobF.setStyle(INPUT_ERROR_STYLE);
+                valid = false;
+            }
+
+            // Password
+            if (pwd.isEmpty() || !pwd.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,}$")) {
+                passErr.setText("Password must be 8+ chars (1 uppercase, 1 digit, 1 symbol).");
+                passErr.setVisible(true);
+                passErr.setManaged(true);
+                passF.getHiddenField().setStyle(PWD_ERROR_STYLE);
+                passF.getShownField().setStyle(PWD_ERROR_STYLE);
+                valid = false;
+            }
+
+            // Confirm Password
+            if (cpwd.isEmpty() || !cpwd.equals(pwd)) {
+                confirmErr.setText("Passwords do not match.");
+                confirmErr.setVisible(true);
+                confirmErr.setManaged(true);
+                confirmF.getHiddenField().setStyle(PWD_ERROR_STYLE);
+                confirmF.getShownField().setStyle(PWD_ERROR_STYLE);
+                valid = false;
+            }
+
+            if (!valid) return;
+
+            // Quota check
+            if (controller.getAdminCount() >= 5) {
+                emailErr.setText("Registration Closed: Maximum limit of 5 Admins reached.");
+                emailErr.setVisible(true);
+                emailErr.setManaged(true);
+                return;
+            }
+
+            regBtn.setText("Registering...");
+            regBtn.setDisable(true);
+
+            javafx.concurrent.Task<AuthenticateController.AdminAuthResult> regTask = new javafx.concurrent.Task<>() {
+                @Override
+                protected AuthenticateController.AdminAuthResult call() {
+                    return controller.registerAdmin(name, email, mobile, pwd);
+                }
+            };
+
+            regTask.setOnSucceeded(ev -> {
+                regBtn.setText("Register as Admin");
+                regBtn.setDisable(false);
+                AuthenticateController.AdminAuthResult result = regTask.getValue();
+
+                if (result != null && result.isSuccess()) {
+                    if (result.getUser() != null) {
+                        com.desgin.view.admin.AdminProfileStore.setAdminProfile(
+                            result.getUser().getName(),
+                            result.getUser().getMail(),
+                            result.getUser().getNum(),
+                            "Master Admin"
+                        );
+                    }
+                    com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
+
+                    Runnable backToLogin = () -> backtologin();
+                    com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
+                } else {
+                    String msg = result != null ? result.getMessage() : "Admin registration failed.";
+                    emailErr.setText(msg);
+                    emailErr.setVisible(true);
+                    emailErr.setManaged(true);
+                    emailF.setStyle(INPUT_ERROR_STYLE);
+                }
+            });
+
+            regTask.setOnFailed(ev -> {
+                regBtn.setText("Register as Admin");
+                regBtn.setDisable(false);
+                emailErr.setText("System error during admin registration.");
+                emailErr.setVisible(true);
+                emailErr.setManaged(true);
+                emailF.setStyle(INPUT_ERROR_STYLE);
+            });
+
+            new Thread(regTask).start();
+        });
+
+        // Switch to Admin Login Link
+        Text haveAcc = new Text("Already have an admin account? ");
+        haveAcc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151; -fx-font-weight: 500;");
+
+        Text adminLoginLink = new Text("Admin Login");
+        adminLoginLink.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;");
+
+        HBox loginHBox = new HBox(4, haveAcc, adminLoginLink);
+        loginHBox.setAlignment(Pos.CENTER);
+        loginHBox.setStyle("-fx-cursor: hand;");
+
+        loginHBox.setOnMouseEntered(e -> adminLoginLink.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #1B4332; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;"));
+        loginHBox.setOnMouseExited(e -> adminLoginLink.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;"));
+        loginHBox.setOnMouseClicked(event -> {
+            borderPane.setCenter(createAdminLoginCard(borderPane, emailF.getText(), ""));
+        });
+
+        // Bottom User Portal Pill
+        HBox div = new HBox();
+        div.setPrefHeight(1);
+        div.setMaxHeight(1);
+        div.setPrefWidth(290);
+        div.setMaxWidth(290);
+        div.setStyle("-fx-background-color: rgba(45, 106, 79, 0.2);");
+
+        Label userPill = new Label("👨‍🌾 Farmer / Provider Portal");
+        userPill.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2D6A4F; -fx-background-color: #E8F5E9; -fx-background-radius: 16px; -fx-padding: 5px 14px; -fx-cursor: hand; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';");
+        userPill.setOnMouseClicked(e -> borderPane.setCenter(createStandardUserLoginCard(borderPane)));
+
+        VBox bottomBox = new VBox(6, div, userPill);
+        bottomBox.setAlignment(Pos.CENTER);
+
+        VBox registerAdminCard = new VBox(10, headerVBox, formVBox, regBtn, loginHBox, bottomBox);
+        registerAdminCard.setAlignment(Pos.CENTER);
+        registerAdminCard.setStyle(
+            "-fx-background-color: rgba(255, 255, 255, 0.58);" +
+            "-fx-background-radius: 22px;" +
+            "-fx-border-color: rgba(255, 255, 255, 0.60);" +
+            "-fx-border-radius: 22px;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.20), 24, 0.12, 0, 8);" +
+            "-fx-padding: 18px 30px 18px 30px;"
+        );
+
+        registerAdminCard.setPrefWidth(420);
+        registerAdminCard.setMaxWidth(420);
+        registerAdminCard.setMaxHeight(Region.USE_PREF_SIZE);
+
+        return registerAdminCard;
     }
 
     // ============================================================

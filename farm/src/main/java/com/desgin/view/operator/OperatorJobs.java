@@ -185,7 +185,6 @@ public class OperatorJobs {
         VBox wageBox = new VBox(4, wageRateText, estWageText, statusLabel);
         wageBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // Buttons
         Button updateBtn = new Button("🔄 Update Status");
         updateBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         updateBtn.setOnAction(e -> showStatusModal(j, root));
@@ -194,11 +193,7 @@ public class OperatorJobs {
         routeBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         routeBtn.setOnAction(e -> showRouteModal(j, root));
 
-        Button callBtn = new Button("📞 Call");
-        callBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
-        callBtn.setOnAction(e -> showCallModal(j, root));
-
-        HBox btnRow = new HBox(8, routeBtn, callBtn, updateBtn);
+        HBox btnRow = new HBox(8, routeBtn, updateBtn);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
 
         VBox rightSide = new VBox(12, wageBox, btnRow);
@@ -298,37 +293,6 @@ public class OperatorJobs {
         close.setOnAction(e -> root.getChildren().remove(overlay));
 
         modal.getChildren().addAll(title, desc, close);
-        overlay.getChildren().add(modal);
-        root.getChildren().add(overlay);
-    }
-
-    private static void showCallModal(JobOrder j, StackPane root) {
-        StackPane overlay = new StackPane();
-        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
-
-        VBox modal = new VBox(14);
-        modal.setPrefWidth(420);
-        modal.setMaxWidth(420);
-        modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-
-        Text title = new Text("📞 Contact Client Farmer");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text farmerInfo = new Text("Farmer Name: " + j.farmerName + "\nMobile Phone: " + j.phone + "\nFarm: " + j.location);
-        farmerInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #374151; -fx-line-spacing: 4px;");
-
-        Button callBtn = new Button("Dial " + j.phone);
-        callBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-
-        Button close = new Button("Close");
-        close.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        close.setOnAction(e -> root.getChildren().remove(overlay));
-
-        HBox btns = new HBox(10, callBtn, close);
-        btns.setAlignment(Pos.CENTER_RIGHT);
-
-        modal.getChildren().addAll(title, farmerInfo, btns);
         overlay.getChildren().add(modal);
         root.getChildren().add(overlay);
     }

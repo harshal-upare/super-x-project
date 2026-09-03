@@ -415,31 +415,35 @@ public class RegisterPage {
             }
 
             RadioButton valRadioButton = (RadioButton) roleGroup.getSelectedToggle();
+            if (valRadioButton == null) {
+                farmerRadio.setSelected(true);
+                valRadioButton = farmerRadio;
+            }
             String redirect = valRadioButton.getText();
 
-            
             AuthenticateController objController = new AuthenticateController();
-            if(objController.signUp(email, password)) {
+            if (objController.signUp(email, password)) {
                 
                 objController.addUser(name, email, mobile, password, redirect);
-                if ("Provider".equals(redirect)) {
-
+                if ("Provider".equalsIgnoreCase(redirect)) {
                     com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
-                } else if ("Operator".equals(redirect)) 
-                    {
+                } else if ("Operator".equalsIgnoreCase(redirect)) {
+                    com.desgin.view.operator.OperatorProfileStore.setProfile(name, mobile, null, null);
                     com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
-                } else if ("Farmer".equals(redirect)) {
-                    
+                } else if ("Farmer".equalsIgnoreCase(redirect)) {
+                    FarmerProfileStore.setCredentials(name, email, mobile);
+                    com.desgin.view.farmer.ashutosh.profile.ProfileManagement.updateHeaderGreeting();
                     FarmerDashboard obj = new FarmerDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
                 }
+            } else {
+                emailErrorLabel.setText("Registration failed: Email may already exist or network error.");
+                emailErrorLabel.setVisible(true);
+                emailErrorLabel.setManaged(true);
+                emailTextField.setStyle(INPUT_ERROR_STYLE);
             }
-            
-                
-
-            // Route to respective role portal immediately
         });
 
         // ================= LOGIN TEXT (BRIGHT & CLICKABLE) =================
@@ -462,8 +466,30 @@ public class RegisterPage {
             }
         });
 
+        HBox div = new HBox();
+        div.setPrefHeight(1);
+        div.setMaxHeight(1);
+        div.setPrefWidth(290);
+        div.setMaxWidth(290);
+        div.setStyle("-fx-background-color: rgba(45, 106, 79, 0.2);");
+
+        Label adminRegPill = new Label("🔒 Admin Portal Registration (Max 5 Admins)");
+        String adminNormalStyle = "-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #2D6A4F; -fx-background-color: #E8F5E9; -fx-background-radius: 16px; -fx-padding: 4px 12px; -fx-cursor: hand; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';";
+        String adminHoverStyle = "-fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #FFFFFF; -fx-background-color: #2D6A4F; -fx-background-radius: 16px; -fx-padding: 4px 12px; -fx-cursor: hand; -fx-border-color: #2D6A4F; -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';";
+
+        adminRegPill.setStyle(adminNormalStyle);
+        adminRegPill.setOnMouseEntered(e -> adminRegPill.setStyle(adminHoverStyle));
+        adminRegPill.setOnMouseExited(e -> adminRegPill.setStyle(adminNormalStyle));
+        adminRegPill.setOnMouseClicked(e -> {
+            Authentication auth = new Authentication();
+            WelcomePage.welcomePageStage.setScene(auth.getAuthenticationScene());
+        });
+
+        VBox adminBox = new VBox(6, div, adminRegPill);
+        adminBox.setAlignment(Pos.CENTER);
+
         // ================= MAIN REGISTRATION CARD (TRANSLUCENT) =================
-        VBox registerCard = new VBox(10, primaryVBox, secondaryVBox, registerButton, loginHBox);
+        VBox registerCard = new VBox(9, primaryVBox, secondaryVBox, registerButton, loginHBox, adminBox);
         registerCard.setAlignment(Pos.CENTER);
         registerCard.setStyle(
             "-fx-background-color: rgba(255, 255, 255, 0.58);" +
@@ -472,7 +498,7 @@ public class RegisterPage {
             "-fx-border-radius: 22px;" +
             "-fx-border-width: 1.5px;" +
             "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.20), 24, 0.12, 0, 8);" +
-            "-fx-padding: 18px 30px 18px 30px;"
+            "-fx-padding: 16px 30px 16px 30px;"
         );
 
         registerCard.setPrefWidth(430);

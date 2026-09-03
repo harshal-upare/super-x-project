@@ -168,8 +168,7 @@ public class LeftSideBar {
 
                 dashboardBtn1.setOnAction(event -> {
                         setActiveButton(dashboardBtn1, navigationButtons);
-                        String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
-                        ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+                        ProfileManagement.updateHeaderGreeting();
                         FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                 });
 

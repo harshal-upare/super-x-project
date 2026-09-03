@@ -12,6 +12,16 @@ public class OperatorProfileStore {
     public static String badge = "Certified Pro";
     public static String status = "Available for Field Shifts";
 
+    // Dynamic Operator KPI Metrics
+    public static String assignedMachinery = "4 Units";
+    public static String assignedMachinerySub = "2 Field Ready • 1 In Shift";
+    public static String activeJobs = "2 Assigned";
+    public static String activeJobsSub = "1 Running • 1 Scheduled";
+    public static String engineHours = "148.5 hrs";
+    public static String engineHoursSub = "+18.2 hrs this week ↑";
+    public static String wagesEarned = "₹28,400";
+    public static String wagesEarnedSub = "₹4,200 pending settlement";
+
     private static final List<Runnable> profileListeners = new ArrayList<>();
 
     public static synchronized void setProfile(String newName, String newPhone, String newZone, String newLicense) {
@@ -28,7 +38,23 @@ public class OperatorProfileStore {
             licenseNo = newLicense.trim();
         }
 
-        // Notify all registered UI listeners to dynamically re-render info
+        notifyListeners();
+    }
+
+    public static synchronized void setMetrics(String machinery, String machSub, String jobs, String jobsSub, String hours, String hoursSub, String wages, String wageSub) {
+        if (machinery != null) assignedMachinery = machinery;
+        if (machSub != null) assignedMachinerySub = machSub;
+        if (jobs != null) activeJobs = jobs;
+        if (jobsSub != null) activeJobsSub = jobsSub;
+        if (hours != null) engineHours = hours;
+        if (hoursSub != null) engineHoursSub = hoursSub;
+        if (wages != null) wagesEarned = wages;
+        if (wageSub != null) wagesEarnedSub = wageSub;
+
+        notifyListeners();
+    }
+
+    public static void notifyListeners() {
         for (Runnable r : new ArrayList<>(profileListeners)) {
             try {
                 r.run();

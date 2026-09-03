@@ -138,8 +138,7 @@ public class Dashboard {
                                 FarmerDashboard.borderPane.setCenter(obj.getProfile(FarmerDashboard.root));
                         } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("pune") || q.contains("clim")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
-                                String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
-                                ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+                                ProfileManagement.updateHeaderGreeting();
                                 FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                         } else {
                                 // Equipment keyword, category, or general machinery search
@@ -1013,8 +1012,7 @@ public class Dashboard {
                                 imagePath,
                                 () -> {
                                         LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
-                                        String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
-                                        ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+                                        ProfileManagement.updateHeaderGreeting();
                                         FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                                 }
                         );

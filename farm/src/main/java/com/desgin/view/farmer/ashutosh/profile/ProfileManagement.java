@@ -22,8 +22,32 @@ import javafx.scene.text.Text;
 public class ProfileManagement {
 
     private static VBox profilePopupRef;
+    private static Text profilePillNameText;
+    private static Text nameValText;
+    private static Text emailValText;
+    private static Text phoneValText;
+    private static TextField modalTownField;
+    private static TextField modalDistrictField;
+    private static TextField modalStateField;
+    private static TextField modalPincodeField;
 
-    public static Text headerTitleText = new Text("Welcome back, " + ((FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal") + " 👋");
+    public static String getFormattedFirstName() {
+        String raw = FarmerProfileStore.name;
+        if (raw == null || raw.trim().isEmpty()) {
+            return "Farmer";
+        }
+        raw = raw.trim();
+        if (raw.contains("@")) {
+            raw = raw.split("@")[0];
+        }
+        String first = raw.split("[ ._]")[0];
+        if (first.isEmpty()) {
+            return "Farmer";
+        }
+        return Character.toUpperCase(first.charAt(0)) + (first.length() > 1 ? first.substring(1) : "");
+    }
+
+    public static Text headerTitleText = new Text("Welcome back, " + getFormattedFirstName() + " 👋");
     public static Text headerSubtitleText = new Text("Farmer Dashboard • Find the right equipment for your farm");
     public static VBox headerTitleBox;
 
@@ -32,6 +56,49 @@ public class ProfileManagement {
         headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
         headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
         headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+
+        FarmerProfileStore.addProfileListener(() -> {
+            javafx.application.Platform.runLater(ProfileManagement::refreshDynamicProfileUI);
+        });
+        FarmerProfileStore.addLocationListener(() -> {
+            javafx.application.Platform.runLater(ProfileManagement::refreshDynamicLocationUI);
+        });
+    }
+
+    public static void updateHeaderGreeting() {
+        String fName = getFormattedFirstName();
+        setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+    }
+
+    public static void refreshDynamicProfileUI() {
+        updateHeaderGreeting();
+        if (profilePillNameText != null) {
+            profilePillNameText.setText(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Farmer");
+        }
+        if (nameValText != null) {
+            nameValText.setText(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Not Set");
+        }
+        if (emailValText != null) {
+            emailValText.setText(FarmerProfileStore.email != null ? FarmerProfileStore.email : "Not Set");
+        }
+        if (phoneValText != null) {
+            phoneValText.setText(FarmerProfileStore.phone != null ? FarmerProfileStore.phone : "Not Set");
+        }
+    }
+
+    public static void refreshDynamicLocationUI() {
+        if (modalTownField != null && !modalTownField.isFocused()) {
+            modalTownField.setText(FarmerProfileStore.town != null ? FarmerProfileStore.town : "");
+        }
+        if (modalDistrictField != null && !modalDistrictField.isFocused()) {
+            modalDistrictField.setText(FarmerProfileStore.district != null ? FarmerProfileStore.district : "");
+        }
+        if (modalStateField != null && !modalStateField.isFocused()) {
+            modalStateField.setText(FarmerProfileStore.state != null ? FarmerProfileStore.state : "");
+        }
+        if (modalPincodeField != null && !modalPincodeField.isFocused()) {
+            modalPincodeField.setText(FarmerProfileStore.pincode != null ? FarmerProfileStore.pincode : "");
+        }
     }
 
     public static void setHeaderTitle(String title, String subtitle) {
@@ -50,29 +117,8 @@ public class ProfileManagement {
 
     public HBox getProfile(StackPane root) {
 
-      /*  // ================= TOP LEFT: 4 QUICK DOCS & REFERENCE BUTTONS =================
-        Button guideBtn = createPillButton("📖", "User Guide", null);
-        Button schemesBtn = createPillButton("🏛️", "Govt Schemes", "3 Active");
-        Button advisoryBtn = createPillButton("🌱", "Crop Advisory", "Live");
-        Button helplineBtn = createPillButton("📞", "Kisan Helpline", "24x7");
+        updateHeaderGreeting();
 
-        HBox leftButtonsBox = new HBox(8, guideBtn, schemesBtn, advisoryBtn, helplineBtn);
-        leftButtonsBox.setAlignment(Pos.CENTER_LEFT);
-
-        // Popups for Top Left Buttons
-        VBox guidePopup = createInfoPopup("📖", "FarmEquip User Guide", "Step-by-step mechanization & rental handbook for farmers", createGuideContent());
-        VBox schemesPopup = createInfoPopup("🏛️", "Government Schemes & Subsidies", "Active financial assistance and machinery subsidy schemes for farmers", createSchemesContent());
-        VBox advisoryPopup = createInfoPopup("🌱", "Agri Advisory & Live Mandi Prices", "Today's market rates, crop calendar & mechanization advisory", createAdvisoryContent());
-        VBox helplinePopup = createInfoPopup("📞", "Kisan Helplines & Emergency Desk", "Direct toll-free contact numbers for farmer support & breakdown assistance", createHelplineContent());
-
-        root.getChildren().addAll(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
-
-        // Click handlers for top left buttons
-        guideBtn.setOnAction(e -> togglePopup(guidePopup, schemesPopup, advisoryPopup, helplinePopup));
-        schemesBtn.setOnAction(e -> togglePopup(schemesPopup, guidePopup, advisoryPopup, helplinePopup));
-        advisoryBtn.setOnAction(e -> togglePopup(advisoryPopup, guidePopup, schemesPopup, helplinePopup));
-        helplineBtn.setOnAction(e -> togglePopup(helplinePopup, guidePopup, schemesPopup, advisoryPopup));
-*/
         // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
         Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
 
@@ -85,7 +131,10 @@ public class ProfileManagement {
 
         profileBox.setOnMouseClicked(event -> {
             boolean isVis = profilePopupRef.isVisible();
-            //hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
+            if (!isVis) {
+                refreshDynamicProfileUI();
+                refreshDynamicLocationUI();
+            }
             profilePopupRef.setVisible(!isVis);
         });
 
@@ -95,7 +144,6 @@ public class ProfileManagement {
 
         notificationBtn1.setOnAction(e -> {
             boolean isVis = notificationPopUp.isVisible();
-           // hideAllPopups(guidePopup, schemesPopup, advisoryPopup, helplinePopup);
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notificationPopUp.setVisible(!isVis);
         });
@@ -106,9 +154,9 @@ public class ProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(10, spacer, rightHBox);
+        HBox topBar = new HBox(16, headerTitleBox, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(12, 24, 12, 24));
+        topBar.setPadding(new Insets(10, 24, 10, 24));
         topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topBar;
@@ -170,8 +218,8 @@ public class ProfileManagement {
         Text profileIcon = new Text("👤");
         profileIcon.setStyle("-fx-font-size: 14px;");
 
-        Text profileName = new Text(FarmerProfileStore.name);
-        profileName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        profilePillNameText = new Text(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Farmer");
+        profilePillNameText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Label verifiedDot = new Label("✓");
         verifiedDot.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 5px; -fx-background-radius: 8px;");
@@ -179,7 +227,7 @@ public class ProfileManagement {
         Text dropdownArrow = new Text("▾");
         dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
 
-        HBox profileBox = new HBox(6, profileIcon, profileName, verifiedDot, dropdownArrow);
+        HBox profileBox = new HBox(6, profileIcon, profilePillNameText, verifiedDot, dropdownArrow);
         profileBox.setAlignment(Pos.CENTER);
         profileBox.setPrefHeight(38);
         profileBox.setMinHeight(38);
@@ -539,9 +587,14 @@ public class ProfileManagement {
         credCard.setPadding(new Insets(12, 14, 12, 14));
         credCard.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
 
-        HBox nameRow = createInfoRowWithEdit("Full Name:", FarmerProfileStore.name);
-        HBox emailRow = createInfoRowWithEdit("Email Address:", FarmerProfileStore.email);
-        HBox phoneRow = createInfoRowWithEdit("Mobile No.:", FarmerProfileStore.phone);
+        nameValText = new Text(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Not Set");
+        emailValText = new Text(FarmerProfileStore.email != null ? FarmerProfileStore.email : "Not Set");
+        phoneValText = new Text(FarmerProfileStore.phone != null ? FarmerProfileStore.phone : "Not Set");
+
+        HBox nameRow = createInfoRowWithAction("Full Name:", nameValText, ProfileManagement::redirectToSettings);
+        HBox emailRow = createInfoRowWithAction("Email Address:", emailValText, ProfileManagement::redirectToSettings);
+        HBox phoneRow = createInfoRowWithAction("Mobile No.:", phoneValText, ProfileManagement::redirectToSettings);
+
         credCard.getChildren().addAll(nameRow, emailRow, phoneRow);
 
         // Section 2: Location
@@ -552,29 +605,29 @@ public class ProfileManagement {
         locCard.setPadding(new Insets(12, 14, 12, 14));
         locCard.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
 
-        TextField townField = new TextField(FarmerProfileStore.town);
-        townField.setPromptText("Village / Town (e.g. Pune, Baramati)");
-        styleField(townField);
+        modalTownField = new TextField(FarmerProfileStore.town != null ? FarmerProfileStore.town : "");
+        modalTownField.setPromptText("Village / Town (e.g. Pune, Baramati)");
+        styleField(modalTownField);
 
-        TextField districtField = new TextField(FarmerProfileStore.district);
-        districtField.setPromptText("District");
-        styleField(districtField);
+        modalDistrictField = new TextField(FarmerProfileStore.district != null ? FarmerProfileStore.district : "");
+        modalDistrictField.setPromptText("District");
+        styleField(modalDistrictField);
 
-        TextField stateField = new TextField(FarmerProfileStore.state);
-        stateField.setPromptText("State");
-        styleField(stateField);
+        modalStateField = new TextField(FarmerProfileStore.state != null ? FarmerProfileStore.state : "");
+        modalStateField.setPromptText("State");
+        styleField(modalStateField);
 
-        TextField pincodeField = new TextField(FarmerProfileStore.pincode);
-        pincodeField.setPromptText("Pincode");
-        styleField(pincodeField);
+        modalPincodeField = new TextField(FarmerProfileStore.pincode != null ? FarmerProfileStore.pincode : "");
+        modalPincodeField.setPromptText("Pincode");
+        styleField(modalPincodeField);
 
         GridPane locGrid = new GridPane();
         locGrid.setHgap(12);
         locGrid.setVgap(8);
-        locGrid.add(createFieldGroup("Village / Town", townField), 0, 0);
-        locGrid.add(createFieldGroup("District", districtField), 1, 0);
-        locGrid.add(createFieldGroup("State", stateField), 0, 1);
-        locGrid.add(createFieldGroup("Pincode", pincodeField), 1, 1);
+        locGrid.add(createFieldGroup("Village / Town", modalTownField), 0, 0);
+        locGrid.add(createFieldGroup("District", modalDistrictField), 1, 0);
+        locGrid.add(createFieldGroup("State", modalStateField), 0, 1);
+        locGrid.add(createFieldGroup("Pincode", modalPincodeField), 1, 1);
 
         Label locMsg = new Label();
         locMsg.setVisible(false);
@@ -583,16 +636,36 @@ public class ProfileManagement {
         Button saveLocBtn = new Button("Save Location 📍");
         saveLocBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 6px 18px; -fx-cursor: hand;");
         saveLocBtn.setOnAction(e -> {
-            String t = townField.getText();
-            String d = districtField.getText();
-            String s = stateField.getText();
-            String p = pincodeField.getText();
+            String t = modalTownField.getText() != null ? modalTownField.getText().trim() : "";
+            String d = modalDistrictField.getText() != null ? modalDistrictField.getText().trim() : "";
+            String s = modalStateField.getText() != null ? modalStateField.getText().trim() : "";
+            String p = modalPincodeField.getText() != null ? modalPincodeField.getText().trim() : "";
+
             FarmerProfileStore.setLocation(t, d, s, p);
 
-            locMsg.setText("✓ Location set to " + FarmerProfileStore.town + "! Matching active.");
-            locMsg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
+            locMsg.setText("⏳ Saving to Firebase...");
+            locMsg.setStyle("-fx-text-fill: #2D6A4F; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #E8F5E9; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
             locMsg.setVisible(true);
             locMsg.setManaged(true);
+
+            // Asynchronously save to Firebase/Firestore in background thread
+            new Thread(() -> {
+                String farmerEmail = FarmerProfileStore.email;
+                boolean savedToDb = false;
+                if (farmerEmail != null && !farmerEmail.trim().isEmpty()) {
+                    savedToDb = new com.desgin.controller.AuthenticateController().updateLocation(farmerEmail, "Farmer", t, d, s, p);
+                }
+                final boolean success = savedToDb;
+                javafx.application.Platform.runLater(() -> {
+                    if (success) {
+                        locMsg.setText("✓ Location saved to Firebase & matching active (" + FarmerProfileStore.town + ")!");
+                        locMsg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
+                    } else {
+                        locMsg.setText("✓ Location set to " + FarmerProfileStore.town + "! Matching active.");
+                        locMsg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
+                    }
+                });
+            }).start();
         });
 
         HBox locActionBox = new HBox(10, saveLocBtn, locMsg);
@@ -616,28 +689,34 @@ public class ProfileManagement {
         return modal;
     }
 
-    private static HBox createInfoRowWithEdit(String label, String value) {
+    public static void redirectToSettings() {
+        if (profilePopupRef != null) {
+            profilePopupRef.setVisible(false);
+        }
+        ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
+        if (FarmerDashboard.borderPane != null) {
+            FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+        }
+        if (LeftSideBar.settingsBtn1 != null && LeftSideBar.navigationButtons != null) {
+            LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
+        }
+    }
+
+    private static HBox createInfoRowWithAction(String label, Text valText, Runnable onEdit) {
         Label lbl = new Label(label);
         lbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
         lbl.setPrefWidth(110);
 
-        Text valText = new Text(value != null ? value : "Not Set");
         valText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
 
         Region sp = new Region();
         HBox.setHgrow(sp, Priority.ALWAYS);
 
-        Button editBtn = new Button("✏️ Edit");
-        editBtn.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #2D6A4F; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3px 10px; -fx-background-radius: 6px; -fx-cursor: hand; -fx-border-color: #D1E7DD; -fx-border-radius: 6px;");
+        Button editBtn = new Button("Edit ⚙");
+        editBtn.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #2D6A4F; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-padding: 3px 12px; -fx-background-radius: 6px; -fx-cursor: hand; -fx-border-color: #D1E7DD; -fx-border-radius: 6px;");
         editBtn.setOnAction(e -> {
-            if (profilePopupRef != null) {
-                profilePopupRef.setVisible(false);
-            }
-            if (FarmerDashboard.borderPane != null) {
-                FarmerDashboard.borderPane.setCenter(Settings.getSetting());
-            }
-            if (LeftSideBar.settingsBtn1 != null && LeftSideBar.navigationButtons != null) {
-                LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
+            if (onEdit != null) {
+                onEdit.run();
             }
         });
 
@@ -645,6 +724,7 @@ public class ProfileManagement {
         row.setAlignment(Pos.CENTER_LEFT);
         return row;
     }
+
 
     private static void styleField(TextField field) {
         field.setPrefHeight(36);

@@ -144,31 +144,37 @@ public class AdminLeftSideBar {
 
         dashboardBtn.setOnAction(event -> {
             setActiveButton(dashboardBtn, navigationButtons);
+            AdminProfileManagement.updateHeaderGreeting();
             AdminDashboard.borderPane.setCenter(AdminHome.getPage(root));
         });
 
         approvalsBtn.setOnAction(event -> {
             setActiveButton(approvalsBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("Machinery Approvals & Verification 🚜", "Audit provider machine RTO, insurance, and equipment health certificates");
             AdminDashboard.borderPane.setCenter(MachineryApprovals.getPage(root));
         });
 
         usersBtn.setOnAction(event -> {
             setActiveButton(usersBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("User & KYC Compliance Desk 👥", "Platform user registry, role auditing, and administrator quota management");
             AdminDashboard.borderPane.setCenter(UserManagement.getPage(root));
         });
 
         escrowBtn.setOnAction(event -> {
             setActiveButton(escrowBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("Escrow Vault & Settlement 💰", "Track automated booking holds, operator wage credits, and banking payout status");
             AdminDashboard.borderPane.setCenter(EscrowFinancials.getPage(root));
         });
 
         disputesBtn.setOnAction(event -> {
             setActiveButton(disputesBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("Dispute Resolution & Claims ⚖", "Arbitrate farm work order disputes, fuel adjustment claims, and refund cases");
             AdminDashboard.borderPane.setCenter(DisputeResolution.getPage(root));
         });
 
         settingsBtn.setOnAction(event -> {
             setActiveButton(settingsBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("Platform System Settings ⚙", "Configure system security policies, commission fees, and admin quota controls");
             AdminDashboard.borderPane.setCenter(AdminSettings.getPage(root));
         });
 

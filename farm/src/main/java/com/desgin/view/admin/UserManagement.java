@@ -51,6 +51,7 @@ public class UserManagement {
 
     private static void initUsers() {
         if (!userList.isEmpty()) return;
+        userList.add(new UserItem("USR-A-0001", AdminProfileStore.adminName, "ADMIN", AdminProfileStore.adminPhone, "HQ Central, Pune", "VERIFIED", "ACTIVE", "System Administrator (Seat 1/5)"));
         userList.add(new UserItem("USR-F-1021", "Balasaheb Shirole", "FARMER", "+91 98229 11029", "Baramati, Pune", "VERIFIED", "ACTIVE", "14 Rentals • ₹1.68L Volume"));
         userList.add(new UserItem("USR-P-2041", "Rajesh Patil (Agro Services)", "PROVIDER", "+91 98220 12345", "Pune Central", "VERIFIED", "ACTIVE", "9 Machines • ₹4.85L Earned"));
         userList.add(new UserItem("USR-O-3012", "Ramesh Chavan", "OPERATOR", "+91 98901 44552", "Baramati", "VERIFIED", "ACTIVE", "4.9 ★ • 148 Engine Hrs"));
@@ -63,7 +64,7 @@ public class UserManagement {
         Text title = new Text("User Directory & KYC Compliance Desk");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text subtitle = new Text("Manage platform farmers, equipment providers, and certified field operators. Review KYC and moderate accounts.");
+        Text subtitle = new Text("Manage platform farmers, equipment providers, certified operators, and system administrators (Max 5 Admins).");
         subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(3, title, subtitle);
@@ -101,32 +102,39 @@ public class UserManagement {
     }
 
     private static HBox createRoleTabs(StackPane root) {
-        Button bAll = new Button("All (1,284)");
+        Button bAll = new Button("All (1,285)");
         Button bFarmers = new Button("Farmers (840)");
         Button bProviders = new Button("Providers (320)");
         Button bOperators = new Button("Operators (124)");
+        Button bAdmins = new Button("👑 Admins (1/5 Max)");
 
         styleTab(bAll, "ALL".equals(activeRoleFilter));
         styleTab(bFarmers, "FARMER".equals(activeRoleFilter));
         styleTab(bProviders, "PROVIDER".equals(activeRoleFilter));
         styleTab(bOperators, "OPERATOR".equals(activeRoleFilter));
+        styleTab(bAdmins, "ADMIN".equals(activeRoleFilter));
 
-        bAll.setOnAction(e -> { activeRoleFilter = "ALL"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bFarmers.setOnAction(e -> { activeRoleFilter = "FARMER"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bProviders.setOnAction(e -> { activeRoleFilter = "PROVIDER"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bOperators.setOnAction(e -> { activeRoleFilter = "OPERATOR"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
+        bAll.setOnAction(e -> { activeRoleFilter = "ALL"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bFarmers.setOnAction(e -> { activeRoleFilter = "FARMER"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bProviders.setOnAction(e -> { activeRoleFilter = "PROVIDER"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bOperators.setOnAction(e -> { activeRoleFilter = "OPERATOR"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bAdmins.setOnAction(e -> { activeRoleFilter = "ADMIN"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
 
-        HBox bar = new HBox(10, bAll, bFarmers, bProviders, bOperators);
+        HBox bar = new HBox(10, bAll, bFarmers, bProviders, bOperators, bAdmins);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setMinWidth(0);
         return bar;
     }
 
-    private static void update(Button b1, Button b2, Button b3, Button b4) {
-        styleTab(b1, "ALL".equals(activeRoleFilter));
-        styleTab(b2, "FARMER".equals(activeRoleFilter));
-        styleTab(b3, "PROVIDER".equals(activeRoleFilter));
-        styleTab(b4, "OPERATOR".equals(activeRoleFilter));
+    private static void updateTabs(Button... buttons) {
+        for (Button b : buttons) {
+            String txt = b.getText().toUpperCase();
+            if (txt.startsWith("ALL")) styleTab(b, "ALL".equals(activeRoleFilter));
+            else if (txt.startsWith("FARMER")) styleTab(b, "FARMER".equals(activeRoleFilter));
+            else if (txt.startsWith("PROVIDER")) styleTab(b, "PROVIDER".equals(activeRoleFilter));
+            else if (txt.startsWith("OPERATOR")) styleTab(b, "OPERATOR".equals(activeRoleFilter));
+            else if (txt.contains("ADMIN")) styleTab(b, "ADMIN".equals(activeRoleFilter));
+        }
     }
 
     private static void styleTab(Button b, boolean active) {
@@ -156,7 +164,7 @@ public class UserManagement {
     }
 
     private static VBox createUserCard(UserItem u, StackPane root) {
-        String roleIcon = "FARMER".equals(u.role) ? "👨‍🌾" : ("PROVIDER".equals(u.role) ? "🚜" : "👨‍🔧");
+        String roleIcon = "ADMIN".equals(u.role) ? "🛡️" : ("FARMER".equals(u.role) ? "👨‍🌾" : ("PROVIDER".equals(u.role) ? "🚜" : "👷"));
 
         Text icon = new Text(roleIcon);
         icon.setStyle("-fx-font-size: 22px;");
