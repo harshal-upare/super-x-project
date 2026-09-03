@@ -1,5 +1,8 @@
 package com.desgin.view.farmer.ashutosh.profile;
 
+import java.util.List;
+
+import com.desgin.dao.AuthDAO;
 import com.desgin.view.farmer.LeftSideBar;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.Swapnil.FarmerProfileStore;
@@ -11,6 +14,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -23,6 +27,9 @@ public class ProfileManagement {
 
     private static VBox profilePopupRef;
     private static Text profilePillNameText;
+    private static StackPane profilePillAvatarBox;
+    private static ImageView modalAvatarView;
+    private static Text modalAvatarIcon;
     private static Text nameValText;
     private static Text emailValText;
     private static Text phoneValText;
@@ -50,6 +57,8 @@ public class ProfileManagement {
     public static Text headerTitleText = new Text("Welcome back, " + getFormattedFirstName() + " 👋");
     public static Text headerSubtitleText = new Text("Farmer Dashboard • Find the right equipment for your farm");
     public static VBox headerTitleBox;
+    private static Label farmerNotifBadge;
+    private static VBox farmerNotifList;
 
     static {
         headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
@@ -83,6 +92,48 @@ public class ProfileManagement {
         }
         if (phoneValText != null) {
             phoneValText.setText(FarmerProfileStore.phone != null ? FarmerProfileStore.phone : "Not Set");
+        }
+        updateAvatarDisplay();
+    }
+
+    private static void updateAvatarDisplay() {
+        String pic = FarmerProfileStore.profilePic;
+        if (pic != null && !pic.trim().isEmpty()) {
+            try {
+                javafx.scene.image.Image img = new javafx.scene.image.Image(pic, true);
+                if (modalAvatarView != null) {
+                    modalAvatarView.setImage(img);
+                    modalAvatarView.setVisible(true);
+                    modalAvatarView.setManaged(true);
+                }
+                if (modalAvatarIcon != null) {
+                    modalAvatarIcon.setVisible(false);
+                    modalAvatarIcon.setManaged(false);
+                }
+                if (profilePillAvatarBox != null) {
+                    profilePillAvatarBox.getChildren().clear();
+                    ImageView pillIv = new ImageView(img);
+                    pillIv.setFitWidth(22);
+                    pillIv.setFitHeight(22);
+                    pillIv.setClip(new javafx.scene.shape.Circle(11, 11, 11));
+                    profilePillAvatarBox.getChildren().add(pillIv);
+                }
+            } catch (Exception ignored) {}
+        } else {
+            if (modalAvatarView != null) {
+                modalAvatarView.setVisible(false);
+                modalAvatarView.setManaged(false);
+            }
+            if (modalAvatarIcon != null) {
+                modalAvatarIcon.setVisible(true);
+                modalAvatarIcon.setManaged(true);
+            }
+            if (profilePillAvatarBox != null) {
+                profilePillAvatarBox.getChildren().clear();
+                Text icon = new Text("👤");
+                icon.setStyle("-fx-font-size: 14px;");
+                profilePillAvatarBox.getChildren().add(icon);
+            }
         }
     }
 
@@ -120,7 +171,12 @@ public class ProfileManagement {
         updateHeaderGreeting();
 
         // ================= TOP RIGHT: NOTIFICATIONS & PROFILE =================
-        Button notificationBtn1 = createPillButton("🔔", "Notifications", "3");
+        farmerNotifBadge = new Label("");
+        farmerNotifBadge.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 10px;");
+        farmerNotifBadge.setVisible(false);
+        farmerNotifBadge.setManaged(false);
+
+        Button notificationBtn1 = createPillButton("🔔", "Notifications", farmerNotifBadge);
 
         // Profile Pill Button
         HBox profileBox = createProfilePill();
@@ -146,7 +202,10 @@ public class ProfileManagement {
             boolean isVis = notificationPopUp.isVisible();
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notificationPopUp.setVisible(!isVis);
+            if (!isVis) refreshFarmerNotifications();
         });
+
+        refreshFarmerNotifications();
 
         HBox rightHBox = new HBox(10, notificationBtn1, profileBox);
         rightHBox.setAlignment(Pos.CENTER_RIGHT);
@@ -162,9 +221,54 @@ public class ProfileManagement {
         return topBar;
     }
 
-    // ============================================================
-    // ENGAGING PILL BUTTON CREATOR WITH MINI BADGES
-    // ============================================================
+    private Button createPillButton(String icon, String title, Label badgeLabel) {
+        Button btn = new Button();
+        btn.setPrefHeight(38);
+        btn.setMinHeight(38);
+        btn.setMaxHeight(38);
+
+        HBox content = new HBox(6);
+        content.setAlignment(Pos.CENTER);
+
+        Text iconText = new Text(icon);
+        iconText.setStyle("-fx-font-size: 13.5px;");
+
+        Text titleText = new Text(title);
+        titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        content.getChildren().addAll(iconText, titleText);
+
+        if (badgeLabel != null) {
+            content.getChildren().add(badgeLabel);
+        }
+
+        btn.setGraphic(content);
+
+        String normalStyle = "-fx-background-color: #FFFFFF;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #C2E0CE;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-padding: 0 14px 0 12px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 4, 0, 0, 1);";
+
+        String hoverStyle = "-fx-background-color: #F4FBF7;"
+                + "-fx-background-radius: 20px;"
+                + "-fx-border-color: #2D6A4F;"
+                + "-fx-border-radius: 20px;"
+                + "-fx-border-width: 1.2px;"
+                + "-fx-padding: 0 14px 0 12px;"
+                + "-fx-cursor: hand;"
+                + "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.12), 8, 0, 0, 2);";
+
+        btn.setStyle(normalStyle);
+        btn.setOnMouseEntered(e -> btn.setStyle(hoverStyle));
+        btn.setOnMouseExited(e -> btn.setStyle(normalStyle));
+
+        return btn;
+    }
+
     private Button createPillButton(String icon, String title, String badge) {
         Button btn = new Button();
         btn.setPrefHeight(38);
@@ -215,8 +319,11 @@ public class ProfileManagement {
     }
 
     private HBox createProfilePill() {
+        profilePillAvatarBox = new StackPane();
+        profilePillAvatarBox.setPrefSize(24, 24);
         Text profileIcon = new Text("👤");
         profileIcon.setStyle("-fx-font-size: 14px;");
+        profilePillAvatarBox.getChildren().add(profileIcon);
 
         profilePillNameText = new Text(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Farmer");
         profilePillNameText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
@@ -227,7 +334,7 @@ public class ProfileManagement {
         Text dropdownArrow = new Text("▾");
         dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
 
-        HBox profileBox = new HBox(6, profileIcon, profilePillNameText, verifiedDot, dropdownArrow);
+        HBox profileBox = new HBox(6, profilePillAvatarBox, profilePillNameText, verifiedDot, dropdownArrow);
         profileBox.setAlignment(Pos.CENTER);
         profileBox.setPrefHeight(38);
         profileBox.setMinHeight(38);
@@ -587,6 +694,63 @@ public class ProfileManagement {
         credCard.setPadding(new Insets(12, 14, 12, 14));
         credCard.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
 
+        modalAvatarIcon = new Text("👤");
+        modalAvatarIcon.setStyle("-fx-font-size: 20px;");
+        modalAvatarView = new ImageView();
+        modalAvatarView.setFitWidth(44);
+        modalAvatarView.setFitHeight(44);
+        modalAvatarView.setClip(new javafx.scene.shape.Circle(22, 22, 22));
+        modalAvatarView.setVisible(false);
+        modalAvatarView.setManaged(false);
+
+        StackPane photoBox = new StackPane(modalAvatarIcon, modalAvatarView);
+        photoBox.setPrefSize(44, 44);
+        photoBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 22; -fx-border-color: #A5D6A7; -fx-border-width: 1.2; -fx-border-radius: 22;");
+
+        Button changePicBtn = new Button("📷 Change Photo");
+        changePicBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand; -fx-padding: 4 10;");
+
+        Label picMsg = new Label();
+        picMsg.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-text-fill: #15803D;");
+
+        changePicBtn.setOnAction(e -> {
+            javafx.stage.FileChooser chooser = new javafx.stage.FileChooser();
+            chooser.setTitle("Select Profile Image");
+            chooser.getExtensionFilters().addAll(
+                new javafx.stage.FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp")
+            );
+            javafx.stage.Window win = modal.getScene() != null ? modal.getScene().getWindow() : null;
+            java.io.File file = chooser.showOpenDialog(win);
+            if (file != null) {
+                picMsg.setText("Uploading photo...");
+                changePicBtn.setDisable(true);
+                javafx.concurrent.Task<String> uploadTask = new javafx.concurrent.Task<>() {
+                    @Override
+                    protected String call() {
+                        return com.desgin.config.CloudinaryConfig.uploadImage(file);
+                    }
+                };
+                uploadTask.setOnSucceeded(ev -> {
+                    changePicBtn.setDisable(false);
+                    String url = uploadTask.getValue();
+                    if (url != null) {
+                        picMsg.setText("✓ Photo updated!");
+                        FarmerProfileStore.setProfilePic(url);
+                        new Thread(() -> new AuthDAO().updateProfilePic(FarmerProfileStore.email, "Farmer", url)).start();
+                    } else {
+                        picMsg.setText("Upload failed.");
+                    }
+                });
+                uploadTask.setOnFailed(ev -> {
+                    changePicBtn.setDisable(false);
+                    picMsg.setText("Upload error.");
+                });
+                new Thread(uploadTask).start();
+            }
+        });
+        HBox photoRow = new HBox(12, photoBox, new VBox(3, changePicBtn, picMsg));
+        photoRow.setAlignment(Pos.CENTER_LEFT);
+
         nameValText = new Text(FarmerProfileStore.name != null ? FarmerProfileStore.name : "Not Set");
         emailValText = new Text(FarmerProfileStore.email != null ? FarmerProfileStore.email : "Not Set");
         phoneValText = new Text(FarmerProfileStore.phone != null ? FarmerProfileStore.phone : "Not Set");
@@ -595,7 +759,7 @@ public class ProfileManagement {
         HBox emailRow = createInfoRowWithAction("Email Address:", emailValText, ProfileManagement::redirectToSettings);
         HBox phoneRow = createInfoRowWithAction("Mobile No.:", phoneValText, ProfileManagement::redirectToSettings);
 
-        credCard.getChildren().addAll(nameRow, emailRow, phoneRow);
+        credCard.getChildren().addAll(photoRow, nameRow, emailRow, phoneRow);
 
         // Section 2: Location
         Text sec2 = new Text("📍 Operational Farm Location (For Machinery Matching)");
@@ -791,14 +955,11 @@ public class ProfileManagement {
         topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         // Items
-        VBox n1 = createNotifCard("✅ Booking Confirmed", "Your John Deere 5050D rental request was confirmed by Provider Rajesh. Dispatch scheduled tomorrow at 6:30 AM.", "10 mins ago", "CONFIRMED", "#DCFCE7", "#15803D");
-        VBox n2 = createNotifCard("👷 Operator Assigned", "Driver Dilip Shinde accepted your field assignment for laser land leveling in Baramati.", "1 hour ago", "OPERATOR", "#E0E7FF", "#4338CA");
-        VBox n3 = createNotifCard("🌧 Monsoon Sowing Advisory", "Favorable soil moisture (20%) detected in Pune district for the next 48 hours. Optimal time for seed drilling.", "3 hours ago", "ADVISORY", "#FEF3C7", "#B45309");
-        VBox n4 = createNotifCard("💰 Escrow Payment Locked", "₹3,200 held in secure platform escrow for Rotavator booking. Released after satisfactory delivery.", "Yesterday", "ESCROW", "#F3F4F6", "#374151");
+        farmerNotifList = new VBox(10);
+        farmerNotifList.setPadding(new Insets(0, 6, 0, 0));
+        refreshFarmerNotifications();
 
-        VBox list = new VBox(10, n1, n2, n3, n4);
-        list.setPadding(new Insets(0, 6, 0, 0));
-        ScrollPane sp = new ScrollPane(list);
+        ScrollPane sp = new ScrollPane(farmerNotifList);
         sp.setFitToWidth(true);
         sp.setPrefHeight(380);
         sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
@@ -810,6 +971,74 @@ public class ProfileManagement {
         modal.setVisible(false);
 
         return modal;
+    }
+
+    public static void refreshFarmerNotifications() {
+        Thread t = new Thread(() -> {
+            try {
+                String mail = FarmerProfileStore.email;
+                List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(mail);
+                if (list.isEmpty()) {
+                    list = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+                }
+                long count = list.stream().filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus()) || "PENDING".equalsIgnoreCase(r.getStatus())).count();
+                List<com.desgin.model.RentalRequestModel> finalRequests = list;
+
+                javafx.application.Platform.runLater(() -> {
+                    if (farmerNotifBadge != null) {
+                        if (count > 0) {
+                            farmerNotifBadge.setText(String.valueOf(count));
+                            farmerNotifBadge.setVisible(true);
+                            farmerNotifBadge.setManaged(true);
+                        } else {
+                            farmerNotifBadge.setVisible(false);
+                            farmerNotifBadge.setManaged(false);
+                        }
+                    }
+
+                    if (farmerNotifList != null) {
+                        farmerNotifList.getChildren().clear();
+                        if (finalRequests.isEmpty()) {
+                            farmerNotifList.getChildren().add(createNotifCard("🔔 No Activity", "No active bookings or alerts at this time.", "Just now", "STATUS", "#F3F4F6", "#4B5563"));
+                        } else {
+                            for (com.desgin.model.RentalRequestModel r : finalRequests.stream().limit(6).toList()) {
+                                String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
+                                String title;
+                                String desc;
+                                String time = r.getStartDate() != null ? r.getStartDate() : "Recent";
+                                String bg;
+                                String fg;
+
+                                if ("APPROVED".equals(st)) {
+                                    title = "✅ Booking Approved";
+                                    desc = "Your request for " + r.getMachineryName() + " was approved by provider " + (r.getProviderName() != null ? r.getProviderName() : "") + "!";
+                                    bg = "#DCFCE7";
+                                    fg = "#15803D";
+                                } else if ("DECLINED".equals(st)) {
+                                    title = "❌ Booking Declined";
+                                    desc = "Provider was unable to fulfill request for " + r.getMachineryName() + ".";
+                                    bg = "#FEE2E2";
+                                    fg = "#DC2626";
+                                } else if ("COMPLETED".equals(st)) {
+                                    title = "✔ Rental Completed";
+                                    desc = "Rental completed for " + r.getMachineryName() + ". Thank you!";
+                                    bg = "#E0E7FF";
+                                    fg = "#4338CA";
+                                } else {
+                                    title = "⏳ Request Pending";
+                                    desc = "Booking inquiry for " + r.getMachineryName() + " (" + r.getDays() + " days) is awaiting provider confirmation.";
+                                    bg = "#FFF3E0";
+                                    fg = "#E65100";
+                                }
+                                farmerNotifList.getChildren().add(createNotifCard(title, desc, time, st, bg, fg));
+                            }
+                        }
+                    }
+                });
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private static VBox createNotifCard(String title, String desc, String time, String tag, String tagBg, String tagColor) {

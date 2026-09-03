@@ -203,6 +203,9 @@ public class ReviewRating {
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");
 
+        // Sync reviews from database asynchronously
+        syncReviewsFromFirestore();
+
         ScrollPane rootScroll = new ScrollPane(mainContainer);
         rootScroll.setFitToWidth(true);
         rootScroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -210,6 +213,51 @@ public class ReviewRating {
         rootScroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         return rootScroll;
+    }
+
+    public static void syncReviewsFromFirestore() {
+        Thread t = new Thread(() -> {
+            try {
+                var reviews = new com.desgin.dao.ReviewDAO().getAllReviews();
+                if (!reviews.isEmpty()) {
+                    javafx.application.Platform.runLater(() -> {
+                        for (var rm : reviews) {
+                            if (rm.getBookingId() != null) {
+                                reviewedBookingIds.add(rm.getBookingId());
+                            }
+                            boolean alreadyExists = false;
+                            for (ReviewItem r : reviewHistory) {
+                                if (r.reviewId != null && r.reviewId.equalsIgnoreCase(rm.getReviewId())) {
+                                    alreadyExists = true;
+                                    break;
+                                }
+                            }
+                            if (!alreadyExists) {
+                                reviewHistory.add(new ReviewItem(
+                                    rm.getReviewId(),
+                                    rm.getMachineryName(),
+                                    "Verified Rental Review",
+                                    rm.getRating(),
+                                    rm.getHeadline(),
+                                    rm.getComment(),
+                                    rm.getDate() != null ? rm.getDate() : "Recent",
+                                    rm.getTags(),
+                                    rm.getProviderReply() != null ? rm.getProviderReply() : "Thank you for your feedback!",
+                                    rm.isOperator()
+                                ));
+                            }
+                        }
+                        if (statTotalReviewsText != null) statTotalReviewsText.setText(String.valueOf(getFilteredHistory().size()));
+                        if (statPendingText != null) statPendingText.setText(String.valueOf(getPendingCompletedBookings().size()));
+                        if (statAvgRatingText != null) statAvgRatingText.setText(calculateAvgRating() + " ★");
+                        refreshPendingBookingsList();
+                        refreshHistoryList();
+                    });
+                }
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private static List<ReviewItem> getFilteredHistory() {
@@ -434,8 +482,9 @@ public class ReviewRating {
             if (comm.isEmpty()) comm = "Delivered satisfactory field performance on time.";
 
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
+            String revId = "REV-" + System.currentTimeMillis();
             ReviewItem newRev = new ReviewItem(
-                    "REV-" + (1000 + reviewHistory.size() + 1),
+                    revId,
                     selectedBooking.title,
                     selectedBooking.subtitle,
                     selectedStars,
@@ -449,6 +498,28 @@ public class ReviewRating {
 
             reviewHistory.add(0, newRev);
             reviewedBookingIds.add(selectedBooking.bookingId);
+
+            final String fBookingId = selectedBooking.bookingId;
+            final String fTitle = selectedBooking.title;
+            final int fStars = selectedStars;
+            final String fHead = head;
+            final String fComm = comm;
+            final String fToday = today;
+            final List<String> fTags = new ArrayList<>(activeTags);
+            final boolean fIsOp = !isEquipmentMode;
+            Thread t = new Thread(() -> {
+                try {
+                    String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                    String farmerName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
+                    com.desgin.model.ReviewModel rm = new com.desgin.model.ReviewModel(
+                        revId, fBookingId, fTitle, farmerEmail, farmerName, fStars, fHead, fComm, fToday, fTags,
+                        "Thank you for your valuable feedback!", fIsOp
+                    );
+                    new com.desgin.dao.ReviewDAO().addReview(rm);
+                } catch (Exception ignored) {}
+            });
+            t.setDaemon(true);
+            t.start();
 
             statTotalReviewsText.setText(String.valueOf(getFilteredHistory().size()));
             statPendingText.setText(String.valueOf(getPendingCompletedBookings().size()));

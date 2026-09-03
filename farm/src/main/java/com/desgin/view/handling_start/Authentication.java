@@ -254,53 +254,66 @@ public class Authentication {
 
             AuthenticateController objController = new AuthenticateController();
 
+            AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
+            if (userDoc == null) {
+                emailErrorLabel.setText("No registered account found for this " + selectedRole + ".");
+                emailErrorLabel.setVisible(true);
+                emailErrorLabel.setManaged(true);
+                mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+                return;
+            }
+
+            // Verify password strictly against database
+            boolean pwdValid = false;
+            String storedPwd = userDoc.getPassword();
+            if (storedPwd != null && storedPwd.equals(inputPassword)) {
+                pwdValid = true;
+            } else {
+                String emailToAuth = (userDoc.getMail() != null && !userDoc.getMail().isEmpty()) ? userDoc.getMail() : inputUser;
+                if (objController.signIn(emailToAuth, inputPassword)) {
+                    pwdValid = true;
+                }
+            }
+
+            if (!pwdValid) {
+                passwordErrorLabel.setText("Incorrect password. Please enter the valid registered password.");
+                passwordErrorLabel.setVisible(true);
+                passwordErrorLabel.setManaged(true);
+                passwordTextField.setStyle(INPUT_ERROR_STYLE);
+                passwordTextField.clear();
+                return;
+            }
+
             if ("Provider".equalsIgnoreCase(selectedRole)) {
-                boolean validUser = objController.isUser(inputUser, selectedRole);
-                if (validUser) {
-                    ProviderDashboard obj = new ProviderDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
-                } else {
-                    emailErrorLabel.setText("Invalid Provider credentials or user not found.");
-                    emailErrorLabel.setVisible(true);
-                    emailErrorLabel.setManaged(true);
-                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
-                }
+                com.desgin.view.provider.ProviderProfileStore.setFullProfile(
+                    userDoc.getName(), userDoc.getMail(), userDoc.getNum(),
+                    userDoc.getTown(), userDoc.getDistrict(), userDoc.getState(), userDoc.getPincode(),
+                    userDoc.getProfilePic()
+                );
+                com.desgin.view.provider.ProviderProfileStore.setBankDetails(
+                    userDoc.getAccountHolder(), userDoc.getBankName(), userDoc.getAccountNumber(),
+                    userDoc.getIfsc(), userDoc.getUpiId()
+                );
+                com.desgin.view.provider.ProviderProfileManagement.updateHeaderGreeting();
+                ProviderDashboard obj = new ProviderDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
+
             } else if ("Operator".equalsIgnoreCase(selectedRole)) {
-                boolean validUser = objController.isUser(inputUser, selectedRole);
-                if (validUser) {
-                    AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
-                    if (userDoc != null) {
-                        com.desgin.view.operator.OperatorProfileStore.setProfile(userDoc.getName(), userDoc.getNum(), null, null);
-                    }
-                    OperatorDashboard obj = new OperatorDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
-                } else {
-                    emailErrorLabel.setText("Invalid Operator credentials or user not found.");
-                    emailErrorLabel.setVisible(true);
-                    emailErrorLabel.setManaged(true);
-                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
-                }
+                com.desgin.view.operator.OperatorProfileStore.setProfile(userDoc.getName(), userDoc.getNum(), null, null);
+                OperatorDashboard obj = new OperatorDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+
             } else if ("Farmer".equalsIgnoreCase(selectedRole)) {
-                boolean validUser = objController.isUser(inputUser, selectedRole);
-                if (validUser) {
-                    AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
-                    if (userDoc != null) {
-                        FarmerProfileStore.setCredentials(userDoc.getName(), userDoc.getMail(), userDoc.getNum());
-                        if (userDoc.getTown() != null && !userDoc.getTown().isEmpty()) {
-                            FarmerProfileStore.setLocation(userDoc.getTown(), userDoc.getDistrict(), userDoc.getState(), userDoc.getPincode());
-                        }
-                    } else {
-                        FarmerProfileStore.setCredentials(null, inputUser, null);
-                    }
-                    com.desgin.view.farmer.ashutosh.profile.ProfileManagement.updateHeaderGreeting();
-                    FarmerDashboard obj = new FarmerDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
-                } else {
-                    emailErrorLabel.setText("Invalid Farmer credentials or user not found.");
-                    emailErrorLabel.setVisible(true);
-                    emailErrorLabel.setManaged(true);
-                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+                FarmerProfileStore.setCredentials(userDoc.getName(), userDoc.getMail(), userDoc.getNum());
+                if (userDoc.getTown() != null && !userDoc.getTown().isEmpty()) {
+                    FarmerProfileStore.setLocation(userDoc.getTown(), userDoc.getDistrict(), userDoc.getState(), userDoc.getPincode());
                 }
+                if (userDoc.getProfilePic() != null) {
+                    FarmerProfileStore.setProfilePic(userDoc.getProfilePic());
+                }
+                com.desgin.view.farmer.ashutosh.profile.ProfileManagement.updateHeaderGreeting();
+                FarmerDashboard obj = new FarmerDashboard();
+                WelcomePage.welcomePageStage.setScene(obj.getfarmerDashboardScene(backToLogin));
             }
         });
 

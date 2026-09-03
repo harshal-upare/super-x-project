@@ -28,10 +28,10 @@ public class MyBookings {
     private Button completedBtn;
     private Button cancelledBtn;
     private StackPane innerRoot;
-    private Label totalStatLabel;
-    private Label upcomingStatLabel;
-    private Label activeStatLabel;
-    private Label completedStatLabel;
+    private Label totalStatVal;
+    private Label upcomingStatVal;
+    private Label activeStatVal;
+    private Label completedStatVal;
 
     public VBox getBooking(StackPane root) {
         innerRoot = root;
@@ -58,10 +58,17 @@ public class MyBookings {
         header.setAlignment(Pos.CENTER_LEFT);
 
         // ================= KPI SUMMARY CARDS =================
-        VBox c1 = createSummaryCard("Total Bookings", String.valueOf(BookingDataStore.getTotalCount()), "All lifetime requests", "#1B4332");
-        VBox c2 = createSummaryCard("Upcoming", String.valueOf(BookingDataStore.getPendingCount()), "Awaiting start date", "#2D6A4F");
-        VBox c3 = createSummaryCard("Active On-Field", String.valueOf(BookingDataStore.getActiveCount()), "Currently in operation", "#15803D");
-        VBox c4 = createSummaryCard("Completed", String.valueOf(BookingDataStore.getCompletedCount()), "Ready to review", "#B45309");
+        totalStatVal = new Label(String.valueOf(BookingDataStore.getTotalCount()));
+        upcomingStatVal = new Label(String.valueOf(BookingDataStore.getPendingCount()));
+        activeStatVal = new Label(String.valueOf(BookingDataStore.getActiveCount()));
+        completedStatVal = new Label(String.valueOf(BookingDataStore.getCompletedCount()));
+
+        VBox c1 = createSummaryCardWithLabel("Total Bookings", totalStatVal, "All lifetime requests", "#1B4332");
+        VBox c2 = createSummaryCardWithLabel("Upcoming", upcomingStatVal, "Awaiting start date", "#2D6A4F");
+        VBox c3 = createSummaryCardWithLabel("Active On-Field", activeStatVal, "Currently in operation", "#15803D");
+        VBox c4 = createSummaryCardWithLabel("Completed", completedStatVal, "Ready to review", "#B45309");
+
+        syncBookingsFromFirestore();
 
         HBox summaryCards = new HBox(14, c1, c2, c3, c4);
         summaryCards.setAlignment(Pos.CENTER_LEFT);
@@ -127,6 +134,52 @@ public class MyBookings {
                 "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
         );
         return card;
+    }
+
+    private VBox createSummaryCardWithLabel(String title, Label valLabel, String subText, String valColor) {
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        valLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: " + valColor + ";");
+
+        Text sub = new Text(subText);
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #5C6B5F;");
+
+        VBox card = new VBox(3, titleLabel, valLabel, sub);
+        card.setPadding(new Insets(14, 18, 14, 18));
+        card.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+        );
+        return card;
+    }
+
+    private void updateSummaryCardValues() {
+        if (totalStatVal != null) totalStatVal.setText(String.valueOf(BookingDataStore.getTotalCount()));
+        if (upcomingStatVal != null) upcomingStatVal.setText(String.valueOf(BookingDataStore.getPendingCount()));
+        if (activeStatVal != null) activeStatVal.setText(String.valueOf(BookingDataStore.getActiveCount()));
+        if (completedStatVal != null) completedStatVal.setText(String.valueOf(BookingDataStore.getCompletedCount()));
+    }
+
+    private void syncBookingsFromFirestore() {
+        new Thread(() -> {
+            try {
+                String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                List<com.desgin.model.RentalRequestModel> requests = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(farmerEmail);
+                if (requests.isEmpty()) {
+                    requests = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+                }
+                BookingDataStore.syncFromFirestore(requests);
+                javafx.application.Platform.runLater(() -> {
+                    updateSummaryCardValues();
+                    showAllBookings();
+                });
+            } catch (Exception ignored) {}
+        }).start();
     }
 
     private Button createTabButton(String text, boolean active) {
@@ -292,7 +345,7 @@ public class MyBookings {
                 (equipmentType.contains("Cultivator") ? "🌱" : "🚜")));
 
         VBox imageBox = new VBox();
-        imageBox.setPrefWidth(90);
+        imageBox.setPrefWidth(95);
         imageBox.setPrefHeight(90);
         imageBox.setAlignment(Pos.CENTER);
         imageBox.setStyle(
@@ -302,9 +355,24 @@ public class MyBookings {
                 "-fx-border-radius: 12px;"
         );
 
-        Label iconLabel = new Label(iconChar);
-        iconLabel.setStyle("-fx-font-size: 38px;");
-        imageBox.getChildren().add(iconLabel);
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView();
+                iv.setFitWidth(85);
+                iv.setFitHeight(75);
+                iv.setPreserveRatio(true);
+                iv.setImage(new javafx.scene.image.Image(imagePath, true));
+                imageBox.getChildren().add(iv);
+            } catch (Exception ex) {
+                Label iconLabel = new Label(iconChar);
+                iconLabel.setStyle("-fx-font-size: 38px;");
+                imageBox.getChildren().add(iconLabel);
+            }
+        } else {
+            Label iconLabel = new Label(iconChar);
+            iconLabel.setStyle("-fx-font-size: 38px;");
+            imageBox.getChildren().add(iconLabel);
+        }
 
         // Information Column
         VBox infoBox = new VBox(5);

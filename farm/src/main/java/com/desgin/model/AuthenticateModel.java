@@ -11,6 +11,12 @@ public class AuthenticateModel {
     String district;
     String state;
     String pincode;
+    String profilePic;
+    String accountHolder;
+    String bankName;
+    String accountNumber;
+    String ifsc;
+    String upiId;
 
     public AuthenticateModel() {}
 
@@ -104,5 +110,53 @@ public class AuthenticateModel {
 
     public void setPincode(String pincode) {
         this.pincode = pincode;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
+    }
+
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+
+    public void setAccountHolder(String accountHolder) {
+        this.accountHolder = accountHolder;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getIfsc() {
+        return ifsc;
+    }
+
+    public void setIfsc(String ifsc) {
+        this.ifsc = ifsc;
+    }
+
+    public String getUpiId() {
+        return upiId;
+    }
+
+    public void setUpiId(String upiId) {
+        this.upiId = upiId;
     }
 }

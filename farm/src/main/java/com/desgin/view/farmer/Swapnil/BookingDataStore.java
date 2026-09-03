@@ -89,7 +89,34 @@ public class BookingDataStore {
 
     public static synchronized void addBooking(BookingItem booking) {
         if (booking != null) {
+            bookings.removeIf(b -> b.bookingId != null && b.bookingId.equalsIgnoreCase(booking.bookingId));
             bookings.add(0, booking);
+        }
+    }
+
+    public static synchronized void syncFromFirestore(List<com.desgin.model.RentalRequestModel> requests) {
+        bookings.clear();
+        if (requests == null) return;
+        java.util.Set<String> seenIds = new java.util.HashSet<>();
+        for (com.desgin.model.RentalRequestModel r : requests) {
+            String bId = r.getRequestId() != null ? r.getRequestId() : "";
+            if (!bId.isEmpty() && !seenIds.add(bId)) {
+                continue; // Skip duplicate
+            }
+            String st = r.getStatus() != null ? r.getStatus() : "PENDING";
+            if ("APPROVED".equalsIgnoreCase(st)) st = "ACTIVE";
+            int total = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+            bookings.add(new BookingItem(
+                bId,
+                r.getMachineryName(),
+                r.getCategory(),
+                r.getStartDate(),
+                r.getEndDate(),
+                "₹" + r.getDailyRate() + " / day",
+                "₹" + total,
+                st,
+                r.getImagePath()
+            ));
         }
     }
 

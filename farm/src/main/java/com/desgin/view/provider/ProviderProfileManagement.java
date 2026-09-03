@@ -1,44 +1,201 @@
 package com.desgin.view.provider;
 
+import java.io.File;
+import java.util.List;
+
+import com.desgin.config.CloudinaryConfig;
+import com.desgin.dao.AuthDAO;
+import com.desgin.dao.RentalRequestDAO;
+import com.desgin.model.RentalRequestModel;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 public class ProviderProfileManagement {
 
     private static VBox profilePopupRef;
+    private static Text profilePillNameText;
+    private static StackPane profilePillAvatarBox;
+    private static Text nameValText;
+    private static Text emailValText;
+    private static Text phoneValText;
+    private static TextField modalTownField;
+    private static TextField modalDistrictField;
+    private static TextField modalStateField;
+    private static TextField modalPincodeField;
+    private static ImageView modalAvatarView;
+    private static Text modalAvatarIcon;
+
+    public static String getFormattedFirstName() {
+        String raw = ProviderProfileStore.name;
+        if (raw == null || raw.trim().isEmpty()) {
+            return "Provider";
+        }
+        raw = raw.trim();
+        if (raw.contains("@")) {
+            raw = raw.split("@")[0];
+        }
+        String first = raw.split("[ ._]")[0];
+        if (first.isEmpty()) {
+            return "Provider";
+        }
+        return Character.toUpperCase(first.charAt(0)) + (first.length() > 1 ? first.substring(1) : "");
+    }
+
+    public static Text headerTitleText = new Text("Welcome back, " + getFormattedFirstName() + " 👋");
+    public static Text headerSubtitleText = new Text("Provider Fleet Hub • Manage machinery inventory & farmer requests");
+    public static VBox headerTitleBox;
+    private static Label notifBadge;
+    private static VBox notifListContainer;
+
+    static {
+        headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
+        headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
+        headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+
+        ProviderProfileStore.addProfileListener(() -> {
+            Platform.runLater(ProviderProfileManagement::refreshDynamicProfileUI);
+        });
+        ProviderProfileStore.addLocationListener(() -> {
+            Platform.runLater(ProviderProfileManagement::refreshDynamicLocationUI);
+        });
+    }
+
+    public static void updateHeaderGreeting() {
+        String fName = getFormattedFirstName();
+        setHeaderTitle("Welcome back, " + fName + " 👋", "Provider Fleet Hub • Manage machinery inventory & farmer requests");
+    }
+
+    public static void setHeaderTitle(String title, String subtitle) {
+        if (headerTitleText != null) headerTitleText.setText(title);
+        if (headerSubtitleText != null) {
+            if (subtitle != null && !subtitle.isEmpty()) {
+                headerSubtitleText.setText(subtitle);
+                headerSubtitleText.setVisible(true);
+                headerSubtitleText.setManaged(true);
+            } else {
+                headerSubtitleText.setVisible(false);
+                headerSubtitleText.setManaged(false);
+            }
+        }
+    }
+
+    public static void refreshDynamicProfileUI() {
+        updateHeaderGreeting();
+        if (profilePillNameText != null) {
+            profilePillNameText.setText(ProviderProfileStore.name != null ? ProviderProfileStore.name : "Provider");
+        }
+        if (nameValText != null) {
+            nameValText.setText(ProviderProfileStore.name != null ? ProviderProfileStore.name : "Not Set");
+        }
+        if (emailValText != null) {
+            emailValText.setText(ProviderProfileStore.email != null ? ProviderProfileStore.email : "Not Set");
+        }
+        if (phoneValText != null) {
+            phoneValText.setText(ProviderProfileStore.phone != null ? ProviderProfileStore.phone : "Not Set");
+        }
+        updateAvatarDisplay();
+    }
+
+    public static void refreshDynamicLocationUI() {
+        if (modalTownField != null && !modalTownField.isFocused()) {
+            modalTownField.setText(ProviderProfileStore.town != null ? ProviderProfileStore.town : "");
+        }
+        if (modalDistrictField != null && !modalDistrictField.isFocused()) {
+            modalDistrictField.setText(ProviderProfileStore.district != null ? ProviderProfileStore.district : "");
+        }
+        if (modalStateField != null && !modalStateField.isFocused()) {
+            modalStateField.setText(ProviderProfileStore.state != null ? ProviderProfileStore.state : "");
+        }
+        if (modalPincodeField != null && !modalPincodeField.isFocused()) {
+            modalPincodeField.setText(ProviderProfileStore.pincode != null ? ProviderProfileStore.pincode : "");
+        }
+    }
+
+    private static void updateAvatarDisplay() {
+        String pic = ProviderProfileStore.profilePic;
+        if (pic != null && !pic.trim().isEmpty()) {
+            try {
+                Image img = new Image(pic, true);
+                if (modalAvatarView != null) {
+                    modalAvatarView.setImage(img);
+                    modalAvatarView.setVisible(true);
+                    modalAvatarView.setManaged(true);
+                }
+                if (modalAvatarIcon != null) {
+                    modalAvatarIcon.setVisible(false);
+                    modalAvatarIcon.setManaged(false);
+                }
+                if (profilePillAvatarBox != null) {
+                    profilePillAvatarBox.getChildren().clear();
+                    ImageView pillIv = new ImageView(img);
+                    pillIv.setFitWidth(22);
+                    pillIv.setFitHeight(22);
+                    Circle clip = new Circle(11, 11, 11);
+                    pillIv.setClip(clip);
+                    profilePillAvatarBox.getChildren().add(pillIv);
+                }
+            } catch (Exception ignored) {}
+        } else {
+            if (modalAvatarView != null) {
+                modalAvatarView.setVisible(false);
+                modalAvatarView.setManaged(false);
+            }
+            if (modalAvatarIcon != null) {
+                modalAvatarIcon.setVisible(true);
+                modalAvatarIcon.setManaged(true);
+            }
+            if (profilePillAvatarBox != null) {
+                profilePillAvatarBox.getChildren().clear();
+                Text icon = new Text("🚜");
+                icon.setStyle("-fx-font-size: 14px;");
+                profilePillAvatarBox.getChildren().add(icon);
+            }
+        }
+    }
 
     public HBox getProfile(StackPane root) {
-        // Quick Stats Pill
-        Label fleetStatus = new Label("🚜 8 Machines Active • 3 on Field");
-        fleetStatus.setPrefHeight(38);
-        fleetStatus.setMinHeight(38);
-        fleetStatus.setMaxHeight(38);
-        fleetStatus.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-padding: 0 14px; -fx-background-radius: 20px; -fx-border-color: #A5D6A7; -fx-border-radius: 20px; -fx-border-width: 1.2px;");
+        updateHeaderGreeting();
 
-        Button notificationBtn = createPillButton("🔔", "Notifications", "3");
+        HBox profileBox = createProfilePill();
 
-        HBox profileBox = createProfilePill("🚜", "Rajesh Agro Services", "Verified Hub");
-
-        // Profile Popup
-        profilePopupRef = createProfileModal();
+        profilePopupRef = createProfileModal(root);
         root.getChildren().add(profilePopupRef);
 
         profileBox.setOnMouseClicked(event -> {
-            profilePopupRef.setVisible(!profilePopupRef.isVisible());
+            boolean isVis = profilePopupRef.isVisible();
+            if (!isVis) {
+                refreshDynamicProfileUI();
+                refreshDynamicLocationUI();
+            }
+            profilePopupRef.setVisible(!isVis);
         });
 
-        // Notifications Popup
+        notifBadge = new Label("");
+        notifBadge.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 10px;");
+        notifBadge.setVisible(false);
+        notifBadge.setManaged(false);
+
+        Button notificationBtn = createPillButton("🔔", "Notifications", notifBadge);
+
         VBox notifPopup = createNotificationModal();
         root.getChildren().add(notifPopup);
 
@@ -46,19 +203,26 @@ public class ProviderProfileManagement {
             boolean isVis = notifPopup.isVisible();
             if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
             notifPopup.setVisible(!isVis);
+            if (!isVis) refreshNotifications();
         });
+
+        refreshNotifications();
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topBar = new HBox(12, fleetStatus, spacer, notificationBtn, profileBox);
+        HBox rightHBox = new HBox(10, notificationBtn, profileBox);
+        rightHBox.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox topBar = new HBox(16, headerTitleBox, spacer, rightHBox);
         topBar.setAlignment(Pos.CENTER_LEFT);
-        topBar.setPadding(new Insets(10, 22, 10, 22));
+        topBar.setPadding(new Insets(10, 24, 10, 24));
+        topBar.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topBar;
     }
 
-    private Button createPillButton(String icon, String title, String badge) {
+    private Button createPillButton(String icon, String title, Label badgeLabel) {
         Button btn = new Button();
         btn.setPrefHeight(38);
         btn.setMinHeight(38);
@@ -75,9 +239,7 @@ public class ProviderProfileManagement {
 
         content.getChildren().addAll(iconText, titleText);
 
-        if (badge != null && !badge.isEmpty()) {
-            Label badgeLabel = new Label(badge);
-            badgeLabel.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 10px;");
+        if (badgeLabel != null) {
             content.getChildren().add(badgeLabel);
         }
 
@@ -107,20 +269,23 @@ public class ProviderProfileManagement {
         return btn;
     }
 
-    private HBox createProfilePill(String icon, String name, String tag) {
-        Text profileIcon = new Text(icon);
-        profileIcon.setStyle("-fx-font-size: 14px;");
+    private HBox createProfilePill() {
+        profilePillAvatarBox = new StackPane();
+        profilePillAvatarBox.setPrefSize(24, 24);
+        Text defaultIcon = new Text("🚜");
+        defaultIcon.setStyle("-fx-font-size: 14px;");
+        profilePillAvatarBox.getChildren().add(defaultIcon);
 
-        Text profileName = new Text(name);
-        profileName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        profilePillNameText = new Text(ProviderProfileStore.name != null ? ProviderProfileStore.name : "Provider");
+        profilePillNameText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Label verifiedDot = new Label(tag);
+        Label verifiedDot = new Label("✓ Verified");
         verifiedDot.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 6px; -fx-background-radius: 8px;");
 
         Text dropdownArrow = new Text("▾");
         dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
 
-        HBox profileBox = new HBox(6, profileIcon, profileName, verifiedDot, dropdownArrow);
+        HBox profileBox = new HBox(6, profilePillAvatarBox, profilePillNameText, verifiedDot, dropdownArrow);
         profileBox.setAlignment(Pos.CENTER);
         profileBox.setPrefHeight(38);
         profileBox.setMinHeight(38);
@@ -140,256 +305,290 @@ public class ProviderProfileManagement {
                 + "-fx-border-color: #2D6A4F;"
                 + "-fx-border-radius: 20px;"
                 + "-fx-border-width: 1.2px;"
+                + "-fx-padding: 0 14px 0 12px;"
                 + "-fx-cursor: hand;"
                 + "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.18), 8, 0, 0, 2);";
 
         profileBox.setStyle(normalStyle);
         profileBox.setOnMouseEntered(e -> profileBox.setStyle(hoverStyle));
         profileBox.setOnMouseExited(e -> profileBox.setStyle(normalStyle));
+
+        updateAvatarDisplay();
         return profileBox;
     }
 
-    private static Button createCloseButton(Runnable onClose) {
-        Button close = new Button("✕");
-        close.setPrefSize(30, 30);
-        close.setMinSize(30, 30);
-        close.setMaxSize(30, 30);
-        close.setStyle(
-                "-fx-background-color: #F3F4F6;" +
-                "-fx-background-radius: 15px;" +
-                "-fx-text-fill: #6B7280;" +
-                "-fx-font-size: 13px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;" +
-                "-fx-padding: 0;"
-        );
-        close.setOnMouseEntered(e -> close.setStyle(
-                "-fx-background-color: #FEE2E2;" +
-                "-fx-background-radius: 15px;" +
-                "-fx-text-fill: #DC2626;" +
-                "-fx-font-size: 13px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;" +
-                "-fx-padding: 0;"
-        ));
-        close.setOnMouseExited(e -> close.setStyle(
-                "-fx-background-color: #F3F4F6;" +
-                "-fx-background-radius: 15px;" +
-                "-fx-text-fill: #6B7280;" +
-                "-fx-font-size: 13px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;" +
-                "-fx-padding: 0;"
-        ));
-        close.setOnAction(e -> {
-            if (onClose != null) onClose.run();
-        });
-        return close;
-    }
-
-    private VBox createProfileModal() {
+    private VBox createProfileModal(StackPane root) {
         VBox modal = new VBox(14);
-        modal.setPadding(new Insets(18, 20, 18, 20));
-        modal.setPrefSize(500, 520);
-        modal.setMaxSize(500, 520);
+        modal.setPrefWidth(440);
+        modal.setMaxWidth(440);
+        modal.setPadding(new Insets(20));
         modal.setStyle(
                 "-fx-background-color: #FFFFFF;" +
-                "-fx-background-radius: 18px;" +
-                "-fx-border-color: #D1E7DD;" +
-                "-fx-border-radius: 18px;" +
+                "-fx-background-radius: 16px;" +
+                "-fx-border-color: #E2EBE5;" +
                 "-fx-border-width: 1.5px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0, 0, 8);"
-        );
+                "-fx-border-radius: 16px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(27,67,50,0.22), 24, 0.2, 0, 6);");
+        modal.setVisible(false);
+        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
+        StackPane.setMargin(modal, new Insets(60, 24, 0, 0));
 
-        // Header
-        Text avatar = new Text("🚜");
-        avatar.setStyle("-fx-font-size: 18px;");
-        StackPane avatarBox = new StackPane(avatar);
-        avatarBox.setPrefSize(38, 38);
-        avatarBox.setMinSize(38, 38);
-        avatarBox.setMaxSize(38, 38);
-        avatarBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
-
-        Text title = new Text("Provider Fleet Profile");
+        // Top Row: Title + Close Button
+        Text title = new Text("Provider Hub Profile");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text sub = new Text("Business registration, active fleet & machinery hub details");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
 
-        VBox titleBox = new VBox(2, title, sub);
-        HBox titleGroup = new HBox(10, avatarBox, titleBox);
-        titleGroup.setAlignment(Pos.CENTER_LEFT);
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: #F3F4F6; -fx-background-radius: 15; -fx-text-fill: #6B7280; -fx-font-weight: bold; -fx-cursor: hand;");
+        closeBtn.setOnAction(e -> modal.setVisible(false));
 
-        Button close = createCloseButton(() -> modal.setVisible(false));
+        HBox topHBox = new HBox(10, title, topSpacer, closeBtn);
+        topHBox.setAlignment(Pos.CENTER_LEFT);
 
-        HBox topBar = new HBox(titleGroup, close);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(titleGroup, Priority.ALWAYS);
-        topBar.setPadding(new Insets(0, 0, 12, 0));
-        topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
+        // Avatar + Cloudinary Image Upload Section
+        modalAvatarIcon = new Text("🚜");
+        modalAvatarIcon.setStyle("-fx-font-size: 32px;");
 
-        // Form content
-        VBox content = new VBox(14);
-        content.setPadding(new Insets(0, 6, 0, 0));
+        modalAvatarView = new ImageView();
+        modalAvatarView.setFitWidth(60);
+        modalAvatarView.setFitHeight(60);
+        Circle clip = new Circle(30, 30, 30);
+        modalAvatarView.setClip(clip);
+        modalAvatarView.setVisible(false);
+        modalAvatarView.setManaged(false);
 
-        TextField nameF = new TextField("Rajesh Agro Services");
-        TextField contactF = new TextField("+91 98220 12345");
-        TextField locationF = new TextField("Baramati Hub, Pune");
-        TextField fleetCountF = new TextField("8 Verified Machines");
+        StackPane avatarBox = new StackPane(modalAvatarIcon, modalAvatarView);
+        avatarBox.setPrefSize(60, 60);
+        avatarBox.setMaxSize(60, 60);
+        avatarBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 30; -fx-border-color: #A5D6A7; -fx-border-width: 1.5; -fx-border-radius: 30;");
 
-        styleField(nameF);
-        styleField(contactF);
-        styleField(locationF);
-        styleField(fleetCountF);
+        Button changePicBtn = new Button("📷 Change Photo");
+        changePicBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 15; -fx-cursor: hand; -fx-padding: 5 12;");
 
-        VBox card = new VBox(10);
-        card.setPadding(new Insets(14));
-        card.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;");
+        Label uploadStatusLabel = new Label("");
+        uploadStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-text-fill: #2E7D32;");
 
-        GridPane grid = new GridPane();
-        grid.setHgap(12);
-        grid.setVgap(10);
-        grid.add(createFieldGroup("Business / Agency Name", nameF), 0, 0);
-        grid.add(createFieldGroup("Contact Mobile", contactF), 1, 0);
-        grid.add(createFieldGroup("Operational Hub Location", locationF), 0, 1);
-        grid.add(createFieldGroup("Fleet Capacity", fleetCountF), 1, 1);
-
-        Label msg = new Label();
-        msg.setVisible(false);
-        msg.setManaged(false);
-
-        Button saveBtn = new Button("Save Profile Changes");
-        saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 20px; -fx-cursor: hand;");
-        saveBtn.setOnAction(e -> {
-            msg.setText("✓ Provider profile saved successfully!");
-            msg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
-            msg.setVisible(true);
-            msg.setManaged(true);
+        changePicBtn.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Choose Provider Profile Picture");
+            chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp")
+            );
+            Window win = root.getScene() != null ? root.getScene().getWindow() : null;
+            File file = chooser.showOpenDialog(win);
+            if (file != null) {
+                uploadStatusLabel.setText("Uploading photo...");
+                changePicBtn.setDisable(true);
+                Task<String> uploadTask = new Task<>() {
+                    @Override
+                    protected String call() {
+                        return CloudinaryConfig.uploadImage(file);
+                    }
+                };
+                uploadTask.setOnSucceeded(ev -> {
+                    changePicBtn.setDisable(false);
+                    String url = uploadTask.getValue();
+                    if (url != null) {
+                        uploadStatusLabel.setText("✓ Profile photo updated!");
+                        ProviderProfileStore.setProfilePic(url);
+                        new Thread(() -> {
+                            new AuthDAO().updateProfilePic(ProviderProfileStore.email, "Provider", url);
+                        }).start();
+                    } else {
+                        uploadStatusLabel.setText("Upload failed. Try again.");
+                    }
+                });
+                uploadTask.setOnFailed(ev -> {
+                    changePicBtn.setDisable(false);
+                    uploadStatusLabel.setText("Error during photo upload.");
+                });
+                new Thread(uploadTask).start();
+            }
         });
 
-        HBox act = new HBox(12, saveBtn, msg);
-        act.setAlignment(Pos.CENTER_LEFT);
+        VBox avatarActions = new VBox(4, changePicBtn, uploadStatusLabel);
+        avatarActions.setAlignment(Pos.CENTER_LEFT);
 
-        card.getChildren().addAll(grid, act);
-        content.getChildren().add(card);
+        HBox avatarRow = new HBox(14, avatarBox, avatarActions);
+        avatarRow.setAlignment(Pos.CENTER_LEFT);
+        avatarRow.setPadding(new Insets(6, 0, 6, 0));
 
-        ScrollPane sp = new ScrollPane(content);
-        sp.setFitToWidth(true);
-        sp.setPrefHeight(420);
-        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+        // Profile Info Details
+        nameValText = new Text(ProviderProfileStore.name != null ? ProviderProfileStore.name : "Provider");
+        nameValText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        modal.getChildren().addAll(topBar, sp);
+        emailValText = new Text(ProviderProfileStore.email != null ? ProviderProfileStore.email : "Not Set");
+        emailValText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
-        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
-        StackPane.setMargin(modal, new Insets(60, 22, 0, 0));
-        modal.setVisible(false);
+        phoneValText = new Text(ProviderProfileStore.phone != null ? ProviderProfileStore.phone : "Not Set");
+        phoneValText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
+        VBox infoBox = new VBox(3, nameValText, emailValText, phoneValText);
+
+        // Location Section
+        Text locHeader = new Text("Operating Hub Location");
+        locHeader.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        GridPane locGrid = new GridPane();
+        locGrid.setHgap(8);
+        locGrid.setVgap(8);
+
+        modalTownField = new TextField(ProviderProfileStore.town != null ? ProviderProfileStore.town : "");
+        modalTownField.setPromptText("City / Town (e.g. Pune)");
+        modalTownField.setStyle("-fx-background-color: #F9FAFB; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12px;");
+
+        modalDistrictField = new TextField(ProviderProfileStore.district != null ? ProviderProfileStore.district : "");
+        modalDistrictField.setPromptText("District");
+        modalDistrictField.setStyle("-fx-background-color: #F9FAFB; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12px;");
+
+        modalStateField = new TextField(ProviderProfileStore.state != null ? ProviderProfileStore.state : "");
+        modalStateField.setPromptText("State");
+        modalStateField.setStyle("-fx-background-color: #F9FAFB; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12px;");
+
+        modalPincodeField = new TextField(ProviderProfileStore.pincode != null ? ProviderProfileStore.pincode : "");
+        modalPincodeField.setPromptText("Pincode");
+        modalPincodeField.setStyle("-fx-background-color: #F9FAFB; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12px;");
+
+        locGrid.add(createFieldLabel("Town / City:"), 0, 0);
+        locGrid.add(modalTownField, 1, 0);
+        locGrid.add(createFieldLabel("District:"), 0, 1);
+        locGrid.add(modalDistrictField, 1, 1);
+        locGrid.add(createFieldLabel("State:"), 0, 2);
+        locGrid.add(modalStateField, 1, 2);
+        locGrid.add(createFieldLabel("Pincode:"), 0, 3);
+        locGrid.add(modalPincodeField, 1, 3);
+
+        Label saveMsg = new Label("");
+        saveMsg.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #15803D;");
+
+        Button saveLocationBtn = new Button("💾 Save Location");
+        saveLocationBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 7 16;");
+        saveLocationBtn.setOnAction(e -> {
+            String t = modalTownField.getText().trim();
+            String d = modalDistrictField.getText().trim();
+            String s = modalStateField.getText().trim();
+            String p = modalPincodeField.getText().trim();
+            ProviderProfileStore.setLocation(t, d, s, p);
+            saveMsg.setText("✓ Location updated!");
+            Thread bg = new Thread(() -> {
+                new AuthDAO().updateLocation(ProviderProfileStore.email, "Provider", t, d, s, p);
+            });
+            bg.setDaemon(true);
+            bg.start();
+        });
+
+        HBox btnBox = new HBox(10, saveLocationBtn, saveMsg);
+        btnBox.setAlignment(Pos.CENTER_LEFT);
+
+        modal.getChildren().addAll(topHBox, avatarRow, infoBox, locHeader, locGrid, btnBox);
         return modal;
+    }
+
+    public static void refreshNotifications() {
+        Thread t = new Thread(() -> {
+            try {
+                String email = ProviderProfileStore.email;
+                List<RentalRequestModel> list = new RentalRequestDAO().getRequestsByProvider(email);
+                if (list.isEmpty()) {
+                    list = new RentalRequestDAO().getAllRequests();
+                }
+
+                long pending = list.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
+                List<RentalRequestModel> finalRequests = list;
+
+                Platform.runLater(() -> {
+                    if (notifBadge != null) {
+                        if (pending > 0) {
+                            notifBadge.setText(String.valueOf(pending));
+                            notifBadge.setVisible(true);
+                            notifBadge.setManaged(true);
+                        } else {
+                            notifBadge.setVisible(false);
+                            notifBadge.setManaged(false);
+                        }
+                    }
+
+                    if (notifListContainer != null) {
+                        notifListContainer.getChildren().clear();
+                        if (finalRequests.isEmpty()) {
+                            notifListContainer.getChildren().add(createNotificationItem("🔔 Notifications", "No active requests or alerts at this time.", "Just now"));
+                        } else {
+                            for (RentalRequestModel r : finalRequests.stream().limit(5).toList()) {
+                                String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
+                                String icon = "PENDING".equals(st) ? "📥 " : ("APPROVED".equals(st) ? "🚜 " : "✔ ");
+                                String title = icon + ("PENDING".equals(st) ? "New Request from " + r.getFarmerName() : ("APPROVED".equals(st) ? "Active Job: " + r.getMachineryName() : "Completed Job"));
+                                String desc = "📍 " + (r.getFarmerLocation() != null ? r.getFarmerLocation() : "Local") + " • " + r.getMachineryName() + " (" + r.getDays() + " days)";
+                                String time = r.getStartDate() != null ? r.getStartDate() : "Recent";
+                                notifListContainer.getChildren().add(createNotificationItem(title, desc, time));
+                            }
+                        }
+                    }
+                });
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private VBox createNotificationModal() {
-        VBox modal = new VBox(14);
-        modal.setPadding(new Insets(18, 20, 18, 20));
-        modal.setPrefSize(500, 480);
-        modal.setMaxSize(500, 480);
+        VBox modal = new VBox(10);
+        modal.setPrefWidth(360);
+        modal.setMaxWidth(360);
+        modal.setPadding(new Insets(16));
         modal.setStyle(
                 "-fx-background-color: #FFFFFF;" +
-                "-fx-background-radius: 18px;" +
-                "-fx-border-color: #D1E7DD;" +
-                "-fx-border-radius: 18px;" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: #E2EBE5;" +
                 "-fx-border-width: 1.5px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 24, 0, 0, 8);"
-        );
-
-        // Header
-        Text bell = new Text("🔔");
-        bell.setStyle("-fx-font-size: 18px;");
-        StackPane bellBox = new StackPane(bell);
-        bellBox.setPrefSize(38, 38);
-        bellBox.setMinSize(38, 38);
-        bellBox.setMaxSize(38, 38);
-        bellBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
-
-        Text title = new Text("Recent Rental Activity & Alerts");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text sub = new Text("Booking requests, escrow payouts & routine maintenance");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
-
-        VBox titleBox = new VBox(2, title, sub);
-        HBox titleGroup = new HBox(10, bellBox, titleBox);
-        titleGroup.setAlignment(Pos.CENTER_LEFT);
-
-        Button close = createCloseButton(() -> modal.setVisible(false));
-
-        HBox topBar = new HBox(titleGroup, close);
-        topBar.setAlignment(Pos.CENTER_LEFT);
-        HBox.setHgrow(titleGroup, Priority.ALWAYS);
-        topBar.setPadding(new Insets(0, 0, 12, 0));
-        topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
-
-        // Items
-        VBox n1 = createNotifCard("📥 New Booking Request", "Farmer Ramesh requested Mahindra 575 DI for 3 days starting tomorrow morning.", "10 mins ago", "NEW REQUEST", "#DCFCE7", "#15803D");
-        VBox n2 = createNotifCard("💰 Escrow Payment Released", "₹4,200 rental payout credited to bank account for Harvester rental.", "1 hour ago", "PAYOUT", "#FEF3C7", "#B45309");
-        VBox n3 = createNotifCard("🛠 Maintenance Scheduled", "Kubota Rice Transplanter 50-hour routine filter check due tomorrow.", "Yesterday", "SERVICE", "#E0E7FF", "#4338CA");
-
-        VBox list = new VBox(10, n1, n2, n3);
-        list.setPadding(new Insets(0, 6, 0, 0));
-        ScrollPane sp = new ScrollPane(list);
-        sp.setFitToWidth(true);
-        sp.setPrefHeight(380);
-        sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
-
-        modal.getChildren().addAll(topBar, sp);
-
-        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
-        StackPane.setMargin(modal, new Insets(60, 22, 0, 0));
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.18), 18, 0, 0, 4);");
         modal.setVisible(false);
+        StackPane.setAlignment(modal, Pos.TOP_RIGHT);
+        StackPane.setMargin(modal, new Insets(60, 80, 0, 0));
 
-        return modal;
-    }
-
-    private static VBox createNotifCard(String title, String desc, String time, String tag, String tagBg, String tagColor) {
-        Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Label tagLabel = new Label(tag);
-        tagLabel.setStyle("-fx-background-color: " + tagBg + "; -fx-text-fill: " + tagColor + "; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+        Text title = new Text("Hub Notifications 🔔");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Region sp = new Region();
         HBox.setHgrow(sp, Priority.ALWAYS);
 
-        HBox topRow = new HBox(8, t, sp, tagLabel);
-        topRow.setAlignment(Pos.CENTER_LEFT);
+        Button close = new Button("✕");
+        close.setStyle("-fx-background-color: #F3F4F6; -fx-background-radius: 12; -fx-text-fill: #6B7280; -fx-font-weight: bold; -fx-cursor: hand;");
+        close.setOnAction(e -> modal.setVisible(false));
 
+        HBox topH = new HBox(10, title, sp, close);
+        topH.setAlignment(Pos.CENTER_LEFT);
+
+        notifListContainer = new VBox(8);
+        ScrollPane scroll = new ScrollPane(notifListContainer);
+        scroll.setFitToWidth(true);
+        scroll.setPrefHeight(280);
+        scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        modal.getChildren().addAll(topH, scroll);
+        return modal;
+    }
+
+    private static VBox createNotificationItem(String title, String desc, String time) {
+        Text t = new Text(title);
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #1B4332;");
         Text d = new Text(desc);
-        d.setWrappingWidth(410);
-        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563; -fx-line-spacing: 2px;");
-
+        d.setWrappingWidth(300);
+        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
         Text tm = new Text(time);
-        tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #9CA3AF;");
+        tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #9CA3AF;");
 
-        VBox card = new VBox(5, topRow, d, tm);
-        card.setPadding(new Insets(12, 14, 12, 14));
-        card.setStyle(
-                "-fx-background-color: #F8FAF8;" +
-                "-fx-background-radius: 12px;" +
-                "-fx-border-color: #E2EBE5;" +
-                "-fx-border-radius: 12px;" +
-                "-fx-border-width: 1px;"
-        );
-        return card;
+        VBox box = new VBox(2, t, d, tm);
+        box.setPadding(new Insets(6, 8, 6, 8));
+        box.setStyle("-fx-background-color: #F9FAFB; -fx-background-radius: 6;");
+        return box;
     }
 
-    private static void styleField(TextField f) {
-        f.setPrefHeight(36);
-        f.setPrefWidth(190);
-        f.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D1E7DD; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-padding: 0 10px; -fx-font-family: 'Poppins'; -fx-font-size: 12px;");
-    }
-
-    private static VBox createFieldGroup(String label, TextField f) {
-        Label l = new Label(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
-        return new VBox(3, l, f);
+    private static Label createFieldLabel(String txt) {
+        Label l = new Label(txt);
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
+        return l;
     }
 }

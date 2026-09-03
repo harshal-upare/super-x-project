@@ -158,6 +158,10 @@ public class PasswordEyeField extends StackPane {
         hiddenField.setText(text);
     }
 
+    public void clear() {
+        hiddenField.setText("");
+    }
+
     public StringProperty textProperty() {
         return hiddenField.textProperty();
     }

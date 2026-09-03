@@ -426,6 +426,8 @@ public class RegisterPage {
                 
                 objController.addUser(name, email, mobile, password, redirect);
                 if ("Provider".equalsIgnoreCase(redirect)) {
+                    com.desgin.view.provider.ProviderProfileStore.setCredentials(name, email, mobile);
+                    com.desgin.view.provider.ProviderProfileManagement.updateHeaderGreeting();
                     com.desgin.view.provider.ProviderDashboard obj = new com.desgin.view.provider.ProviderDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
                 } else if ("Operator".equalsIgnoreCase(redirect)) {

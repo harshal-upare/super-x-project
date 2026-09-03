@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 
+import com.desgin.model.MachineryModel;
+
 public class EquipmentDataStore {
 
     public static class EquipmentItem {
@@ -20,9 +22,18 @@ public class EquipmentDataStore {
         public boolean hasOperator;
         public int totalRentals;
         public int lifetimeEarned;
+        public String providerEmail;
+        public String providerName;
+        public String providerPhone;
 
         public EquipmentItem(String id, String name, String category, int pricePerDay, String rating,
                              String location, String imagePath, String specs, String status, boolean hasOperator) {
+            this(id, name, category, pricePerDay, rating, location, imagePath, specs, status, hasOperator, null, null, null);
+        }
+
+        public EquipmentItem(String id, String name, String category, int pricePerDay, String rating,
+                             String location, String imagePath, String specs, String status, boolean hasOperator,
+                             String providerEmail, String providerName, String providerPhone) {
             this.id = id != null ? id : "EQ" + (1000 + (int)(Math.random() * 9000));
             this.name = name;
             this.category = category != null ? category : "Equipment";
@@ -35,15 +46,23 @@ public class EquipmentDataStore {
             this.hasOperator = hasOperator;
             this.totalRentals = 0;
             this.lifetimeEarned = 0;
+            this.providerEmail = providerEmail;
+            this.providerName = providerName;
+            this.providerPhone = providerPhone;
         }
     }
 
-    private static final List<EquipmentItem> equipmentList = new ArrayList<>();
-
-    // Starts empty in building phase
-    static {
-        // Empty by default
+    public static synchronized EquipmentItem findByNameOrId(String nameOrId) {
+        if (nameOrId == null) return null;
+        for (EquipmentItem item : equipmentList) {
+            if (nameOrId.equalsIgnoreCase(item.id) || nameOrId.equalsIgnoreCase(item.name)) {
+                return item;
+            }
+        }
+        return null;
     }
+
+    private static final List<EquipmentItem> equipmentList = new ArrayList<>();
 
     public static synchronized List<EquipmentItem> getAllEquipment() {
         return new ArrayList<>(equipmentList);
@@ -67,8 +86,42 @@ public class EquipmentDataStore {
         return equipmentList.size();
     }
 
+    /**
+     * Clean synchronization directly from Firestore machinery collection.
+     * Prevents any duplicate machinery (1 machine = 1 entry).
+     */
+    public static synchronized void syncFromFirestore(List<MachineryModel> models) {
+        equipmentList.clear();
+        if (models != null) {
+            for (MachineryModel m : models) {
+                if ("AVAILABLE".equalsIgnoreCase(m.getStatus()) || m.getStatus() == null) {
+                    equipmentList.add(new EquipmentItem(
+                        m.getId(),
+                        m.getName(),
+                        m.getCategory(),
+                        m.getPricePerDay(),
+                        m.getRating(),
+                        m.getLocation(),
+                        m.getImagePath(),
+                        m.getSpecs(),
+                        m.getStatus(),
+                        m.isHasOperator(),
+                        m.getProviderEmail(),
+                        m.getProviderName(),
+                        m.getProviderPhone()
+                    ));
+                }
+            }
+        }
+    }
+
+    /**
+     * Adds or updates machinery, strictly avoiding duplicates.
+     */
     public static synchronized void addEquipment(EquipmentItem item) {
         if (item != null) {
+            equipmentList.removeIf(e -> (item.id != null && item.id.equalsIgnoreCase(e.id)) 
+                    || (item.name != null && item.name.equalsIgnoreCase(e.name)));
             equipmentList.add(0, item);
         }
     }
@@ -84,6 +137,14 @@ public class EquipmentDataStore {
         for (EquipmentItem item : equipmentList) {
             if ("AVAILABLE".equalsIgnoreCase(item.status)) {
                 if (currentTown.isEmpty() || (item.location != null && item.location.toLowerCase().contains(currentTown))) {
+                    available.add(item);
+                }
+            }
+        }
+        if (available.isEmpty()) {
+            // Fall back to all available if none match current town
+            for (EquipmentItem item : equipmentList) {
+                if ("AVAILABLE".equalsIgnoreCase(item.status)) {
                     available.add(item);
                 }
             }
@@ -115,9 +176,5 @@ public class EquipmentDataStore {
                 break;
             }
         }
-    }
-
-    public static synchronized void clearAll() {
-        equipmentList.clear();
     }
 }

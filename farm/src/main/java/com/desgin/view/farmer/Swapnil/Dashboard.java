@@ -244,6 +244,11 @@ public class Dashboard {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-fill: #1B4332;");
 
+                try {
+                    List<com.desgin.model.MachineryModel> firestoreList = new com.desgin.dao.MachineryDAO().getAllMachinery();
+                    EquipmentDataStore.syncFromFirestore(firestoreList);
+                } catch (Exception ignored) {}
+
                 List<EquipmentDataStore.EquipmentItem> recommendedList = EquipmentDataStore.getRandomRecommended(5);
                 Node recommendedNode;
 

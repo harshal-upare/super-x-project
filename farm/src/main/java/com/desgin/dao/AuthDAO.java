@@ -122,6 +122,41 @@ public class AuthDAO {
         }
     }
 
+    public boolean updateBankDetails(String mail, String role, String accountHolder, String bankName, String accountNumber, String ifsc, String upiId) {
+        try {
+            if (mail == null || mail.trim().isEmpty()) {
+                return false;
+            }
+            String key = mail.trim();
+
+            java.util.Map<String, Object> updates = new java.util.HashMap<>();
+            updates.put("accountHolder", accountHolder != null ? accountHolder.trim() : "");
+            updates.put("bankName", bankName != null ? bankName.trim() : "");
+            updates.put("accountNumber", accountNumber != null ? accountNumber.trim() : "");
+            updates.put("ifsc", ifsc != null ? ifsc.trim() : "");
+            updates.put("upiId", upiId != null ? upiId.trim() : "");
+
+            DocumentSnapshot doc = db.collection(role).document(key).get().get();
+            if (doc.exists()) {
+                db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryMail = db.collection(role).whereEqualTo("mail", key).get().get();
+            if (!queryMail.isEmpty()) {
+                String docId = queryMail.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public boolean updateProfile(String mail, String role, String newName, String newPhone) {
 
         try {
@@ -137,6 +172,43 @@ public class AuthDAO {
             if (newPhone != null && !newPhone.trim().isEmpty()) {
                 updates.put("num", newPhone.trim());
             }
+
+            DocumentSnapshot doc = db.collection(role).document(key).get().get();
+            if (doc.exists()) {
+                db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryMail = db.collection(role).whereEqualTo("mail", key).get().get();
+            if (!queryMail.isEmpty()) {
+                String docId = queryMail.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryNum = db.collection(role).whereEqualTo("num", key).get().get();
+            if (!queryNum.isEmpty()) {
+                String docId = queryNum.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch(Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean updateProfilePic(String mail, String role, String imageUrl) {
+        try {
+            if (mail == null || mail.trim().isEmpty() || imageUrl == null) {
+                return false;
+            }
+            String key = mail.trim();
+            java.util.Map<String, Object> updates = new java.util.HashMap<>();
+            updates.put("profilePic", imageUrl.trim());
 
             DocumentSnapshot doc = db.collection(role).document(key).get().get();
             if (doc.exists()) {

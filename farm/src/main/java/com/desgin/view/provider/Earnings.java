@@ -61,10 +61,10 @@ public class Earnings {
         }
     }
 
-    private static int totalLifetime = 485200;
-    private static int availableBalance = 48200;
-    private static int pendingEscrow = 12400;
-    private static int totalWithdrawn = 424600;
+    private static int totalLifetime = 0;
+    private static int availableBalance = 0;
+    private static int pendingEscrow = 0;
+    private static int totalWithdrawn = 0;
 
     private static List<Transaction> txnList = new ArrayList<>();
     private static VBox txnListContainer;
@@ -77,17 +77,43 @@ public class Earnings {
         initTransactions();
     }
 
+    private static void calculateTotals() {
+        totalLifetime = txnList.stream().filter(t -> "CREDIT".equals(t.type)).mapToInt(t -> t.amount).sum();
+        totalWithdrawn = txnList.stream().filter(t -> "WITHDRAWAL".equals(t.type)).mapToInt(t -> t.amount).sum();
+        availableBalance = Math.max(0, totalLifetime - totalWithdrawn);
+        pendingEscrow = 0;
+    }
+
     private static void initTransactions() {
-        if (!txnList.isEmpty()) return;
-        txnList.add(new Transaction("#TXN-8921", "Harvester Rental Payout (Balasaheb Shirole)", "Balasaheb Shirole", "Kartar 4000 Harvester (14ft)", "14 Aug 2026", "Direct Bank IMPS", 12600, "CREDIT", "SETTLED", "IMPS-902188412"));
-        txnList.add(new Transaction("#TXN-8894", "Rotavator 3-Day Job Payout (Vikas More)", "Vikas More", "Shaktiman Semi-Champion 7ft", "13 Aug 2026", "Direct Bank IMPS", 2280, "CREDIT", "SETTLED", "IMPS-899471029"));
-        txnList.add(new Transaction("#WD-5021", "Provider Bank Withdrawal to HDFC Bank •••• 8842", "Rajesh Agro Services", "Fleet Settlement Account", "11 Aug 2026", "IMPS Transfer", 25000, "WITHDRAWAL", "SETTLED", "HDFC-WD-502189"));
-        txnList.add(new Transaction("#TXN-8850", "Tractor 5-Day Rental Payout (Ganesh Jadhav)", "Ganesh Jadhav", "Mahindra 575 DI Sarpanch 45HP", "10 Aug 2026", "Direct Bank IMPS", 7125, "CREDIT", "SETTLED", "IMPS-885023910"));
-        txnList.add(new Transaction("#TXN-8790", "Drone Spraying Service Payout (Kiran Bhosale)", "Kiran Bhosale", "Agri-Drone 16L Autonomous Sprayer", "05 Aug 2026", "Direct Bank IMPS", 1710, "CREDIT", "SETTLED", "IMPS-879011834"));
-        txnList.add(new Transaction("#WD-4980", "Provider Bank Withdrawal to SBI •••• 4120", "Rajesh Agro Services", "Fleet Settlement Account", "01 Aug 2026", "NEFT Transfer", 40000, "WITHDRAWAL", "SETTLED", "SBIN-WD-498002"));
+        txnList.clear();
+        try {
+            List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByProvider(ProviderProfileStore.email);
+            if (list.isEmpty()) {
+                list = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+            }
+            for (com.desgin.model.RentalRequestModel r : list) {
+                int payout = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * r.getDays());
+                if ("COMPLETED".equalsIgnoreCase(r.getStatus()) || "APPROVED".equalsIgnoreCase(r.getStatus()) || "ACTIVE".equalsIgnoreCase(r.getStatus())) {
+                    txnList.add(new Transaction(
+                        r.getRequestId(),
+                        (r.getMachineryName() != null ? r.getMachineryName() : "Machinery") + " Rental (" + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + ")",
+                        r.getFarmerName() != null ? r.getFarmerName() : "Farmer",
+                        r.getMachineryName() != null ? r.getMachineryName() : "Machinery",
+                        r.getStartDate() != null ? r.getStartDate() : "Recent",
+                        "Escrow Bank IMPS",
+                        payout,
+                        "CREDIT",
+                        "SETTLED",
+                        "TXN-" + Math.abs((r.getRequestId() != null ? r.getRequestId() : "0").hashCode())
+                    ));
+                }
+            }
+        } catch (Exception ignored) {}
+        calculateTotals();
     }
 
     public static ScrollPane getEarningsSection(StackPane root) {
+        initTransactions();
         rootPane = root;
 
         // ================= HEADER & ACTIONS =================
