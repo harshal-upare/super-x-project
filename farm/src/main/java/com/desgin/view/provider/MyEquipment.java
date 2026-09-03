@@ -1,7 +1,10 @@
 package com.desgin.view.provider;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.desgin.view.farmer.Swapnil.EquipmentDataStore;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -21,6 +24,8 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
+import javafx.stage.FileChooser;
+import javafx.stage.Window;
 
 public class MyEquipment {
 
@@ -62,26 +67,17 @@ public class MyEquipment {
     }
 
     private static void initDefaultFleet() {
-        if (!fleetList.isEmpty()) return;
-        fleetList.add(new FleetItem("Mahindra 575 DI Sarpanch", "Tractors", "🚜", 1200, "45 HP • 4-Cyl Diesel • Dual Clutch", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 28, 67200, true));
-        fleetList.add(new FleetItem("John Deere 5310 PowerTech", "Tractors", "🚜", 1500, "55 HP • Turbocharged • 4WD • AC Cabin", "RENTED OUT", "file:farm/src/main/resources/assets/Images/tractor.png", 42, 126000, true));
-        fleetList.add(new FleetItem("Sonalika DI 745 III Sikander", "Tractors", "🚜", 1100, "50 HP • Heavy Duty • Low Fuel Consumption", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 19, 41800, false));
-        fleetList.add(new FleetItem("Kartar 4000 Multi-Crop Harvester", "Harvesters", "🌾", 3500, "76 HP • Paddy & Wheat Cutter • 14ft Width", "RENTED OUT", "file:farm/src/main/resources/assets/Images/tractor.png", 31, 217000, true));
-        fleetList.add(new FleetItem("Preet 987 Self-Propelled Harvester", "Harvesters", "🌾", 3800, "101 HP • Heavy Straw Chopper • High Speed", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 14, 106400, true));
-        fleetList.add(new FleetItem("Shaktiman Semi-Champion 7ft", "Rotavators", "⚙", 800, "Multi-Speed Gearbox • Boron Steel Blades", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 22, 35200, false));
-        fleetList.add(new FleetItem("FieldKing 9-Tyne Spring Cultivator", "Cultivators", "🌱", 600, "Heavy Duty Frame • For Hard Soil Tillage", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 18, 21600, false));
-        fleetList.add(new FleetItem("Agri-Drone 16L Autonomous Sprayer", "Sprayers & Drones", "🚁", 1800, "16 Liters • Radar Obstacle Sensing • 25 Acre/Day", "IN SERVICE", "file:farm/src/main/resources/assets/Images/tractor.png", 15, 54000, true));
-        fleetList.add(new FleetItem("National Zero-Till Seed Drill", "Seeders & Tillers", "🌾", 750, "9-Row Seed & Fertilizer Drill • Accurate Spacing", "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 12, 18000, false));
+        // Starts empty in building phase
     }
 
     public static ScrollPane getFleetSection(StackPane root) {
         currentRoot = root;
 
         Text headerTitle = new Text("My Fleet & Machinery Management");
-        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text headerSubtitle = new Text("Manage your active machinery inventory, set rental tariffs, toggle live availability, and add new equipment.");
-        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, headerTitle, headerSubtitle);
 
@@ -103,7 +99,7 @@ public class MyEquipment {
         searchInput.setPromptText("Search by machine name, HP, model or category...");
         searchInput.setPrefHeight(40);
         searchInput.setPrefWidth(380);
-        searchInput.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D8C7B5; -fx-border-radius: 8; -fx-font-family: 'Poppins'; -fx-font-size: 13px;");
+        searchInput.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 8; -fx-font-family: 'Poppins'; -fx-font-size: 13px;");
         searchInput.textProperty().addListener((obs, oldV, newV) -> {
             searchQuery = newV.toLowerCase().trim();
             renderFleetGrid();
@@ -113,7 +109,7 @@ public class MyEquipment {
         statusFilter.getItems().addAll("All Statuses", "AVAILABLE Only", "RENTED OUT", "IN SERVICE");
         statusFilter.setValue("All Statuses");
         statusFilter.setPrefHeight(40);
-        statusFilter.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D8C7B5; -fx-border-radius: 8; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
+        statusFilter.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 8; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
         statusFilter.setOnAction(e -> {
             activeStatusFilter = statusFilter.getValue();
             renderFleetGrid();
@@ -152,11 +148,11 @@ public class MyEquipment {
         int totalEarnings = fleetList.stream().mapToInt(f -> f.lifetimeEarned).sum();
 
         HBox strip = new HBox(15,
-            createMetricCard("🚜 Total Fleet Units", total + " Machines", "#4A2C20"),
+            createMetricCard("🚜 Total Fleet Units", total + " Machines", "#1B4332"),
             createMetricCard("✔ Ready / Available", avail + " Units", "#2E7D32"),
             createMetricCard("⏱ Currently Rented", rented + " Units", "#E65100"),
             createMetricCard("🛠 In Maintenance", service + " Units", "#C62828"),
-            createMetricCard("💰 Fleet Total Earned", "₹" + String.format("%,d", totalEarnings), "#5C4033")
+            createMetricCard("💰 Fleet Total Earned", "₹" + String.format("%,d", totalEarnings), "#374151")
         );
         strip.setAlignment(Pos.CENTER_LEFT);
         return strip;
@@ -164,14 +160,14 @@ public class MyEquipment {
 
     private static VBox createMetricCard(String title, String value, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
         Text v = new Text(value);
         v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: " + color + ";");
 
         VBox b = new VBox(4, t, v);
         b.setPrefWidth(190);
         b.setPadding(new Insets(12, 16, 12, 16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
         return b;
     }
 
@@ -200,9 +196,9 @@ public class MyEquipment {
 
     private static void stylePill(Button btn, boolean active) {
         if (active) {
-            btn.setStyle("-fx-background-color: #4A2C20; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 0 16 0 16; -fx-cursor: hand;");
+            btn.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-padding: 0 16 0 16; -fx-cursor: hand;");
         } else {
-            btn.setStyle("-fx-background-color: #F5EFE6; -fx-text-fill: #5C4033; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-background-radius: 20; -fx-border-color: #D8C7B5; -fx-border-radius: 20; -fx-padding: 0 16 0 16; -fx-cursor: hand;");
+            btn.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-background-radius: 20; -fx-border-color: #E2EBE5; -fx-border-radius: 20; -fx-padding: 0 16 0 16; -fx-cursor: hand;");
         }
     }
 
@@ -233,7 +229,7 @@ public class MyEquipment {
             emptyBox.setAlignment(Pos.CENTER);
             emptyBox.setPadding(new Insets(40));
             Text emptyText = new Text("No machinery matches the selected filter.");
-            emptyText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-fill: #806A5B;");
+            emptyText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-fill: #4B5563;");
             cardsGrid.getChildren().add(emptyBox);
         }
     }
@@ -263,7 +259,7 @@ public class MyEquipment {
         StackPane.setAlignment(iconBadge, Pos.BOTTOM_RIGHT);
         StackPane.setMargin(iconBadge, new Insets(0, 10, 6, 0));
         imgBox.setPrefHeight(105);
-        imgBox.setStyle("-fx-background-color: #E4D3C2; -fx-background-radius: 10;");
+        imgBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
 
         // Status Badge & Operator Indicator
         String stColor = "AVAILABLE".equals(item.status) ? "#2E7D32" : ("RENTED OUT".equals(item.status) ? "#E65100" : "#C62828");
@@ -271,7 +267,7 @@ public class MyEquipment {
         statusBadge.setStyle("-fx-background-color: " + stColor + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
 
         Label opBadge = new Label(item.hasOperator ? "👨‍🌾 Operator Incl." : "🚜 Machine Only");
-        opBadge.setStyle("-fx-background-color: #EDE3D5; -fx-text-fill: #5C4033; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-padding: 3 6 3 6; -fx-background-radius: 4;");
+        opBadge.setStyle("-fx-background-color: #F4F9F4; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-padding: 3 6 3 6; -fx-background-radius: 4;");
 
         Region bSpacer = new Region();
         HBox.setHgrow(bSpacer, Priority.ALWAYS);
@@ -280,50 +276,60 @@ public class MyEquipment {
 
         Text title = new Text(item.name);
         title.setWrappingWidth(225);
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text specs = new Text(item.specs);
         specs.setWrappingWidth(225);
-        specs.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #806A5B;");
+        specs.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
 
         Text price = new Text("₹" + item.pricePerDay + " / day");
         price.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
 
         Text stats = new Text("Booked " + item.totalRentals + " times • Earned ₹" + String.format("%,d", item.lifetimeEarned));
-        stats.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #806A5B;");
+        stats.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #4B5563;");
 
         // Action Buttons: Toggle Status + Edit Tariff
         Button toggleStatusBtn = new Button("Toggle Status 🔄");
-        toggleStatusBtn.setStyle("-fx-background-color: #8B6F47; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        toggleStatusBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         toggleStatusBtn.setPrefHeight(30);
 
         toggleStatusBtn.setOnAction(e -> {
             if ("AVAILABLE".equals(item.status)) item.status = "RENTED OUT";
             else if ("RENTED OUT".equals(item.status)) item.status = "IN SERVICE";
             else item.status = "AVAILABLE";
+            EquipmentDataStore.updateStatus(item.name, item.status);
             renderFleetGrid();
         });
 
         Button editBtn = new Button("Edit Tariff ✏");
-        editBtn.setStyle("-fx-background-color: #5C4033; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        editBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         editBtn.setPrefHeight(30);
         editBtn.setOnAction(e -> showEditTariffModal(item, currentRoot));
 
-        HBox btnRow = new HBox(8, toggleStatusBtn, editBtn);
+        Button deleteBtn = new Button("Delete 🗑");
+        deleteBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+        deleteBtn.setPrefHeight(30);
+        deleteBtn.setOnAction(e -> {
+            fleetList.remove(item);
+            EquipmentDataStore.removeEquipment(item.name);
+            renderFleetGrid();
+        });
+
+        HBox btnRow = new HBox(6, toggleStatusBtn, editBtn, deleteBtn);
         btnRow.setAlignment(Pos.CENTER_LEFT);
 
         VBox card = new VBox(8, imgBox, badgeRow, title, specs, price, stats, btnRow);
         card.setPrefWidth(250);
         card.setPadding(new Insets(14));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
 
         card.setOnMouseEntered(e -> {
-            card.setStyle("-fx-background-color: #FFF9F0; -fx-background-radius: 12; -fx-border-color: #8B6F47; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(74,44,32,0.2), 10, 0.2, 0, 3);");
+            card.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 12; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.2), 10, 0.2, 0, 3);");
             card.setTranslateY(-2);
         });
 
         card.setOnMouseExited(e -> {
-            card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
             card.setTranslateY(0);
         });
 
@@ -335,13 +341,13 @@ public class MyEquipment {
         overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
 
         VBox modal = new VBox(15);
-        modal.setPrefWidth(520);
-        modal.setMaxWidth(520);
+        modal.setPrefWidth(540);
+        modal.setMaxWidth(540);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 16; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 25, 0.3, 0, 8);");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 16; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 16; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.35), 25, 0.3, 0, 8);");
 
         Text title = new Text("Register New Machinery to Fleet");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(12);
@@ -349,20 +355,90 @@ public class MyEquipment {
 
         TextField nameField = new TextField();
         nameField.setPromptText("e.g. Swaraj 855 FE Tractor");
+        nameField.setPrefHeight(36);
+        nameField.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
 
         ComboBox<String> catCombo = new ComboBox<>();
         catCombo.getItems().addAll("Tractors", "Harvesters", "Rotavators", "Cultivators", "Sprayers & Drones", "Seeders & Tillers");
         catCombo.setValue("Tractors");
-        catCombo.setPrefWidth(280);
+        catCombo.setPrefWidth(300);
+        catCombo.setPrefHeight(36);
+        catCombo.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
 
         TextField priceField = new TextField();
         priceField.setPromptText("Daily rate in ₹ (e.g. 1400)");
+        priceField.setPrefHeight(36);
+        priceField.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
 
         TextField specsField = new TextField();
         specsField.setPromptText("e.g. 52 HP • Dual Clutch • 4WD");
+        specsField.setPrefHeight(36);
+        specsField.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px;");
+
+        // Equipment Image Chooser Section
+        final String defaultImage = "file:farm/src/main/resources/assets/Images/tractor.png";
+        final String[] chosenImagePath = new String[] { defaultImage };
+
+        Button chooseImgBtn = new Button("📁 Choose Image File...");
+        chooseImgBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 7 14 7 14;");
+
+        ImageView previewImg = new ImageView();
+        previewImg.setFitWidth(65);
+        previewImg.setFitHeight(45);
+        previewImg.setPreserveRatio(true);
+        previewImg.setSmooth(true);
+        try {
+            previewImg.setImage(new Image(defaultImage));
+        } catch (Exception ignored) {}
+
+        StackPane previewBox = new StackPane(previewImg);
+        previewBox.setPrefSize(70, 50);
+        previewBox.setMaxSize(70, 50);
+        previewBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 6; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 6;");
+
+        Label imgNameLabel = new Label("Default image selected");
+        imgNameLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #4B5563; -fx-font-style: italic;");
+        imgNameLabel.setMaxWidth(130);
+
+        Button clearImgBtn = new Button("✕");
+        clearImgBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-background-radius: 4; -fx-cursor: hand; -fx-padding: 3 6 3 6;");
+        clearImgBtn.setVisible(false);
+
+        chooseImgBtn.setOnAction(e -> {
+            FileChooser chooser = new FileChooser();
+            chooser.setTitle("Select Equipment Image");
+            chooser.getExtensionFilters().addAll(
+                new FileChooser.ExtensionFilter("Image Files (*.png, *.jpg, *.jpeg, *.webp, *.bmp)", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp"),
+                new FileChooser.ExtensionFilter("All Files (*.*)", "*.*")
+            );
+            Window win = root.getScene() != null ? root.getScene().getWindow() : null;
+            File file = chooser.showOpenDialog(win);
+            if (file != null) {
+                chosenImagePath[0] = file.toURI().toString();
+                imgNameLabel.setText(file.getName());
+                imgNameLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #1B4332; -fx-font-weight: bold;");
+                try {
+                    previewImg.setImage(new Image(chosenImagePath[0]));
+                } catch (Exception ignored) {}
+                clearImgBtn.setVisible(true);
+            }
+        });
+
+        clearImgBtn.setOnAction(e -> {
+            chosenImagePath[0] = defaultImage;
+            imgNameLabel.setText("Default image selected");
+            imgNameLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #4B5563; -fx-font-style: italic;");
+            try {
+                previewImg.setImage(new Image(defaultImage));
+            } catch (Exception ignored) {}
+            clearImgBtn.setVisible(false);
+        });
+
+        HBox imageRow = new HBox(10, chooseImgBtn, previewBox, imgNameLabel, clearImgBtn);
+        imageRow.setAlignment(Pos.CENTER_LEFT);
 
         CheckBox opCheck = new CheckBox("Trained Driver / Operator Available with Machine");
-        opCheck.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #5C4033;");
+        opCheck.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #374151;");
 
         form.add(createLabel("Machinery Title:"), 0, 0);
         form.add(nameField, 1, 0);
@@ -376,7 +452,10 @@ public class MyEquipment {
         form.add(createLabel("Key Specs:"), 0, 3);
         form.add(specsField, 1, 3);
 
-        form.add(opCheck, 1, 4);
+        form.add(createLabel("Equipment Photo:"), 0, 4);
+        form.add(imageRow, 1, 4);
+
+        form.add(opCheck, 1, 5);
 
         Button saveBtn = new Button("Register Machinery");
         saveBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
@@ -395,8 +474,24 @@ public class MyEquipment {
                     pr = Integer.parseInt(p);
                 } catch (Exception ignored) {}
                 String sp = specsField.getText().trim().isEmpty() ? "Standard Agriculture Spec" : specsField.getText().trim();
-                String icon = catCombo.getValue().contains("Harvester") ? "🌾" : (catCombo.getValue().contains("Drone") ? "🚁" : "🚜");
-                fleetList.add(0, new FleetItem(n, catCombo.getValue(), icon, pr, sp, "AVAILABLE", "file:farm/src/main/resources/assets/Images/tractor.png", 0, 0, opCheck.isSelected()));
+                String cat = catCombo.getValue();
+                String icon = cat.contains("Harvester") ? "🌾" : (cat.contains("Drone") ? "🚁" : (cat.contains("Rotavator") ? "⚙" : (cat.contains("Cultivator") ? "🌱" : "🚜")));
+                fleetList.add(0, new FleetItem(n, cat, icon, pr, sp, "AVAILABLE", chosenImagePath[0], 0, 0, opCheck.isSelected()));
+
+                // Add to shared EquipmentDataStore
+                EquipmentDataStore.addEquipment(new EquipmentDataStore.EquipmentItem(
+                    "EQ" + (1000 + (int)(Math.random() * 9000)),
+                    n,
+                    cat,
+                    pr,
+                    "4.8",
+                    "Pune, Maharashtra",
+                    chosenImagePath[0],
+                    sp,
+                    "AVAILABLE",
+                    opCheck.isSelected()
+                ));
+
                 renderFleetGrid();
                 root.getChildren().remove(overlay);
             }
@@ -420,10 +515,10 @@ public class MyEquipment {
         modal.setPrefWidth(420);
         modal.setMaxWidth(420);
         modal.setPadding(new Insets(22));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
         Text title = new Text("Update Daily Tariff: " + item.name);
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         TextField rateField = new TextField(String.valueOf(item.pricePerDay));
         rateField.setPrefHeight(36);
@@ -437,6 +532,7 @@ public class MyEquipment {
         save.setOnAction(e -> {
             try {
                 item.pricePerDay = Integer.parseInt(rateField.getText().trim());
+                EquipmentDataStore.updatePrice(item.name, item.pricePerDay);
                 renderFleetGrid();
             } catch (Exception ignored) {}
             root.getChildren().remove(overlay);
@@ -454,7 +550,7 @@ public class MyEquipment {
 
     private static Label createLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }

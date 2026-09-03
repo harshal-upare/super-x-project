@@ -21,10 +21,12 @@ public class ProviderDashboard {
 
         borderPane = new BorderPane();
         borderPane.setPadding(Insets.EMPTY);
+        borderPane.setStyle("-fx-background-color: #F4F9F4;");
 
         BorderPane subroot = new BorderPane();
         subroot.setLeft(leftVB);
         subroot.setCenter(borderPane);
+        subroot.setStyle("-fx-background-color: #F4F9F4;");
 
         root.getChildren().addAll(subroot);
 
@@ -35,7 +37,7 @@ public class ProviderDashboard {
         // Initial Home Page
         Dashboard.getPage();
 
-        root.setStyle("-fx-background-color: #EDE3D5;");
+        root.setStyle("-fx-background-color: #F4F9F4;");
 
         subroot.prefWidthProperty().bind(root.widthProperty());
         subroot.prefHeightProperty().bind(root.heightProperty());

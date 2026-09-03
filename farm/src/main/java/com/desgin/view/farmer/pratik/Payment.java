@@ -4,6 +4,9 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.List;
+
+import com.desgin.view.farmer.Swapnil.BookingDataStore;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -56,17 +59,17 @@ private static CheckBox net;
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:26px;" +
             "-fx-font-weight:bold;" +
-            "-fx-fill:#4A2C20;"
+            "-fx-fill:#1B4332;"
     );
 
     Text subtitle = new Text(
-            "Manage all your equipment payments"
+            "Manage all your equipment payments and invoices"
     );
 
     subtitle.setStyle(
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:14px;" +
-            "-fx-fill:#7A6658;"
+            "-fx-fill:#4B5563;"
     );
 
     VBox heading = new VBox(
@@ -120,37 +123,60 @@ private static CheckBox net;
     );
 
     //---------------------------------------------------------
-    // Summary Cards
+    // Dynamic Summary Cards from BookingDataStore
     //---------------------------------------------------------
+    List<BookingDataStore.BookingItem> allBookings = BookingDataStore.getAllBookings();
+    paymentCardList.clear();
+    paymentSearchData.clear();
+    paymentStatusList.clear();
+    paymentMethodList.clear();
+
+    int totalTxn = allBookings.size();
+    int paidCount = 0;
+    int pendingCount = 0;
+    int failedCount = 0;
+    int totalPaidAmt = 0;
+    int totalPendingAmt = 0;
+
+    for (BookingDataStore.BookingItem b : allBookings) {
+        String amtStr = b.totalAmount != null ? b.totalAmount.replaceAll("[^0-9]", "") : "0";
+        int amt = 0;
+        try { amt = Integer.parseInt(amtStr); } catch (Exception ignored) {}
+
+        if ("COMPLETED".equalsIgnoreCase(b.status) || "ACTIVE".equalsIgnoreCase(b.status)) {
+            paidCount++;
+            totalPaidAmt += amt;
+        } else if ("PENDING".equalsIgnoreCase(b.status)) {
+            pendingCount++;
+            totalPendingAmt += amt;
+        } else if ("CANCELLED".equalsIgnoreCase(b.status)) {
+            failedCount++;
+        }
+    }
 
     HBox summaryCards = new HBox(18);
-
     summaryCards.getChildren().addAll(
-
             createSummaryCard(
                     "Total Payments",
-                    "18",
+                    String.valueOf(totalTxn),
                     "💳",
                     "#4A2C20"
             ),
-
             createSummaryCard(
                     "Paid",
-                    "₹32,500",
+                    "₹" + String.format("%,d", totalPaidAmt),
                     "🟢",
                     "#4CAF50"
             ),
-
             createSummaryCard(
                     "Pending",
-                    "₹5,600",
+                    "₹" + String.format("%,d", totalPendingAmt),
                     "🟠",
                     "#FF9800"
             ),
-
             createSummaryCard(
                     "Failed",
-                    "2",
+                    String.valueOf(failedCount),
                     "🔴",
                     "#D32F2F"
             )
@@ -158,10 +184,7 @@ private static CheckBox net;
 
     VBox filterSection = createPaymentFilter();
 
-    Text historyTitle = new Text(
-            "Payment History"
-    );
-
+    Text historyTitle = new Text("Payment History");
     historyTitle.setStyle(
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:20px;" +
@@ -169,72 +192,56 @@ private static CheckBox net;
             "-fx-fill:#4A2C20;"
     );
 
-    Text historySubtitle = new Text(
-            "View all your completed and pending payments"
-    );
-
+    Text historySubtitle = new Text("View all your completed and pending payments");
     historySubtitle.setStyle(
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:13px;" +
             "-fx-fill:#7A6658;"
     );
 
-    VBox historyHeading = new VBox(
-            4,
-            historyTitle,
-            historySubtitle
-    );
-
+    VBox historyHeading = new VBox(4, historyTitle, historySubtitle);
     VBox paymentCards = new VBox(18);
 
+    if (allBookings.isEmpty()) {
+        VBox emptyBox = new VBox(8);
+        emptyBox.setAlignment(Pos.CENTER);
+        emptyBox.setPadding(new Insets(30));
+        emptyBox.setStyle("-fx-background-color:#F5EFE6;-fx-background-radius:12;-fx-border-color:#D8C7B5;-fx-border-radius:12;-fx-border-width:1;");
 
-    
-    VBox card1 = createPaymentCard(
-        "Mahindra Tractor",
-        "TXN-100234",
-        "₹1500",
-        "UPI",
-        "12 Aug 2026",
-        "Paid",
-        "file:farm/src/main/resources/assets/Images/tractor.png"
-    );
+        Text emptyIcon = new Text("💳");
+        emptyIcon.setStyle("-fx-font-size:32px;");
 
-    paymentCardList.add(card1);
-    paymentSearchData.add("mahindra tractor txn-100234");
-    paymentStatusList.add("Paid");
-    paymentMethodList.add("UPI");
+        Text emptyTitle = new Text("No Payment Invoices Yet");
+        emptyTitle.setStyle("-fx-font-family:'Poppins';-fx-font-size:15px;-fx-font-weight:bold;-fx-fill:#4A2C20;");
 
-    VBox card2 = createPaymentCard(
-            "John Deere",
-            "TXN-100240",
-            "₹1800",
-            "Card",
-            "15 Aug 2026",
-            "Pending",
-            "file:farm/src/main/resources/assets/Images/background.jpeg"
-    );
+        Text emptySub = new Text("When you rent equipment, payment transaction receipts and invoices will appear here.");
+        emptySub.setStyle("-fx-font-family:'Poppins';-fx-font-size:12px;-fx-fill:#806A5B;");
 
-    paymentCardList.add(card2);
-    paymentSearchData.add("john deere txn-100240");
-    paymentStatusList.add("Pending");
-    paymentMethodList.add("Card");
+        emptyBox.getChildren().addAll(emptyIcon, emptyTitle, emptySub);
+        paymentCards.getChildren().add(emptyBox);
+    } else {
+        for (BookingDataStore.BookingItem b : allBookings) {
+            String pStatus = "COMPLETED".equalsIgnoreCase(b.status) || "ACTIVE".equalsIgnoreCase(b.status) ? "Paid" : ("CANCELLED".equalsIgnoreCase(b.status) ? "Failed" : "Pending");
+            String pMethod = "UPI / Escrow";
+            String imgPath = b.imagePath != null && !b.imagePath.isEmpty() ? b.imagePath : "file:farm/src/main/resources/assets/Images/tractor.png";
 
-    VBox card3 = createPaymentCard(
-            "Seeder",
-            "TXN-100260",
-            "₹900",
-            "Net Banking",
-            "18 Aug 2026",
-            "Failed",
-            "file:farm/src/main/resources/assets/Images/logo.png"
-    );
+            VBox card = createPaymentCard(
+                    b.equipmentName,
+                    b.bookingId,
+                    b.totalAmount,
+                    pMethod,
+                    b.startDate,
+                    pStatus,
+                    imgPath
+            );
 
-    paymentCardList.add(card3);
-    paymentSearchData.add("seeder txn-100260");
-    paymentStatusList.add("Failed");
-    paymentMethodList.add("Net Banking");
-
-    paymentCards.getChildren().addAll(card1, card2, card3);
+            paymentCardList.add(card);
+            paymentSearchData.add((b.equipmentName + " " + b.bookingId).toLowerCase());
+            paymentStatusList.add(pStatus);
+            paymentMethodList.add(pMethod);
+            paymentCards.getChildren().add(card);
+        }
+    }
 
         VBox paymentSection = new VBox(
                 18,
@@ -266,7 +273,7 @@ private static CheckBox net;
         );
 
         root.setStyle(
-                "-fx-background-color:#FCF9F5;"
+                "-fx-background-color:transparent;"
         );
 
         ScrollPane scrollPane = new ScrollPane(root);

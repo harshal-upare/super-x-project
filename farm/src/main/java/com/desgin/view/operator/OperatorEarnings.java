@@ -67,10 +67,10 @@ public class OperatorEarnings {
 
     public static ScrollPane getEarningsSection(StackPane root) {
         Text headerTitle = new Text("Operator Wages & Earnings Settlement");
-        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text headerSubtitle = new Text("Track your daily operator wages, per-acre incentives, verified timesheet payouts, and initiate instant bank withdrawals.");
-        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, headerTitle, headerSubtitle);
 
@@ -106,7 +106,7 @@ public class OperatorEarnings {
     }
 
     private static HBox createFinancialMetrics() {
-        VBox c1 = createMetricCard("💰 Lifetime Wages Earned", "₹" + String.format("%,d", totalLifetime), "From 92 completed field operations", "#4A2C20");
+        VBox c1 = createMetricCard("💰 Lifetime Wages Earned", "₹" + String.format("%,d", totalLifetime), "From 92 completed field operations", "#1B4332");
 
         availBalanceText = new Text("₹" + String.format("%,d", availableBalance));
         availBalanceText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -115,8 +115,8 @@ public class OperatorEarnings {
         VBox c3 = createMetricCard("⏱ Pending Job Escrow", "₹" + String.format("%,d", pendingEscrow), "Releases upon farmer job sign-off", "#E65100");
 
         withdrawnText = new Text("₹" + String.format("%,d", totalWithdrawn));
-        withdrawnText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #5C4033;");
-        VBox c4 = createCustomMetricCard("💳 Total Settled to Bank", withdrawnText, "12 payouts deposited to SBI", "#5C4033");
+        withdrawnText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #374151;");
+        VBox c4 = createCustomMetricCard("💳 Total Settled to Bank", withdrawnText, "12 payouts deposited to SBI", "#374151");
 
         HBox row = new HBox(15, c1, c2, c3, c4);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -125,56 +125,56 @@ public class OperatorEarnings {
 
     private static VBox createMetricCard(String title, String value, String sub, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text v = new Text(value);
         v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: " + color + ";");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, v, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createCustomMetricCard(String title, Text vText, String sub, String color) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #806A5B;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
         Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #5C4033;");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, vText, s);
         b.setPrefWidth(240);
         b.setPadding(new Insets(16));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createCategoryBreakdown() {
         Text title = new Text("Operator Wage Earnings by Machine Category");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        VBox r1 = createProgressRow("🌾 Combine Harvester Operations", "₹68,500 (48%)", 0.48, "#8B6F47");
+        VBox r1 = createProgressRow("🌾 Combine Harvester Operations", "₹68,500 (48%)", 0.48, "#2D6A4F");
         VBox r2 = createProgressRow("🚜 Heavy Tractor Tillage & Plowing", "₹45,600 (32%)", 0.32, "#2E7D32");
         VBox r3 = createProgressRow("⚙ Laser Land Leveling & Grading", "₹17,100 (12%)", 0.12, "#E65100");
         VBox r4 = createProgressRow("🚁 Precision Agri-Drone Spraying", "₹11,600 (8%)", 0.08, "#1976D2");
 
         VBox card = new VBox(12, title, r1, r2, r3, r4);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static VBox createProgressRow(String label, String value, double progress, String barColor) {
         Text l = new Text(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #5C4033;");
+        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -190,7 +190,7 @@ public class OperatorEarnings {
 
     private static VBox createTransactionHistorySection(StackPane root) {
         Text title = new Text("Wage Settlement & Bank Transfer History");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         txnListContainer = new VBox(10);
         renderTxnList();
@@ -203,13 +203,13 @@ public class OperatorEarnings {
 
         for (WageTransaction txn : txnList) {
             Text id = new Text(txn.txnId);
-            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #8B6F47;");
+            id.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
 
             Text desc = new Text(txn.title);
-            desc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+            desc.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
             Text dt = new Text("📅 " + txn.date + " • " + txn.channel);
-            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #806A5B;");
+            dt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
             VBox infoBox = new VBox(2, id, desc, dt);
 
@@ -221,7 +221,7 @@ public class OperatorEarnings {
             status.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
 
             Button receipt = new Button("📄 Pay Slip");
-            receipt.setStyle("-fx-background-color: #E4D3C2; -fx-text-fill: #4A2C20; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+            receipt.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
 
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -229,7 +229,7 @@ public class OperatorEarnings {
             HBox row = new HBox(20, infoBox, spacer, amt, status, receipt);
             row.setAlignment(Pos.CENTER_LEFT);
             row.setPadding(new Insets(12, 16, 12, 16));
-            row.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 10; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 10;");
+            row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
 
             txnListContainer.getChildren().add(row);
         }
@@ -243,10 +243,10 @@ public class OperatorEarnings {
         modal.setPrefWidth(460);
         modal.setMaxWidth(460);
         modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFDF9; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.3), 20, 0.3, 0, 8);");
 
         Text title = new Text("Withdraw Operator Wages to Bank");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text avail = new Text("Available Balance: ₹" + String.format("%,d", availableBalance));
         avail.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
@@ -316,7 +316,7 @@ public class OperatorEarnings {
 
     private static Label createLabel(String t) {
         Label l = new Label(t);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }

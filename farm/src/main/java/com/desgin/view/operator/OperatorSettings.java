@@ -17,10 +17,10 @@ public class OperatorSettings {
 
     public static ScrollPane getSettingsSection() {
         Text title = new Text("Operator Settings & Dispatch Preferences");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text subtitle = new Text("Configure your field availability status, operating radius, machinery dispatch alerts, and language preferences.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, title, subtitle);
 
@@ -55,7 +55,7 @@ public class OperatorSettings {
 
     private static VBox createAvailabilityCard() {
         Text t = new Text("Field Dispatch Availability");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         RadioButton r1 = new RadioButton("🟢 Available for Field Dispatch (Receive new farmer bookings)");
         RadioButton r2 = new RadioButton("🟡 Busy on Active Shift");
@@ -67,20 +67,20 @@ public class OperatorSettings {
         r3.setToggleGroup(tg);
         r1.setSelected(true);
 
-        String rbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #4A2C20;";
+        String rbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #1B4332;";
         r1.setStyle(rbStyle);
         r2.setStyle(rbStyle);
         r3.setStyle(rbStyle);
 
         VBox b = new VBox(10, t, r1, r2, r3);
         b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createRadiusCard() {
         Text t = new Text("Operating Range & Machine Preferences");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane g = new GridPane();
         g.setHgap(15);
@@ -93,7 +93,7 @@ public class OperatorSettings {
 
         TextField baseField = new TextField("Baramati Sector 4 Hub, Pune");
         baseField.setPrefHeight(36);
-        baseField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #D8C7B5; -fx-border-radius: 6;");
+        baseField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
 
         g.add(createLabel("Base Dispatch Location:"), 0, 0);
         g.add(baseField, 1, 0);
@@ -103,13 +103,13 @@ public class OperatorSettings {
 
         VBox b = new VBox(10, t, g);
         b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createNotificationSettingsCard() {
         Text t = new Text("Job Dispatch & Alert Preferences");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         CheckBox c1 = new CheckBox("Instant SMS alert for new work orders");
         CheckBox c2 = new CheckBox("Push notification when wage payout is credited to bank");
@@ -121,7 +121,7 @@ public class OperatorSettings {
         c3.setSelected(true);
         c4.setSelected(true);
 
-        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;";
+        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;";
         c1.setStyle(cbStyle);
         c2.setStyle(cbStyle);
         c3.setStyle(cbStyle);
@@ -129,13 +129,13 @@ public class OperatorSettings {
 
         VBox b = new VBox(10, t, c1, c2, c3, c4);
         b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static VBox createLanguageCard() {
         Text t = new Text("Language & Regional Options");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         ComboBox<String> lang = new ComboBox<>();
         lang.getItems().addAll("English", "मराठी (Marathi)", "हिन्दी (Hindi)");
@@ -144,13 +144,13 @@ public class OperatorSettings {
 
         VBox b = new VBox(10, t, lang);
         b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 12; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
     private static Label createLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 }

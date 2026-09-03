@@ -12,6 +12,10 @@ import javafx.stage.Stage;
 public class BookingDetails {
 
         public VBox getBookingDetails(Runnable closeAction, Runnable cancelAction) {
+                return getBookingDetails("BK00123", "John Deere Tractor", "Heavy Duty Tractor", "15 Aug 2026", "18 Aug 2026", "₹2,500/day", "₹7,500", "ACTIVE", closeAction, cancelAction);
+        }
+
+        public VBox getBookingDetails(String bId, String name, String cat, String sDate, String eDate, String dRate, String tAmt, String stat, Runnable closeAction, Runnable cancelAction) {
 
                 VBox mainBox = new VBox(20);
                 mainBox.setPadding(new Insets(25));
@@ -30,7 +34,7 @@ public class BookingDetails {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-text-fill: #1B4332;");
 
-                Label bookingId = new Label("Booking ID: BK00123");
+                Label bookingId = new Label("Booking ID: " + (bId != null ? bId : "BK00123"));
                 bookingId.setStyle(
                                 "-fx-font-size: 13px;" +
                                                 "-fx-text-fill: #6B7280;");
@@ -68,7 +72,7 @@ public class BookingDetails {
                                 "-fx-background-color: #E8F1EB;" +
                                                 "-fx-background-radius: 10;");
 
-                Label imageLabel = new Label("Equipment Image");
+                Label imageLabel = new Label("🚜 Machinery");
                 imageLabel.setStyle(
                                 "-fx-text-fill: #52796F;" +
                                                 "-fx-font-weight: bold;");
@@ -77,14 +81,13 @@ public class BookingDetails {
 
                 VBox equipmentInfo = new VBox(7);
 
-                Label equipmentName = new Label("John Deere Tractor");
+                Label equipmentName = new Label(name != null ? name : "John Deere Tractor");
                 equipmentName.setStyle(
                                 "-fx-font-size: 20px;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-text-fill: #1B4332;");
 
-                Label equipmentType = new Label(
-                                "Heavy Duty Tractor");
+                Label equipmentType = new Label(cat != null ? cat : "Heavy Duty Tractor");
                 equipmentType.setStyle(
                                 "-fx-font-size: 13px;" +
                                                 "-fx-text-fill: #6B7280;");
@@ -111,26 +114,11 @@ public class BookingDetails {
                                                 "-fx-border-color: #E2E8E4;" +
                                                 "-fx-border-radius: 10;");
                 rentalBox.getChildren().addAll(
-
-                                createInfoRow(
-                                                "Start Date",
-                                                "15 Aug 2026"),
-
-                                createInfoRow(
-                                                "End Date",
-                                                "18 Aug 2026"),
-
-                                createInfoRow(
-                                                "Rental Duration",
-                                                "3 Days"),
-
-                                createInfoRow(
-                                                "Price Per Day",
-                                                "₹2,500"),
-
-                                createInfoRow(
-                                                "Total Amount",
-                                                "₹7,500"));
+                                createInfoRow("Start Date", sDate != null ? sDate : "15 Aug 2026"),
+                                createInfoRow("End Date", eDate != null ? eDate : "18 Aug 2026"),
+                                createInfoRow("Rental Duration", "Active Period"),
+                                createInfoRow("Price Per Day", dRate != null ? dRate : "₹2,500/day"),
+                                createInfoRow("Total Amount", tAmt != null ? tAmt : "₹7,500"));
 
                 Label ownerTitle = new Label("Equipment Owner");
                 ownerTitle.setStyle(
@@ -146,14 +134,13 @@ public class BookingDetails {
                                                 "-fx-border-color: #E2E8E4;" +
                                                 "-fx-border-radius: 10;");
 
-                Label ownerName = new Label("Rahul Patil");
+                Label ownerName = new Label("Verified Equipment Provider");
                 ownerName.setStyle(
                                 "-fx-font-size: 15px;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-text-fill: #374151;");
 
-                Label phone = new Label(
-                                "Phone: +91 XXXXX XXXXX");
+                Label phone = new Label("Phone: +91 98901 44552");
                 phone.setStyle(
                                 "-fx-font-size: 13px;" +
                                                 "-fx-text-fill: #6B7280;");
@@ -164,12 +151,14 @@ public class BookingDetails {
                 HBox statusBox = new HBox();
                 statusBox.setAlignment(Pos.CENTER_LEFT);
 
-                Label status = new Label("ACTIVE");
+                String currentStatus = stat != null ? stat : "ACTIVE";
+                Label status = new Label(currentStatus);
                 status.setPadding(
                                 new Insets(7, 14, 7, 14));
-                status.setStyle(
-                                "-fx-background-color: #DCFCE7;" +
-                                                "-fx-text-fill: #166534;" +
+                String stStyle = "COMPLETED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #EDE3D5; -fx-text-fill: #1B4332;" :
+                                ("ACTIVE".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DCFCE7; -fx-text-fill: #166534;" :
+                                "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C;");
+                status.setStyle(stStyle +
                                                 "-fx-background-radius: 20;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-font-size: 12px;");
@@ -193,6 +182,9 @@ public class BookingDetails {
 
                 Button cancelButton = new Button("Cancel Booking");
                 cancelButton.setOnAction(e -> {
+                        if (bId != null) {
+                                com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(bId);
+                        }
                         showCancelConfirmation(cancelAction);
                 });
                 cancelButton.setPrefHeight(38);
@@ -202,9 +194,11 @@ public class BookingDetails {
                                                 "-fx-text-fill: #B91C1C;" +
                                                 "-fx-background-radius: 7;" +
                                                 "-fx-font-weight: bold;");
-                actions.getChildren().addAll(
-                                contactButton,
-                                cancelButton);
+                if (!"CANCELLED".equalsIgnoreCase(currentStatus) && !"COMPLETED".equalsIgnoreCase(currentStatus)) {
+                        actions.getChildren().addAll(contactButton, cancelButton);
+                } else {
+                        actions.getChildren().addAll(contactButton);
+                }
 
                 mainBox.getChildren().addAll(
                                 header,

@@ -1,5 +1,9 @@
 package com.desgin.view.farmer.om;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+
+import com.desgin.view.farmer.Swapnil.BookingDataStore;
 import com.desgin.view.farmer.pratik.WishList;
 
 import javafx.geometry.Insets;
@@ -232,10 +236,31 @@ public class EquipmentDetailPage {
         );
 
         rentNowBtn.setOnAction(e -> {
+            String bookingId = "BK" + (10000 + (int)(Math.random() * 90000));
+            String startDate = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
+            String endDate = LocalDate.now().plusDays(3).format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
+            int rate = 1000;
+            try {
+                rate = Integer.parseInt(priceVal);
+            } catch (Exception ignored) {}
+            String totalCost = "₹" + (rate * 3);
+
+            BookingDataStore.addBooking(new BookingDataStore.BookingItem(
+                    bookingId,
+                    name,
+                    category,
+                    startDate,
+                    endDate,
+                    "₹" + priceVal + "/day",
+                    totalCost,
+                    "ACTIVE",
+                    imagePath
+            ));
+
             Alert alert = new Alert(Alert.AlertType.INFORMATION);
             alert.setTitle("Booking Confirmation");
-            alert.setHeaderText("Rental Request Sent!");
-            alert.setContentText("Your request to rent '" + name + "' for ₹" + priceVal + "/day has been submitted to the owner. They will contact you shortly!");
+            alert.setHeaderText("Rental Booking Confirmed!");
+            alert.setContentText("Your booking for '" + name + "' (Booking ID: " + bookingId + ") for " + startDate + " to " + endDate + " at " + "₹" + priceVal + "/day has been confirmed!");
             alert.showAndWait();
         });
 
@@ -286,7 +311,7 @@ public class EquipmentDetailPage {
         VBox content = new VBox(25, topBar, heroSection, specsSection, ownerSection, termsSection);
         content.setPadding(new Insets(25, 35, 35, 35));
         content.setMaxWidth(Double.MAX_VALUE);
-        content.setStyle("-fx-background-color: #FCF9F5;");
+        content.setStyle("-fx-background-color: transparent;");
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
@@ -310,19 +335,19 @@ public class EquipmentDetailPage {
 
     private VBox createStatCard(String label, String value) {
         Text lbl = new Text(label);
-        lbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #7A6658;");
+        lbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
 
         Text val = new Text(value);
-        val.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        val.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         VBox box = new VBox(3, lbl, val);
         box.setPadding(new Insets(8, 12, 8, 12));
         box.setStyle(
-                "-fx-background-color: #F5EFE6;" +
+                "-fx-background-color: rgba(255, 255, 255, 0.9);" +
                 "-fx-background-radius: 8;" +
-                "-fx-border-color: #D8C7B5;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.2);" +
                 "-fx-border-radius: 8;" +
-                "-fx-border-width: 1;"
+                "-fx-border-width: 1.2;"
         );
         return box;
     }

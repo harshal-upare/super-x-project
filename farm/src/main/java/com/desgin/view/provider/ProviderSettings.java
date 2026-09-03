@@ -15,10 +15,10 @@ public class ProviderSettings {
 
     public static ScrollPane getSettingsSection() {
         Text headerTitle = new Text("Provider Account & Operational Settings");
-        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text headerSubtitle = new Text("Manage your agricultural agency details, verified payout bank accounts, rental policies, and notification alerts.");
-        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #806A5B;");
+        headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, headerTitle, headerSubtitle);
 
@@ -64,7 +64,7 @@ public class ProviderSettings {
 
     private static VBox createBusinessCard() {
         Text title = new Text("1. Agricultural Agency & Provider Information");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(15);
@@ -90,13 +90,13 @@ public class ProviderSettings {
 
         VBox card = new VBox(12, title, form);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static VBox createBankCard() {
         Text title = new Text("2. Verified Payout Bank Account Details");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(15);
@@ -119,13 +119,13 @@ public class ProviderSettings {
 
         VBox card = new VBox(12, title, form);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static VBox createPolicyCard() {
         Text title = new Text("3. Rental Terms, Radius & Security Deposit Policy");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         GridPane form = new GridPane();
         form.setHgap(15);
@@ -145,35 +145,35 @@ public class ProviderSettings {
 
         VBox card = new VBox(12, title, form);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static VBox createNotifCard() {
         Text title = new Text("4. Booking Alerts & Notification Channels");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #4A2C20;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         CheckBox cb1 = new CheckBox("Send Instant WhatsApp notification when farmer books equipment");
         cb1.setSelected(true);
-        cb1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;");
+        cb1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
 
         CheckBox cb2 = new CheckBox("Send SMS alerts for urgent booking requests due in < 24 hours");
         cb2.setSelected(true);
-        cb2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;");
+        cb2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
 
         CheckBox cb3 = new CheckBox("Email monthly earnings statement & tax invoice summary");
         cb3.setSelected(true);
-        cb3.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;");
+        cb3.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
 
         VBox card = new VBox(10, title, cb1, cb2, cb3);
         card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #F5EFE6; -fx-background-radius: 14; -fx-border-color: #D8C7B5; -fx-border-width: 1; -fx-border-radius: 14;");
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
     private static Label createLabel(String text) {
         Label l = new Label(text);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #5C4033;");
+        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
         return l;
     }
 
@@ -181,7 +181,7 @@ public class ProviderSettings {
         TextField tf = new TextField(text);
         tf.setPrefHeight(36);
         tf.setPrefWidth(320);
-        tf.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D8C7B5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #4A2C20;");
+        tf.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
         return tf;
     }
 }

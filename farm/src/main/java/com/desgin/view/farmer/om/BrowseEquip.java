@@ -1,5 +1,6 @@
 package com.desgin.view.farmer.om;
 
+import com.desgin.view.farmer.Swapnil.EquipmentDataStore;
 import com.desgin.view.farmer.Swapnil.FarmerDashboard;
 import com.desgin.view.farmer.pratik.WishList;
 
@@ -108,88 +109,30 @@ public class BrowseEquip {
 
 
     /*
-     * Load equipment
+     * Load equipment dynamically from shared EquipmentDataStore
      */
-    private void loadEquipment() {
-
+    public static void loadEquipment() {
         allEquipment.clear();
+        String currentTown = com.desgin.view.farmer.Swapnil.FarmerProfileStore.town != null 
+                ? com.desgin.view.farmer.Swapnil.FarmerProfileStore.town.trim().toLowerCase() : "";
 
-        allEquipment.add(
-                new Equipment(
-                        "Mahindra 575 DI",
-                        "Tractor",
-                        1500,
-                        "4.7",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/tractor.png"
-                )
-        );
+        for (EquipmentDataStore.EquipmentItem item : EquipmentDataStore.getAllEquipment()) {
+            boolean matchesLocation = currentTown.isEmpty() || 
+                    (item.location != null && item.location.toLowerCase().contains(currentTown));
 
-        allEquipment.add(
-                new Equipment(
-                        "John Deere 5310",
-                        "Tractor",
-                        1800,
-                        "4.8",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/background.jpeg"
-                )
-        );
-
-        allEquipment.add(
-                new Equipment(
-                        "Sonalika Seeder",
-                        "Seeder",
-                        900,
-                        "4.5",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/logo.png"
-                )
-        );
-
-        allEquipment.add(
-                new Equipment(
-                        "Sonalika Plough",
-                        "Plough",
-                        700,
-                        "4.4",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/logo.png"
-                )
-        );
-
-        allEquipment.add(
-                new Equipment(
-                        "Mahindra Cultivator",
-                        "Cultivator",
-                        800,
-                        "4.6",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/logo.png"
-                )
-        );
-
-        allEquipment.add(
-                new Equipment(
-                        "New Holland Harvester",
-                        "Harvester",
-                        1900,
-                        "4.9",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/background.jpeg"
-                )
-        );
-
-        allEquipment.add(
-                new Equipment(
-                        "Swaraj Tractor",
-                        "Tractor",
-                        1200,
-                        "4.5",
-                        "Pune",
-                        "file:farm/src/main/resources/assets/Images/tractor.png"
-                )
-        );
+            if (matchesLocation) {
+                allEquipment.add(
+                        new Equipment(
+                                item.name,
+                                item.category,
+                                item.pricePerDay,
+                                item.rating,
+                                item.location,
+                                item.imagePath
+                        )
+                );
+            }
+        }
     }
 
 
@@ -197,42 +140,9 @@ public class BrowseEquip {
      * Main Browse Equipment Page
      */
     public static ScrollPane getBrowseEquip() {
-
-        /*
-         * --------------------------------
-         * TITLE
-         * --------------------------------
-         */
-
-        Text browseTitle =
-                new Text("Browse Equipment");
-
-        browseTitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
-        );
+        loadEquipment();
 
 
-        Text subtitle =
-                new Text(
-                        "Find the right equipment for your farm"
-                );
-
-        subtitle.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 14px;" +
-                "-fx-fill: #7A6658;"
-        );
-
-
-        VBox heading =
-                new VBox(
-                        5,
-                        browseTitle,
-                        subtitle
-                );
 
 
         /*
@@ -251,15 +161,15 @@ public class BrowseEquip {
         searchField.setPrefHeight(45);
 
         searchField.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-background-radius: 10;" +
-                "-fx-border-color: #D8C7B5;" +
-                "-fx-border-radius: 10;" +
-                "-fx-border-width: 1;" +
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 12;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.3);" +
+                "-fx-border-radius: 12;" +
+                "-fx-border-width: 1.2;" +
                 "-fx-padding: 0 15;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-text-fill: #4A2C20;"
+                "-fx-text-fill: #1F2937;"
         );
 
 
@@ -338,6 +248,7 @@ public class BrowseEquip {
                 "900",
                 "1000",
                 "1200",
+                "1400",
                 "1500"
         );
 
@@ -360,7 +271,7 @@ public class BrowseEquip {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 14px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
+                "-fx-fill: #1B4332;"
         );
 
 
@@ -473,7 +384,7 @@ public class BrowseEquip {
 
         HBox filterBox =
                 new HBox(
-                        10,
+                        12,
                         filterEqSection,
                         filterPrSection1,
                         toText,
@@ -502,7 +413,7 @@ public class BrowseEquip {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 20px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
+                "-fx-fill: #1B4332;"
         );
 
 
@@ -518,7 +429,7 @@ public class BrowseEquip {
         equipmentCount.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-fill: #4B5563;"
         );
 
 
@@ -580,7 +491,6 @@ public class BrowseEquip {
         VBox root =
                 new VBox(
                         18,
-                        heading,
                         searchBox,
                         filterBox,
                         equipmentTitle,
@@ -611,7 +521,7 @@ public class BrowseEquip {
 
 
         root.setStyle(
-                "-fx-background-color: #FCF9F5;"
+                "-fx-background-color: transparent;"
         );
 
 
@@ -653,6 +563,13 @@ public class BrowseEquip {
      * APPLY SEARCH + FILTER
      * ================================================
      */
+
+    public static void setSearchQuery(String query) {
+        if (searchField != null) {
+            searchField.setText(query != null ? query : "");
+            applyFilters();
+        }
+    }
 
     private static void applyFilters() {
 
@@ -1045,8 +962,8 @@ public class BrowseEquip {
 
 
         imageContainer.setStyle(
-                "-fx-background-color: #E8DED2;" +
-                "-fx-background-radius: 12 12 0 0;"
+                "-fx-background-color: #E8F5E9;" +
+                "-fx-background-radius: 14 14 0 0;"
         );
 
 
@@ -1077,7 +994,7 @@ public class BrowseEquip {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 17px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #4A2C20;"
+                "-fx-fill: #1B4332;"
         );
 
 
@@ -1093,7 +1010,8 @@ public class BrowseEquip {
         categoryText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-font-weight: 600;" +
+                "-fx-fill: #2D6A4F;"
         );
 
 
@@ -1111,7 +1029,7 @@ public class BrowseEquip {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #5C4033;"
+                "-fx-fill: #B45309;"
         );
 
 
@@ -1128,7 +1046,7 @@ public class BrowseEquip {
         locationText.setStyle(
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 12px;" +
-                "-fx-fill: #7A6658;"
+                "-fx-fill: #4B5563;"
         );
 
 
@@ -1163,7 +1081,7 @@ public class BrowseEquip {
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 16px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-fill: #6B8E23;"
+                "-fx-fill: #1B4332;"
         );
 
 
@@ -1195,6 +1113,7 @@ public class BrowseEquip {
                 e -> {
                     Runnable backAction = () -> {
                         if (FarmerDashboard.borderPane != null) {
+                            com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
                             FarmerDashboard.borderPane.setCenter(getBrowseEquip());
                         }
                     };
@@ -1210,6 +1129,7 @@ public class BrowseEquip {
                     );
 
                     if (FarmerDashboard.borderPane != null) {
+                        com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("Equipment Details ⚒", "Detailed machinery specifications, rent & operator options");
                         FarmerDashboard.borderPane.setCenter(detailPage.getDetailPage());
                     }
                 }
@@ -1262,11 +1182,12 @@ public class BrowseEquip {
 
 
         card.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-background-radius: 12;" +
-                "-fx-border-color: #E0D4C7;" +
-                "-fx-border-width: 1;" +
-                "-fx-border-radius: 12;"
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.2);" +
+                "-fx-border-width: 1.2;" +
+                "-fx-border-radius: 14;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
         );
 
 
@@ -1344,38 +1265,41 @@ public class BrowseEquip {
             Button button) {
 
         button.setStyle(
-                "-fx-background-color: #6B8E23;" +
+                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                 "-fx-background-radius: 10;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
                 "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;"
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);"
         );
 
 
         button.setOnMouseEntered(
                 e -> button.setStyle(
-                        "-fx-background-color: #55751C;" +
+                        "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F);" +
                         "-fx-background-radius: 10;" +
                         "-fx-text-fill: white;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13px;" +
                         "-fx-font-weight: bold;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.35), 10, 0, 0, 3);"
                 )
         );
 
 
         button.setOnMouseExited(
                 e -> button.setStyle(
-                        "-fx-background-color: #6B8E23;" +
+                        "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                         "-fx-background-radius: 10;" +
                         "-fx-text-fill: white;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13px;" +
                         "-fx-font-weight: bold;" +
-                        "-fx-cursor: hand;"
+                        "-fx-cursor: hand;" +
+                        "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);"
                 )
         );
     }
@@ -1391,15 +1315,15 @@ public class BrowseEquip {
             ComboBox<String> comboBox) {
 
         comboBox.setStyle(
-                "-fx-background-color: white;" +
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
                 "-fx-background-radius: 10;" +
-                "-fx-border-color: #D8C7B5;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.3);" +
                 "-fx-border-radius: 10;" +
-                "-fx-border-width: 1;" +
+                "-fx-border-width: 1.2;" +
                 "-fx-padding: 5px;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
-                "-fx-text-fill: #4A2C20;"
+                "-fx-text-fill: #1F2937;"
         );
     }
 
@@ -1414,7 +1338,7 @@ public class BrowseEquip {
             Button button) {
 
         button.setStyle(
-                "-fx-background-color: #4A2C20;" +
+                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                 "-fx-background-radius: 8;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'Poppins';" +
@@ -1426,7 +1350,7 @@ public class BrowseEquip {
 
         button.setOnMouseEntered(
                 e -> button.setStyle(
-                        "-fx-background-color: #6B4A3A;" +
+                        "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F);" +
                         "-fx-background-radius: 8;" +
                         "-fx-text-fill: white;" +
                         "-fx-font-family: 'Poppins';" +
@@ -1439,7 +1363,7 @@ public class BrowseEquip {
 
         button.setOnMouseExited(
                 e -> button.setStyle(
-                        "-fx-background-color: #4A2C20;" +
+                        "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
                         "-fx-background-radius: 8;" +
                         "-fx-text-fill: white;" +
                         "-fx-font-family: 'Poppins';" +
