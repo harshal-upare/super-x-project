@@ -24,6 +24,7 @@ public class RentalRequestModel {
     private String paymentStatus; // "ESCROW HELD", "SETTLED", "REFUNDED", "PENDING"
     private String createdAt;
     private String imagePath;
+    private String district;
 
     public RentalRequestModel() {
         this.status = "PENDING";
@@ -236,6 +237,14 @@ public class RentalRequestModel {
         this.imagePath = imagePath;
     }
 
+    public String getDistrict() {
+        return district != null ? district : providerLocation;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
     private String farmerProfilePic;
     private String paymentMode; // "Razorpay"
     private String paymentTransactionId;
@@ -307,5 +316,87 @@ public class RentalRequestModel {
 
     public void setProviderUpiId(String providerUpiId) {
         this.providerUpiId = providerUpiId;
+    }
+
+    private boolean operatorRequired;
+    private String operatorId;
+    private String operatorName;
+    private String operatorPhone;
+    private String operatorStatus; // "PENDING", "ACCEPTED", "REJECTED"
+    private int equipmentAmount;
+    private int operatorAmount;
+    private String updatedAt;
+    private String rejectionReason;
+
+    public boolean isOperatorRequired() {
+        return operatorRequired;
+    }
+
+    public void setOperatorRequired(boolean operatorRequired) {
+        this.operatorRequired = operatorRequired;
+    }
+
+    public String getOperatorId() {
+        return operatorId;
+    }
+
+    public void setOperatorId(String operatorId) {
+        this.operatorId = operatorId;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public void setOperatorName(String operatorName) {
+        this.operatorName = operatorName;
+    }
+
+    public String getOperatorPhone() {
+        return operatorPhone;
+    }
+
+    public void setOperatorPhone(String operatorPhone) {
+        this.operatorPhone = operatorPhone;
+    }
+
+    public String getOperatorStatus() {
+        return operatorStatus;
+    }
+
+    public void setOperatorStatus(String operatorStatus) {
+        this.operatorStatus = operatorStatus;
+    }
+
+    public int getEquipmentAmount() {
+        return equipmentAmount;
+    }
+
+    public void setEquipmentAmount(int equipmentAmount) {
+        this.equipmentAmount = equipmentAmount;
+    }
+
+    public int getOperatorAmount() {
+        return operatorAmount;
+    }
+
+    public void setOperatorAmount(int operatorAmount) {
+        this.operatorAmount = operatorAmount;
+    }
+
+    public String getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(String updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public String getRejectionReason() {
+        return rejectionReason;
+    }
+
+    public void setRejectionReason(String rejectionReason) {
+        this.rejectionReason = rejectionReason;
     }
 }

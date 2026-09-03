@@ -17,6 +17,10 @@ public class AuthenticateModel {
     String accountNumber;
     String ifsc;
     String upiId;
+    String status = "ACTIVE";
+    String drivingExperience;
+    String equipmentProfession;
+    String licenseImage;
 
     public AuthenticateModel() {}
 
@@ -158,5 +162,37 @@ public class AuthenticateModel {
 
     public void setUpiId(String upiId) {
         this.upiId = upiId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getDrivingExperience() {
+        return drivingExperience;
+    }
+
+    public void setDrivingExperience(String drivingExperience) {
+        this.drivingExperience = drivingExperience;
+    }
+
+    public String getEquipmentProfession() {
+        return equipmentProfession;
+    }
+
+    public void setEquipmentProfession(String equipmentProfession) {
+        this.equipmentProfession = equipmentProfession;
+    }
+
+    public String getLicenseImage() {
+        return licenseImage;
+    }
+
+    public void setLicenseImage(String licenseImage) {
+        this.licenseImage = licenseImage;
     }
 }

@@ -432,8 +432,10 @@ public class RegisterPage {
                     WelcomePage.welcomePageStage.setScene(obj.getProviderDashboardScene(backToLogin));
                 } else if ("Operator".equalsIgnoreCase(redirect)) {
                     com.desgin.view.operator.OperatorProfileStore.setProfile(name, mobile, null, null);
-                    com.desgin.view.operator.OperatorDashboard obj = new com.desgin.view.operator.OperatorDashboard();
-                    WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
+                    com.desgin.view.operator.OperatorProfileStore.email = email;
+                    com.desgin.view.operator.OperatorOnboardingPage onboardingPage =
+                            new com.desgin.view.operator.OperatorOnboardingPage(name, email, mobile, backToLogin);
+                    WelcomePage.welcomePageStage.setScene(onboardingPage.getOnboardingScene());
                 } else if ("Farmer".equalsIgnoreCase(redirect)) {
                     FarmerProfileStore.setCredentials(name, email, mobile);
                     com.desgin.view.farmer.ashutosh.profile.ProfileManagement.updateHeaderGreeting();
@@ -505,7 +507,6 @@ public class RegisterPage {
 
         registerCard.setPrefWidth(430);
         registerCard.setMaxWidth(430);
-        registerCard.setMaxHeight(Region.USE_PREF_SIZE);
 
         borderPane.setCenter(registerCard);
         borderPane.setStyle("-fx-background-color: transparent;");

@@ -128,6 +128,19 @@ public class BookingDetails {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-text-fill: #1B4332;");
 
+                com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem matched = null;
+                for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
+                    if (bId != null && bId.equalsIgnoreCase(b.bookingId)) {
+                        matched = b;
+                        break;
+                    }
+                }
+
+                String provName = (matched != null && matched.providerName != null && !matched.providerName.isEmpty())
+                        ? matched.providerName : "Verified Equipment Provider";
+                String provContact = (matched != null && matched.providerEmail != null && !matched.providerEmail.isEmpty())
+                        ? "Contact: " + matched.providerEmail : "Platform Verified Partner";
+
                 VBox ownerBox = new VBox(8);
                 ownerBox.setPadding(new Insets(15));
                 ownerBox.setStyle(
@@ -136,35 +149,47 @@ public class BookingDetails {
                                                 "-fx-border-color: #E2E8E4;" +
                                                 "-fx-border-radius: 10;");
 
-                Label ownerName = new Label("Verified Equipment Provider");
+                Label ownerName = new Label("👨‍🌾 " + provName);
                 ownerName.setStyle(
                                 "-fx-font-size: 15px;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-text-fill: #374151;");
 
-                Label phone = new Label("Phone: +91 98901 44552");
+                Label phone = new Label(provContact);
                 phone.setStyle(
                                 "-fx-font-size: 13px;" +
                                                 "-fx-text-fill: #6B7280;");
-                ownerBox.getChildren().addAll(
-                                ownerName,
-                                phone);
+                ownerBox.getChildren().addAll(ownerName, phone);
 
-                HBox statusBox = new HBox();
+                if (matched != null && matched.operatorRequired) {
+                    Label opTitle = new Label("👷 Assigned Field Operator: " + (matched.operatorName != null ? matched.operatorName : "District Operator"));
+                    opTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+                    ownerBox.getChildren().add(opTitle);
+                }
+
+                HBox statusBox = new HBox(8);
                 statusBox.setAlignment(Pos.CENTER_LEFT);
 
-                String currentStatus = stat != null ? stat : "ACTIVE";
+                String currentStatus = stat != null ? stat : "PENDING";
                 Label status = new Label(currentStatus);
-                status.setPadding(
-                                new Insets(7, 14, 7, 14));
+                status.setPadding(new Insets(7, 14, 7, 14));
                 String stStyle = "COMPLETED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #EDE3D5; -fx-text-fill: #1B4332;" :
-                                ("ACTIVE".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DCFCE7; -fx-text-fill: #166534;" :
-                                "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C;");
+                                ("ACTIVE".equalsIgnoreCase(currentStatus) || "CONFIRMED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DCFCE7; -fx-text-fill: #166534;" :
+                                ("ACCEPTED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF;" :
+                                "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C;"));
                 status.setStyle(stStyle +
                                                 "-fx-background-radius: 20;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-font-size: 12px;");
-                statusBox.getChildren().add(status);
+
+                String paySt = (matched != null && matched.paymentStatus != null) ? matched.paymentStatus : "PENDING";
+                Label payBadge = new Label("💳 Payment: " + paySt);
+                payBadge.setPadding(new Insets(7, 14, 7, 14));
+                payBadge.setStyle("PAID".equalsIgnoreCase(paySt) ?
+                        "-fx-background-color: #DCFCE7; -fx-text-fill: #166534; -fx-background-radius: 20; -fx-font-weight: bold; -fx-font-size: 12px;" :
+                        "-fx-background-color: #FEF3C7; -fx-text-fill: #92400E; -fx-background-radius: 20; -fx-font-weight: bold; -fx-font-size: 12px;");
+
+                statusBox.getChildren().addAll(status, payBadge);
 
                 HBox actions = new HBox(10);
                 actions.setAlignment(Pos.CENTER_RIGHT);
@@ -390,18 +415,7 @@ public class BookingDetails {
 
                 popup.setScene(scene);
 
-                keepButton.setOnAction(e -> {
-                        popup.close();
-                });
-
-                cancelButton.setOnAction(e -> {
-
-                        System.out.println(
-                                        "Booking cancelled");
-
-                        popup.close();
-                });
-
+                keepButton.setOnAction(e -> popup.close());
                 popup.show();
         }
 }

@@ -35,6 +35,7 @@ public class LeftSideBar {
         public static Button equipmentBtn1;
         public static Button bookingBtn1;
         public static Button wishlistBtn1;
+        public static Button payoutBtn1;
         public static Button paymentBtn1;
         public static Button reviewBtn1;
         public static Button settingsBtn1;
@@ -113,6 +114,9 @@ public class LeftSideBar {
                 wishlistBtn1 = new Button("❤️  Saved Wishlist");
                 styleMenuButton(wishlistBtn1);
 
+                payoutBtn1 = new Button("💳  Payments & Spending");
+                styleMenuButton(payoutBtn1);
+
                 paymentBtn1 = new Button("👷  Search Operators");
                 styleMenuButton(paymentBtn1);
 
@@ -125,7 +129,7 @@ public class LeftSideBar {
                 supportBtn1 = new Button("🛟  Help & Support");
                 styleMenuButton(supportBtn1);
 
-                VBox vBoxBtn1 = new VBox(6, dashboardBtn1, equipmentBtn1, bookingBtn1, wishlistBtn1, paymentBtn1, reviewBtn1);
+                VBox vBoxBtn1 = new VBox(6, dashboardBtn1, equipmentBtn1, bookingBtn1, wishlistBtn1, payoutBtn1, paymentBtn1, reviewBtn1);
 
                 Button logoutBtn1 = new Button("↪  Logout");
                 logoutBtn1.setOnAction(e -> {
@@ -159,6 +163,7 @@ public class LeftSideBar {
                 navigationButtons.add(equipmentBtn1);
                 navigationButtons.add(bookingBtn1);
                 navigationButtons.add(wishlistBtn1);
+                navigationButtons.add(payoutBtn1);
                 navigationButtons.add(paymentBtn1);
                 navigationButtons.add(reviewBtn1);
                 navigationButtons.add(settingsBtn1);
@@ -185,16 +190,22 @@ public class LeftSideBar {
                         FarmerDashboard.borderPane.setCenter(obj.getBooking(root));
                 });
 
-                paymentBtn1.setOnAction(event -> {
-                        setActiveButton(paymentBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
-                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(root));
-                });
-
                 wishlistBtn1.setOnAction(event -> {
                         setActiveButton(wishlistBtn1, navigationButtons);
                         ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
                         FarmerDashboard.borderPane.setCenter(WishList.getWishList());
+                });
+
+                payoutBtn1.setOnAction(event -> {
+                        setActiveButton(payoutBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Payments & Spending 💳", "Review transaction receipts, monthly spending curves, and invoices");
+                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.Payment.getPaymentSection());
+                });
+
+                paymentBtn1.setOnAction(event -> {
+                        setActiveButton(paymentBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
+                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(root));
                 });
 
                 reviewBtn1.setOnAction(event -> {

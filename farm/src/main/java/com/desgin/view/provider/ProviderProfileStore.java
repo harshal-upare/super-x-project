@@ -6,6 +6,7 @@ import java.util.List;
 public class ProviderProfileStore {
 
     public static String name = "Rajesh Patil";
+    public static String fullName = name;
     public static String email = "provider@farmequip.com";
     public static String phone = "+91 98765 00000";
     public static String town = "Pune";

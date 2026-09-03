@@ -91,20 +91,46 @@ public class RentalRequestDAO {
 
     public List<RentalRequestModel> getRequestsByFarmer(String farmerEmail) {
         List<RentalRequestModel> list = new ArrayList<>();
-        if (farmerEmail == null || farmerEmail.trim().isEmpty()) {
-            return list;
-        }
+        String targetEmail = (farmerEmail != null) ? farmerEmail.trim() : "";
+        String farmerPhone = com.desgin.view.farmer.Swapnil.FarmerProfileStore.phone;
+        String farmerName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
+
         try {
             Firestore db = getDb();
-            ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
-                    .whereEqualTo("farmerEmail", farmerEmail.trim())
-                    .get();
-            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
-            for (QueryDocumentSnapshot doc : docs) {
-                RentalRequestModel r = doc.toObject(RentalRequestModel.class);
-                if (r != null) {
-                    if (r.getRequestId() == null) r.setRequestId(doc.getId());
-                    list.add(r);
+            if (!targetEmail.isEmpty()) {
+                ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
+                        .whereEqualTo("farmerEmail", targetEmail)
+                        .get();
+                List<QueryDocumentSnapshot> docs = future.get().getDocuments();
+                for (QueryDocumentSnapshot doc : docs) {
+                    RentalRequestModel r = doc.toObject(RentalRequestModel.class);
+                    if (r != null) {
+                        if (r.getRequestId() == null) r.setRequestId(doc.getId());
+                        list.add(r);
+                    }
+                }
+            }
+
+            // Fallback: Case-insensitive match or match by phone/name across all requests
+            if (list.isEmpty()) {
+                ApiFuture<QuerySnapshot> allFuture = db.collection(COLLECTION_NAME).get();
+                List<QueryDocumentSnapshot> allDocs = allFuture.get().getDocuments();
+                for (QueryDocumentSnapshot doc : allDocs) {
+                    RentalRequestModel r = doc.toObject(RentalRequestModel.class);
+                    if (r != null) {
+                        if (r.getRequestId() == null) r.setRequestId(doc.getId());
+                        boolean match = false;
+                        if (!targetEmail.isEmpty() && r.getFarmerEmail() != null && targetEmail.equalsIgnoreCase(r.getFarmerEmail().trim())) {
+                            match = true;
+                        } else if (farmerPhone != null && !farmerPhone.trim().isEmpty() && farmerPhone.trim().equals(r.getFarmerPhone())) {
+                            match = true;
+                        } else if (targetEmail.isEmpty() && farmerName != null && !farmerName.trim().isEmpty() && farmerName.equalsIgnoreCase(r.getFarmerName())) {
+                            match = true;
+                        }
+                        if (match) {
+                            list.add(r);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -117,9 +143,90 @@ public class RentalRequestDAO {
         if (requestId == null || newStatus == null) return;
         try {
             Firestore db = getDb();
-            db.collection(COLLECTION_NAME).document(requestId).update("status", newStatus).get();
+            db.collection(COLLECTION_NAME).document(requestId).update("status", newStatus, "updatedAt", java.time.LocalDateTime.now().toString()).get();
         } catch (Exception e) {
             throw new DatabaseOperationException("Failed to update rental status in Firestore: " + e.getMessage(), e);
         }
+    }
+
+    public List<RentalRequestModel> getRequestsByOperator(String operatorEmail) {
+        List<RentalRequestModel> list = new ArrayList<>();
+        if (operatorEmail == null || operatorEmail.trim().isEmpty()) {
+            return list;
+        }
+        try {
+            Firestore db = getDb();
+            ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
+                    .whereEqualTo("operatorId", operatorEmail.trim().toLowerCase())
+                    .get();
+            List<QueryDocumentSnapshot> docs = future.get().getDocuments();
+            for (QueryDocumentSnapshot doc : docs) {
+                RentalRequestModel r = doc.toObject(RentalRequestModel.class);
+                if (r != null) {
+                    if (r.getRequestId() == null) r.setRequestId(doc.getId());
+                    list.add(r);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: Could not load requests for operator: " + e.getMessage());
+        }
+        return list;
+    }
+
+    public void updateOperatorStatus(String requestId, String operatorStatus) throws DatabaseOperationException {
+        if (requestId == null || operatorStatus == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(requestId)
+                    .update("operatorStatus", operatorStatus, "updatedAt", java.time.LocalDateTime.now().toString())
+                    .get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to update operator status: " + e.getMessage(), e);
+        }
+    }
+
+    public void updatePaymentStatus(String requestId, String paymentStatus, String transactionId, String paymentMode) throws DatabaseOperationException {
+        if (requestId == null || paymentStatus == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(requestId).update(
+                    "paymentStatus", paymentStatus,
+                    "paymentTransactionId", transactionId != null ? transactionId : "",
+                    "paymentMode", paymentMode != null ? paymentMode : "Razorpay",
+                    "status", "CONFIRMED",
+                    "updatedAt", java.time.LocalDateTime.now().toString()
+            ).get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to update payment status: " + e.getMessage(), e);
+        }
+    }
+
+    public void cancelRequest(String requestId) throws DatabaseOperationException {
+        if (requestId == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(requestId).update(
+                    "status", "CANCELLED",
+                    "updatedAt", java.time.LocalDateTime.now().toString()
+            ).get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to cancel request: " + e.getMessage(), e);
+        }
+    }
+
+    public RentalRequestModel getRequestById(String requestId) {
+        if (requestId == null || requestId.trim().isEmpty()) return null;
+        try {
+            Firestore db = getDb();
+            var doc = db.collection(COLLECTION_NAME).document(requestId.trim()).get().get();
+            if (doc.exists()) {
+                RentalRequestModel r = doc.toObject(RentalRequestModel.class);
+                if (r != null && r.getRequestId() == null) r.setRequestId(doc.getId());
+                return r;
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: Could not load request by id: " + e.getMessage());
+        }
+        return null;
     }
 }

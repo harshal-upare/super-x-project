@@ -141,8 +141,8 @@ public class RentalRequests {
         bar.getChildren().clear();
 
         long pendingCount = requestsList.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
-        long activeCount = requestsList.stream().filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus()) || "ACTIVE".equalsIgnoreCase(r.getStatus())).count();
-        long completedCount = requestsList.stream().filter(r -> "COMPLETED".equalsIgnoreCase(r.getStatus()) || "DECLINED".equalsIgnoreCase(r.getStatus()) || "CANCELLED".equalsIgnoreCase(r.getStatus())).count();
+        long activeCount = requestsList.stream().filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus()) || "ACTIVE".equalsIgnoreCase(r.getStatus()) || "ACCEPTED".equalsIgnoreCase(r.getStatus()) || "CONFIRMED".equalsIgnoreCase(r.getStatus())).count();
+        long completedCount = requestsList.stream().filter(r -> "COMPLETED".equalsIgnoreCase(r.getStatus()) || "DECLINED".equalsIgnoreCase(r.getStatus()) || "CANCELLED".equalsIgnoreCase(r.getStatus()) || "REJECTED".equalsIgnoreCase(r.getStatus())).count();
 
         Button tabPending = new Button("Pending Approvals (" + pendingCount + ")");
         Button tabActive = new Button("Active On-Field (" + activeCount + ")");
@@ -190,8 +190,8 @@ public class RentalRequests {
             boolean matchesTab = false;
 
             if ("PENDING".equals(activeTab) && "PENDING".equals(st)) matchesTab = true;
-            else if ("ACTIVE".equals(activeTab) && ("ACTIVE".equals(st) || "APPROVED".equals(st))) matchesTab = true;
-            else if ("COMPLETED".equals(activeTab) && ("COMPLETED".equals(st) || "DECLINED".equals(st) || "CANCELLED".equals(st))) matchesTab = true;
+            else if ("ACTIVE".equals(activeTab) && ("ACTIVE".equals(st) || "APPROVED".equals(st) || "ACCEPTED".equals(st) || "CONFIRMED".equals(st))) matchesTab = true;
+            else if ("COMPLETED".equals(activeTab) && ("COMPLETED".equals(st) || "DECLINED".equals(st) || "CANCELLED".equals(st) || "REJECTED".equals(st))) matchesTab = true;
 
             if (!matchesTab) continue;
 
@@ -353,17 +353,15 @@ public class RentalRequests {
             Button approve = new Button("✔ Approve");
             approve.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
             approve.setOnAction(e -> {
-                // Instant optimistic update (0 delay)
-                item.setStatus("APPROVED");
+                item.setStatus("ACCEPTED");
                 updateTabCounts(root);
                 renderRequestsList(root);
 
-                // Background write
                 Thread t = new Thread(() -> {
                     try {
-                        new RentalRequestDAO().updateRequestStatus(item.getRequestId(), "APPROVED");
+                        new com.desgin.service.BookingService().providerAccept(item.getRequestId());
                         if (item.getMachineryId() != null) {
-                            new MachineryDAO().updateMachineryStatus(item.getMachineryId(), "RENTED OUT");
+                            new MachineryDAO().updateMachineryStatus(item.getMachineryId(), "RESERVED");
                         }
                     } catch (Exception ignored) {}
                 });
@@ -374,13 +372,13 @@ public class RentalRequests {
             Button decline = new Button("✕ Decline");
             decline.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 14;");
             decline.setOnAction(e -> {
-                item.setStatus("DECLINED");
+                item.setStatus("REJECTED");
                 updateTabCounts(root);
                 renderRequestsList(root);
 
                 Thread t = new Thread(() -> {
                     try {
-                        new RentalRequestDAO().updateRequestStatus(item.getRequestId(), "DECLINED");
+                        new com.desgin.service.BookingService().providerReject(item.getRequestId(), "Provider currently unavailable for selected dates.");
                     } catch (Exception ignored) {}
                 });
                 t.setDaemon(true);
@@ -389,7 +387,7 @@ public class RentalRequests {
 
             actions.getChildren().addAll(decline, approve);
 
-        } else if ("APPROVED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status)) {
+        } else if ("APPROVED".equalsIgnoreCase(status) || "ACCEPTED".equalsIgnoreCase(status) || "CONFIRMED".equalsIgnoreCase(status) || "ACTIVE".equalsIgnoreCase(status)) {
             Button complete = new Button("✔ Mark Job Completed");
             complete.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16;");
             complete.setOnAction(e -> {
@@ -399,18 +397,13 @@ public class RentalRequests {
 
                 Thread t = new Thread(() -> {
                     try {
-                        new RentalRequestDAO().updateRequestStatus(item.getRequestId(), "COMPLETED");
-                        if (item.getMachineryId() != null) {
-                            new MachineryDAO().updateMachineryStatus(item.getMachineryId(), "AVAILABLE");
-                        }
+                        new com.desgin.service.BookingService().completeBooking(item.getRequestId());
                     } catch (Exception ignored) {}
                 });
                 t.setDaemon(true);
                 t.start();
             });
-
             actions.getChildren().add(complete);
-
         } else {
             Label done = new Label("Completed");
             done.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #6B7280;");

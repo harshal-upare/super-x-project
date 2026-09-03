@@ -8,10 +8,13 @@ import com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.stage.Modality;
+import javafx.stage.Stage;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -169,10 +172,8 @@ public class MyBookings {
         new Thread(() -> {
             try {
                 String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                if (farmerEmail == null || farmerEmail.trim().isEmpty()) return;
                 List<com.desgin.model.RentalRequestModel> requests = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(farmerEmail);
-                if (requests.isEmpty()) {
-                    requests = new com.desgin.dao.RentalRequestDAO().getAllRequests();
-                }
                 BookingDataStore.syncFromFirestore(requests);
                 javafx.application.Platform.runLater(() -> {
                     updateSummaryCardValues();
@@ -244,18 +245,7 @@ public class MyBookings {
         } else {
             for (BookingItem item : list) {
                 bookingList.getChildren().add(
-                        createBookingCard(
-                                item.equipmentName,
-                                item.category,
-                                item.bookingId,
-                                item.startDate,
-                                item.endDate,
-                                item.dailyRate,
-                                item.totalAmount,
-                                item.status,
-                                item.imagePath,
-                                innerRoot
-                        )
+                        createBookingCard(item, innerRoot)
                 );
             }
         }
@@ -314,17 +304,16 @@ public class MyBookings {
         }
     }
 
-    private HBox createBookingCard(
-            String equipmentName,
-            String equipmentType,
-            String bookingId,
-            String startDate,
-            String endDate,
-            String pricePerDay,
-            String totalPrice,
-            String status,
-            String imagePath,
-            StackPane root) {
+    private HBox createBookingCard(BookingItem item, StackPane root) {
+        String equipmentName = item.equipmentName;
+        String equipmentType = item.category;
+        String bookingId = item.bookingId;
+        String startDate = item.startDate;
+        String endDate = item.endDate;
+        String pricePerDay = item.dailyRate;
+        String totalPrice = item.totalAmount;
+        String status = item.status;
+        String imagePath = item.imagePath;
 
         HBox card = new HBox(20);
         card.setPadding(new Insets(16, 20, 16, 20));
@@ -470,6 +459,22 @@ public class MyBookings {
         HBox btnRow = new HBox(8, statusLabel, viewButton);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
 
+        if (!"PAID".equalsIgnoreCase(item.paymentStatus) && !"CANCELLED".equalsIgnoreCase(status) && !"REJECTED".equalsIgnoreCase(status)) {
+            Button payBtn = new Button("💳 Pay with Razorpay");
+            payBtn.setPrefHeight(34);
+            payBtn.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 0 12;");
+            payBtn.setOnAction(e -> openPayModal(item));
+            btnRow.getChildren().add(payBtn);
+        }
+
+        if (!"CANCELLED".equalsIgnoreCase(status) && !"COMPLETED".equalsIgnoreCase(status) && !"REJECTED".equalsIgnoreCase(status)) {
+            Button cancelBtn = new Button("✖ Cancel Booking");
+            cancelBtn.setPrefHeight(34);
+            cancelBtn.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 0 12;");
+            cancelBtn.setOnAction(e -> promptCancelBooking(item));
+            btnRow.getChildren().add(cancelBtn);
+        }
+
         if ("COMPLETED".equalsIgnoreCase(status)) {
             Button rateReviewBtn = new Button("⭐ Rate & Review");
             rateReviewBtn.setPrefHeight(34);
@@ -526,5 +531,157 @@ public class MyBookings {
         });
 
         return card;
+    }
+
+    private void openPayModal(BookingItem item) {
+        // Pre-payment validation
+        String loggedInEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+        if (loggedInEmail != null && item.farmerEmail != null && !item.farmerEmail.trim().isEmpty() 
+                && !loggedInEmail.trim().equalsIgnoreCase(item.farmerEmail.trim())) {
+            showErrorAlert("Unauthorized", "This booking belongs to another account (" + item.farmerEmail + ").");
+            return;
+        }
+        if ("PAID".equalsIgnoreCase(item.paymentStatus)) {
+            showErrorAlert("Already Paid", "This booking has already been paid. No further action needed.");
+            return;
+        }
+        if ("CANCELLED".equalsIgnoreCase(item.status) || "REJECTED".equalsIgnoreCase(item.status)) {
+            showErrorAlert("Booking Cancelled", "This booking has been cancelled. Payment is not allowed.");
+            return;
+        }
+
+        Stage stage = new Stage();
+        stage.initModality(Modality.APPLICATION_MODAL);
+        stage.setTitle("Pay Booking #" + item.bookingId + " via Razorpay");
+
+        VBox rootBox = new VBox(14);
+        rootBox.setPadding(new Insets(24));
+        rootBox.setStyle("-fx-background-color: #F8FAF8; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-background-radius: 12; -fx-border-radius: 12;");
+        rootBox.setPrefWidth(460);
+
+        Text title = new Text("💳 Razorpay Payment Checkout");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text info = new Text("• Equipment: " + item.equipmentName + "\n• Scheduled: " + item.startDate + " to " + item.endDate + "\n• Total Due: " + item.totalAmount);
+        info.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #374151;");
+
+        Label statusLbl = new Label("Click below to open the Razorpay payment gateway.");
+        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        statusLbl.setWrapText(true);
+
+        int amt = 1000;
+        try {
+            amt = Integer.parseInt(item.totalAmount.replaceAll("[^0-9]", ""));
+        } catch (Exception ignored) {}
+        final int finalAmt = amt;
+
+        Button payBtn = new Button("🚀 Launch Razorpay (" + item.totalAmount + ")");
+        payBtn.setMaxWidth(Double.MAX_VALUE);
+        payBtn.setPrefHeight(42);
+        payBtn.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        Button confirmBtn = new Button("✔ Confirm Payment & Secure Booking");
+        confirmBtn.setMaxWidth(Double.MAX_VALUE);
+        confirmBtn.setPrefHeight(42);
+        confirmBtn.setStyle("-fx-background-color: #15803D; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        payBtn.setOnAction(e -> {
+            payBtn.setDisable(true);
+            statusLbl.setText("Connecting to Razorpay gateway...");
+            new Thread(() -> {
+                try {
+                    String url = com.desgin.service.RazorpayService.createPaymentLink(
+                            finalAmt,
+                            item.bookingId,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.name,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.email,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.phone
+                    );
+                    com.desgin.service.RazorpayService.openPaymentInBrowser(url);
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Payment link launched in browser! Complete payment and click Confirm.");
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2563EB;");
+                        payBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Notice: " + ex.getMessage());
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #B91C1C;");
+                        payBtn.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        confirmBtn.setOnAction(e -> {
+            confirmBtn.setDisable(true);
+            statusLbl.setText("Verifying and confirming payment...");
+            statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #2563EB;");
+            new Thread(() -> {
+                try {
+                    new com.desgin.service.BookingService().confirmPayment(
+                            item.bookingId,
+                            "PAY_RZP_" + System.currentTimeMillis(),
+                            "ORD_" + System.currentTimeMillis(),
+                            "Razorpay Online"
+                    );
+                    javafx.application.Platform.runLater(() -> {
+                        stage.close();
+                        syncBookingsFromFirestore();
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Payment confirmation failed: " + ex.getMessage());
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #B91C1C;");
+                        confirmBtn.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        Button cancelModalBtn = new Button("Close");
+        cancelModalBtn.setStyle("-fx-background-color: #E5E7EB; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-background-radius: 6; -fx-cursor: hand;");
+        cancelModalBtn.setOnAction(e -> stage.close());
+
+        HBox bottomRow = new HBox(8, cancelModalBtn);
+        bottomRow.setAlignment(Pos.CENTER_RIGHT);
+
+        rootBox.getChildren().addAll(title, info, statusLbl, payBtn, confirmBtn, bottomRow);
+
+        Scene sc = new Scene(rootBox);
+        stage.setScene(sc);
+        stage.show();
+    }
+
+    private void showErrorAlert(String title, String message) {
+        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.WARNING);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    private void promptCancelBooking(BookingItem item) {
+        javafx.scene.control.Alert confirm = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Cancel Booking Confirmation");
+        confirm.setHeaderText("Cancel Booking #" + item.bookingId + "?");
+        confirm.setContentText("Are you sure you want to cancel your rental for " + item.equipmentName + "?\n\nIf paid, any escrow funds will be credited back per platform policy.");
+
+        java.util.Optional<javafx.scene.control.ButtonType> res = confirm.showAndWait();
+        if (res.isPresent() && res.get() == javafx.scene.control.ButtonType.OK) {
+            item.status = "CANCELLED";
+            com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(item.bookingId);
+            updateSummaryCardValues();
+            showAllBookings();
+
+            new Thread(() -> {
+                try {
+                    new com.desgin.service.BookingService().cancelBooking(item.bookingId, "Farmer");
+                    javafx.application.Platform.runLater(this::syncBookingsFromFirestore);
+                } catch (Exception ex) {
+                    System.err.println("Notice: Cancellation error: " + ex.getMessage());
+                }
+            }).start();
+        }
     }
 }

@@ -58,8 +58,52 @@ public class OperatorHome {
         if (cardWagesSub != null) cardWagesSub.setText(OperatorProfileStore.wagesEarnedSub);
     }
 
+    public static void loadOperatorMetricsFromFirestore() {
+        new Thread(() -> {
+            try {
+                String opEmail = OperatorProfileStore.email;
+                if (opEmail == null || opEmail.trim().isEmpty()) return;
+                java.util.List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(opEmail);
+                int totalJobs = list.size();
+                int activeJobsCount = 0;
+                int completedJobsCount = 0;
+                int totalWages = 0;
+                java.util.Set<String> machines = new java.util.HashSet<>();
+
+                for (com.desgin.model.RentalRequestModel r : list) {
+                    if (r.getMachineryName() != null) machines.add(r.getMachineryName());
+                    String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "";
+                    int wage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
+                    if ("ACTIVE".equals(st) || "CONFIRMED".equals(st) || "ACCEPTED".equals(st)) {
+                        activeJobsCount++;
+                        totalWages += wage;
+                    } else if ("COMPLETED".equals(st)) {
+                        completedJobsCount++;
+                        totalWages += wage;
+                    }
+                }
+
+                final int finalActive = activeJobsCount;
+                final int finalMach = machines.size();
+                final int finalWages = totalWages;
+                final int finalCompleted = completedJobsCount;
+
+                javafx.application.Platform.runLater(() -> {
+                    OperatorProfileStore.assignedMachinery = finalMach + " Units";
+                    OperatorProfileStore.assignedMachinerySub = finalActive + " In Shift • " + Math.max(0, finalMach - finalActive) + " Ready";
+                    OperatorProfileStore.activeJobs = finalActive + " Active";
+                    OperatorProfileStore.activeJobsSub = finalCompleted + " Completed • " + totalJobs + " Total";
+                    OperatorProfileStore.wagesEarned = "₹" + String.format("%,d", finalWages);
+                    OperatorProfileStore.wagesEarnedSub = "Secured via Platform Escrow";
+                    refreshDynamicMetrics();
+                });
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
     public static ScrollPane getPage() {
         OperatorProfileManagement.updateHeaderGreeting();
+        loadOperatorMetricsFromFirestore();
 
         // Weather Card
         HBox weatherCard = createWeatherCard("Pune Agri Zone", 18.5204, 73.8567);

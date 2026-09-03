@@ -265,4 +265,91 @@ public class AuthDAO {
         }
         return list;
     }
+
+    public java.util.List<AuthenticateModel> getAllUsers() {
+        java.util.List<AuthenticateModel> all = new java.util.ArrayList<>();
+        String[] roles = new String[]{"Farmer", "Provider", "Operator", "Admin"};
+        for (String role : roles) {
+            try {
+                if (db != null) {
+                    var docs = db.collection(role).get().get().getDocuments();
+                    for (var d : docs) {
+                        AuthenticateModel m = d.toObject(AuthenticateModel.class);
+                        if (m != null) {
+                            if (m.getRole() == null || m.getRole().isEmpty()) m.setRole(role);
+                            all.add(m);
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                System.err.println("Notice: Could not fetch users for role " + role + ": " + e.getMessage());
+            }
+        }
+        return all;
+    }
+
+    public boolean updateUserStatus(String email, String role, String newStatus) {
+        if (email == null || role == null || newStatus == null || db == null) return false;
+        try {
+            java.util.Map<String, Object> update = new java.util.HashMap<>();
+            update.put("status", newStatus);
+            db.collection(role).document(email.trim()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Notice: Failed to update user status: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateOperatorBusinessInfo(String email, String name, String phone, String photoUrl, String drivingExp, String equipProf, String licenseImgUrl) {
+        if (email == null || db == null) return false;
+        try {
+            java.util.Map<String, Object> update = new java.util.HashMap<>();
+            if (name != null && !name.trim().isEmpty()) update.put("name", name.trim());
+            if (phone != null && !phone.trim().isEmpty()) update.put("num", phone.trim());
+            if (photoUrl != null && !photoUrl.trim().isEmpty()) update.put("profilePic", photoUrl.trim());
+            if (drivingExp != null && !drivingExp.trim().isEmpty()) update.put("drivingExperience", drivingExp.trim());
+            if (equipProf != null && !equipProf.trim().isEmpty()) update.put("equipmentProfession", equipProf.trim());
+            if (licenseImgUrl != null && !licenseImgUrl.trim().isEmpty()) update.put("licenseImage", licenseImgUrl.trim());
+            db.collection("Operator").document(email.trim()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Notice: Failed to update operator business info: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public java.util.List<AuthenticateModel> getAvailableOperators() {
+        java.util.List<AuthenticateModel> operators = new java.util.ArrayList<>();
+        if (db == null) return operators;
+        try {
+            var docs = db.collection("Operator").get().get().getDocuments();
+            for (var d : docs) {
+                AuthenticateModel m = d.toObject(AuthenticateModel.class);
+                if (m != null) {
+                    m.setRole("Operator");
+                    operators.add(m);
+                }
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: Could not load available operators: " + e.getMessage());
+        }
+        return operators;
+    }
+
+    public java.util.Map<String, Integer> getUserRoleCounts() {
+        java.util.Map<String, Integer> counts = new java.util.HashMap<>();
+        counts.put("Farmer", 0);
+        counts.put("Provider", 0);
+        counts.put("Operator", 0);
+        counts.put("Admin", 0);
+        if (db == null) return counts;
+        for (String role : new String[]{"Farmer", "Provider", "Operator", "Admin"}) {
+            try {
+                int size = db.collection(role).get().get().size();
+                counts.put(role, size);
+            } catch (Exception ignored) {}
+        }
+        return counts;
+    }
 }

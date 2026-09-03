@@ -134,6 +134,8 @@ public class Authentication {
         emailErrorLabel.setVisible(false);
         emailErrorLabel.setManaged(false);
 
+        emailErrorLabel.setPadding(new Insets(3, 0, 2, 0));
+
         mailAndPhoneTextField.focusedProperty().addListener((obs, oldV, isFocused) -> {
             if (emailErrorLabel.isVisible()) return;
             mailAndPhoneTextField.setStyle(isFocused ? INPUT_FOCUS_STYLE : INPUT_NORMAL_STYLE);
@@ -161,6 +163,7 @@ public class Authentication {
         passwordErrorLabel.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 11px; -fx-font-weight: bold; -fx-font-family: 'Poppins';");
         passwordErrorLabel.setWrapText(true);
         passwordErrorLabel.setMaxWidth(290);
+        passwordErrorLabel.setPadding(new Insets(3, 0, 2, 0));
         passwordErrorLabel.setVisible(false);
         passwordErrorLabel.setManaged(false);
 
@@ -185,38 +188,43 @@ public class Authentication {
             }
         });
 
-        // ------------------ ROLES (3 ROLES: Farmer, Provider, Operator) ------------------
+        // ------------------ ROLES (4 ROLES: Farmer, Provider, Operator, Admin) ------------------
         Label roleLabel = new Label("Login As");
         roleLabel.setStyle("-fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins';");
 
         RadioButton farmerRadio = new RadioButton("Farmer");
         RadioButton providerRadio = new RadioButton("Provider");
         RadioButton operatorRadio = new RadioButton("Operator");
+        //RadioButton adminRadio = new RadioButton("Admin");
 
-        String radioStyle = "-fx-font-size: 13px; -fx-font-weight: 500; -fx-text-fill: #374151; -fx-cursor: hand; -fx-font-family: 'Poppins';";
+        String radioStyle = "-fx-font-size: 12.5px; -fx-font-weight: 500; -fx-text-fill: #374151; -fx-cursor: hand; -fx-font-family: 'Poppins';";
         farmerRadio.setStyle(radioStyle);
         providerRadio.setStyle(radioStyle);
         operatorRadio.setStyle(radioStyle);
+        //adminRadio.setStyle(radioStyle);
 
         farmerRadio.setFocusTraversable(false);
         providerRadio.setFocusTraversable(false);
         operatorRadio.setFocusTraversable(false);
+        //adminRadio.setFocusTraversable(false);
 
         ToggleGroup loginRoleGroup = new ToggleGroup();
         farmerRadio.setToggleGroup(loginRoleGroup);
         providerRadio.setToggleGroup(loginRoleGroup);
         operatorRadio.setToggleGroup(loginRoleGroup);
+        //adminRadio.setToggleGroup(loginRoleGroup);
         farmerRadio.setSelected(true);
 
-        HBox roleHBox = new HBox(16, farmerRadio, providerRadio, operatorRadio);
+        //HBox roleHBox = new HBox(12, farmerRadio, providerRadio, operatorRadio, adminRadio);
+        HBox roleHBox = new HBox(22, farmerRadio, providerRadio, operatorRadio);
         roleHBox.setAlignment(Pos.CENTER_LEFT);
         roleHBox.setPadding(new Insets(2, 0, 0, 0));
 
-        VBox emailBox = new VBox(3, label1, mailAndPhoneTextField, emailErrorLabel);
-        VBox passwordBox = new VBox(3, label2, passwordTextField, passwordErrorLabel);
-        VBox roleBox = new VBox(3, roleLabel, roleHBox);
+        VBox emailBox = new VBox(4, label1, mailAndPhoneTextField, emailErrorLabel);
+        VBox passwordBox = new VBox(4, label2, passwordTextField, passwordErrorLabel);
+        VBox roleBox = new VBox(6, roleLabel, roleHBox);
 
-        VBox secondaryVBox = new VBox(10, emailBox, passwordBox, roleBox);
+        VBox secondaryVBox = new VBox(14, emailBox, passwordBox, roleBox);
         secondaryVBox.setMaxWidth(290);
         secondaryVBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -253,6 +261,30 @@ public class Authentication {
             Runnable backToLogin = () -> backtologin();
 
             AuthenticateController objController = new AuthenticateController();
+
+            if ("Admin".equalsIgnoreCase(selectedRole)) {
+                AuthenticateController.AdminAuthResult result = objController.authenticateAndAuthorizeAdmin(inputUser, inputPassword);
+                if (result != null && result.isSuccess()) {
+                    if (result.getUser() != null) {
+                        com.desgin.view.admin.AdminProfileStore.setAdminProfile(
+                            result.getUser().getName(),
+                            result.getUser().getMail(),
+                            result.getUser().getNum(),
+                            "Master Admin"
+                        );
+                    }
+                    com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
+                    com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
+                    WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
+                } else {
+                    String msg = result != null ? result.getMessage() : "Invalid Admin credentials.";
+                    emailErrorLabel.setText(msg);
+                    emailErrorLabel.setVisible(true);
+                    emailErrorLabel.setManaged(true);
+                    mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+                }
+                return;
+            }
 
             AuthenticateModel userDoc = objController.getUser(inputUser, selectedRole);
             if (userDoc == null) {
@@ -300,6 +332,23 @@ public class Authentication {
 
             } else if ("Operator".equalsIgnoreCase(selectedRole)) {
                 com.desgin.view.operator.OperatorProfileStore.setProfile(userDoc.getName(), userDoc.getNum(), null, null);
+                com.desgin.view.operator.OperatorProfileStore.email = (userDoc.getMail() != null && !userDoc.getMail().isEmpty()) ? userDoc.getMail() : inputUser;
+                if (userDoc.getProfilePic() != null && !userDoc.getProfilePic().isEmpty()) {
+                    com.desgin.view.operator.OperatorProfileStore.profilePic = userDoc.getProfilePic();
+                }
+                if (userDoc.getDrivingExperience() != null && !userDoc.getDrivingExperience().isEmpty()) {
+                    com.desgin.view.operator.OperatorProfileStore.drivingExperience = userDoc.getDrivingExperience();
+                }
+                if (userDoc.getEquipmentProfession() != null && !userDoc.getEquipmentProfession().isEmpty()) {
+                    com.desgin.view.operator.OperatorProfileStore.equipmentProfession = userDoc.getEquipmentProfession();
+                }
+                if (userDoc.getLicenseImage() != null && !userDoc.getLicenseImage().isEmpty()) {
+                    com.desgin.view.operator.OperatorProfileStore.licenseImage = userDoc.getLicenseImage();
+                }
+                if (userDoc.getTown() != null && !userDoc.getTown().isEmpty()) {
+                    com.desgin.view.operator.OperatorProfileStore.zone = userDoc.getTown() + (userDoc.getDistrict() != null ? (" / " + userDoc.getDistrict()) : "");
+                }
+                com.desgin.view.operator.OperatorProfileManagement.updateHeaderGreeting();
                 OperatorDashboard obj = new OperatorDashboard();
                 WelcomePage.welcomePageStage.setScene(obj.getOperatorDashboardScene(backToLogin));
 
@@ -377,7 +426,6 @@ public class Authentication {
 
         loginVBox.setPrefWidth(420);
         loginVBox.setMaxWidth(420);
-        loginVBox.setMaxHeight(Region.USE_PREF_SIZE);
 
         return loginVBox;
     }
@@ -654,7 +702,6 @@ public class Authentication {
 
         adminVBox.setPrefWidth(420);
         adminVBox.setMaxWidth(420);
-        adminVBox.setMaxHeight(Region.USE_PREF_SIZE);
 
         return adminVBox;
     }
@@ -1002,7 +1049,6 @@ public class Authentication {
 
         registerAdminCard.setPrefWidth(420);
         registerAdminCard.setMaxWidth(420);
-        registerAdminCard.setMaxHeight(Region.USE_PREF_SIZE);
 
         return registerAdminCard;
     }

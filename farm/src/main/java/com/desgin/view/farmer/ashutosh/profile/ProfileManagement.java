@@ -977,17 +977,25 @@ public class ProfileManagement {
         Thread t = new Thread(() -> {
             try {
                 String mail = FarmerProfileStore.email;
-                List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(mail);
-                if (list.isEmpty()) {
-                    list = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+                if (mail == null || mail.trim().isEmpty()) return;
+
+                // 1. Fetch real notifications from NotificationDAO
+                java.util.List<com.desgin.model.NotificationModel> dbNotifs = new com.desgin.dao.NotificationDAO().getNotificationsByUser(mail);
+                int unreadCount = 0;
+                for (com.desgin.model.NotificationModel n : dbNotifs) {
+                    if (!n.isRead()) unreadCount++;
                 }
-                long count = list.stream().filter(r -> "APPROVED".equalsIgnoreCase(r.getStatus()) || "PENDING".equalsIgnoreCase(r.getStatus())).count();
-                List<com.desgin.model.RentalRequestModel> finalRequests = list;
+
+                // 2. Fetch farmer's own requests
+                List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(mail);
+                final int finalUnread = unreadCount;
+                final java.util.List<com.desgin.model.NotificationModel> finalNotifs = dbNotifs;
+                final List<com.desgin.model.RentalRequestModel> finalRequests = list;
 
                 javafx.application.Platform.runLater(() -> {
                     if (farmerNotifBadge != null) {
-                        if (count > 0) {
-                            farmerNotifBadge.setText(String.valueOf(count));
+                        if (finalUnread > 0) {
+                            farmerNotifBadge.setText(String.valueOf(finalUnread));
                             farmerNotifBadge.setVisible(true);
                             farmerNotifBadge.setManaged(true);
                         } else {
@@ -998,9 +1006,14 @@ public class ProfileManagement {
 
                     if (farmerNotifList != null) {
                         farmerNotifList.getChildren().clear();
-                        if (finalRequests.isEmpty()) {
-                            farmerNotifList.getChildren().add(createNotifCard("🔔 No Activity", "No active bookings or alerts at this time.", "Just now", "STATUS", "#F3F4F6", "#4B5563"));
-                        } else {
+
+                        if (!finalNotifs.isEmpty()) {
+                            for (com.desgin.model.NotificationModel n : finalNotifs.stream().limit(6).toList()) {
+                                String bg = n.isRead() ? "#F3F4F6" : "#DCFCE7";
+                                String fg = n.isRead() ? "#4B5563" : "#15803D";
+                                farmerNotifList.getChildren().add(createNotifCard(n.getTitle(), n.getMessage(), n.getCreatedAt(), n.getType(), bg, fg));
+                            }
+                        } else if (!finalRequests.isEmpty()) {
                             for (com.desgin.model.RentalRequestModel r : finalRequests.stream().limit(6).toList()) {
                                 String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
                                 String title;
@@ -1009,12 +1022,12 @@ public class ProfileManagement {
                                 String bg;
                                 String fg;
 
-                                if ("APPROVED".equals(st)) {
+                                if ("APPROVED".equals(st) || "ACCEPTED".equals(st)) {
                                     title = "✅ Booking Approved";
                                     desc = "Your request for " + r.getMachineryName() + " was approved by provider " + (r.getProviderName() != null ? r.getProviderName() : "") + "!";
                                     bg = "#DCFCE7";
                                     fg = "#15803D";
-                                } else if ("DECLINED".equals(st)) {
+                                } else if ("DECLINED".equals(st) || "REJECTED".equals(st)) {
                                     title = "❌ Booking Declined";
                                     desc = "Provider was unable to fulfill request for " + r.getMachineryName() + ".";
                                     bg = "#FEE2E2";
@@ -1032,6 +1045,8 @@ public class ProfileManagement {
                                 }
                                 farmerNotifList.getChildren().add(createNotifCard(title, desc, time, st, bg, fg));
                             }
+                        } else {
+                            farmerNotifList.getChildren().add(createNotifCard("🔔 No Notifications", "You are all caught up! Booking and payment alerts will appear here.", "Just now", "SYSTEM", "#F3F4F6", "#4B5563"));
                         }
                     }
                 });

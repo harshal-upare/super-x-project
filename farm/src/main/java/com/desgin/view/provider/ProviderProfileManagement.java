@@ -490,18 +490,26 @@ public class ProviderProfileManagement {
         Thread t = new Thread(() -> {
             try {
                 String email = ProviderProfileStore.email;
-                List<RentalRequestModel> list = new RentalRequestDAO().getRequestsByProvider(email);
-                if (list.isEmpty()) {
-                    list = new RentalRequestDAO().getAllRequests();
+                if (email == null || email.trim().isEmpty()) return;
+
+                java.util.List<com.desgin.model.NotificationModel> notifs = new com.desgin.dao.NotificationDAO().getNotificationsByUser(email);
+                int unreadCount = 0;
+                for (com.desgin.model.NotificationModel n : notifs) {
+                    if (!n.isRead()) unreadCount++;
                 }
 
+                List<RentalRequestModel> list = new RentalRequestDAO().getRequestsByProvider(email);
                 long pending = list.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getStatus())).count();
-                List<RentalRequestModel> finalRequests = list;
+                int totalBadge = unreadCount + (int) pending;
+
+                final int finalBadge = totalBadge;
+                final java.util.List<com.desgin.model.NotificationModel> finalNotifs = notifs;
+                final List<RentalRequestModel> finalRequests = list;
 
                 Platform.runLater(() -> {
                     if (notifBadge != null) {
-                        if (pending > 0) {
-                            notifBadge.setText(String.valueOf(pending));
+                        if (finalBadge > 0) {
+                            notifBadge.setText(String.valueOf(finalBadge));
                             notifBadge.setVisible(true);
                             notifBadge.setManaged(true);
                         } else {
@@ -512,17 +520,22 @@ public class ProviderProfileManagement {
 
                     if (notifListContainer != null) {
                         notifListContainer.getChildren().clear();
-                        if (finalRequests.isEmpty()) {
-                            notifListContainer.getChildren().add(createNotificationItem("🔔 Notifications", "No active requests or alerts at this time.", "Just now"));
-                        } else {
+
+                        if (!finalNotifs.isEmpty()) {
+                            for (com.desgin.model.NotificationModel n : finalNotifs.stream().limit(5).toList()) {
+                                notifListContainer.getChildren().add(createNotificationItem(n.getTitle(), n.getMessage(), n.getCreatedAt()));
+                            }
+                        } else if (!finalRequests.isEmpty()) {
                             for (RentalRequestModel r : finalRequests.stream().limit(5).toList()) {
                                 String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
-                                String icon = "PENDING".equals(st) ? "📥 " : ("APPROVED".equals(st) ? "🚜 " : "✔ ");
-                                String title = icon + ("PENDING".equals(st) ? "New Request from " + r.getFarmerName() : ("APPROVED".equals(st) ? "Active Job: " + r.getMachineryName() : "Completed Job"));
+                                String icon = "PENDING".equals(st) ? "📥 " : ("APPROVED".equals(st) || "ACCEPTED".equals(st) ? "🚜 " : "✔ ");
+                                String title = icon + ("PENDING".equals(st) ? "New Request from " + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") : (("APPROVED".equals(st) || "ACCEPTED".equals(st)) ? "Active Job: " + r.getMachineryName() : "Completed Job"));
                                 String desc = "📍 " + (r.getFarmerLocation() != null ? r.getFarmerLocation() : "Local") + " • " + r.getMachineryName() + " (" + r.getDays() + " days)";
                                 String time = r.getStartDate() != null ? r.getStartDate() : "Recent";
                                 notifListContainer.getChildren().add(createNotificationItem(title, desc, time));
                             }
+                        } else {
+                            notifListContainer.getChildren().add(createNotificationItem("🔔 Notifications", "No active requests or alerts at this time.", "Just now"));
                         }
                     }
                 });

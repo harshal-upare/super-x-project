@@ -5,12 +5,18 @@ import java.util.List;
 
 public class OperatorProfileStore {
 
+    public static String email = "operator@farmequip.com";
     public static String name = "Ramesh Chavan";
     public static String phone = "+91 94231 98765";
     public static String zone = "Pune / Baramati Sector";
     public static String licenseNo = "MH-12-HM-88492 (Valid Heavy Agri)";
     public static String badge = "Certified Pro";
     public static String status = "Available for Field Shifts";
+    public static String profilePic = "";
+    public static String drivingExperience = "3-5 Years (Certified Operator)";
+    public static String equipmentProfession = "Tractors & Heavy Tillage";
+    public static String licenseImage = "";
+    public static boolean availableForShifts = true;
 
     // Dynamic Operator KPI Metrics
     public static String assignedMachinery = "4 Units";
@@ -37,6 +43,27 @@ public class OperatorProfileStore {
         if (newLicense != null && !newLicense.trim().isEmpty()) {
             licenseNo = newLicense.trim();
         }
+
+        notifyListeners();
+    }
+
+    public static synchronized void setProfilePic(String pic) {
+        if (pic != null && !pic.trim().isEmpty()) {
+            profilePic = pic.trim();
+            notifyListeners();
+        }
+    }
+
+    public static synchronized void setBusinessProfile(String newName, String newPhone, String newEmail,
+                                                      String newExperience, String newProfession,
+                                                      String newPhoto, String newLicenseImg) {
+        if (newName != null && !newName.trim().isEmpty()) name = newName.trim();
+        if (newPhone != null && !newPhone.trim().isEmpty()) phone = newPhone.trim();
+        if (newEmail != null && !newEmail.trim().isEmpty()) email = newEmail.trim();
+        if (newExperience != null && !newExperience.trim().isEmpty()) drivingExperience = newExperience.trim();
+        if (newProfession != null && !newProfession.trim().isEmpty()) equipmentProfession = newProfession.trim();
+        if (newPhoto != null && !newPhoto.trim().isEmpty()) profilePic = newPhoto.trim();
+        if (newLicenseImg != null && !newLicenseImg.trim().isEmpty()) licenseImage = newLicenseImg.trim();
 
         notifyListeners();
     }

@@ -171,4 +171,31 @@ public class MachineryModel {
     public void setCreatedAt(String createdAt) {
         this.createdAt = createdAt;
     }
+
+    private String registrationNumber;
+    private String model;
+
+    public String getRegistrationNumber() {
+        return registrationNumber != null ? registrationNumber : (id != null ? id : "MH-12-REG");
+    }
+
+    public void setRegistrationNumber(String registrationNumber) {
+        this.registrationNumber = registrationNumber;
+    }
+
+    public String getModel() {
+        return model != null ? model : name;
+    }
+
+    public void setModel(String model) {
+        this.model = model;
+    }
+
+    public String getSpecifications() {
+        return specs != null ? specs : "Agricultural Ready";
+    }
+
+    public void setSpecifications(String specifications) {
+        this.specs = specifications;
+    }
 }

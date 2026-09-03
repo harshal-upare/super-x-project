@@ -3,8 +3,20 @@ package com.desgin.view.operator;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.desgin.dao.PayoutDAO;
+import com.desgin.dao.RentalRequestDAO;
+import com.desgin.model.PayoutModel;
+import com.desgin.model.RentalRequestModel;
+
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -41,10 +53,12 @@ public class OperatorEarnings {
         }
     }
 
-    private static int totalLifetime = 142800;
-    private static int availableBalance = 12400;
-    private static int pendingEscrow = 4200;
-    private static int totalWithdrawn = 126200;
+    private static int totalLifetime = 0;
+    private static int availableBalance = 0;
+    private static int pendingEscrow = 0;
+    private static int totalWithdrawn = 0;
+    private static int thisMonthEarnings = 0;
+    private static int completedJobsCount = 0;
 
     private static List<WageTransaction> txnList = new ArrayList<>();
     private static VBox txnListContainer;
@@ -56,16 +70,58 @@ public class OperatorEarnings {
     }
 
     private static void initTransactions() {
-        if (!txnList.isEmpty()) return;
-        txnList.add(new WageTransaction("#WAGE-4890", "Harvester Shift Wage (15 Acres, Balasaheb Farm)", "14 Aug 2026", "IMPS to SBI •••• 4120", 6000, "CREDIT", "SETTLED"));
-        txnList.add(new WageTransaction("#WAGE-4850", "Rotavator Tillage Wage (12 Acres, Vikas Farm)", "13 Aug 2026", "Direct Bank Credit", 2800, "CREDIT", "SETTLED"));
-        txnList.add(new WageTransaction("#WD-OP-201", "Operator Wage Payout to SBI Bank •••• 4120", "10 Aug 2026", "Instant IMPS", 15000, "WITHDRAWAL", "SETTLED"));
-        txnList.add(new WageTransaction("#WAGE-4810", "Cultivator Operation Wage (Pravin Farm)", "08 Aug 2026", "Direct Bank Credit", 1900, "CREDIT", "SETTLED"));
-        txnList.add(new WageTransaction("#WAGE-4770", "Drone Spraying Mission Pay (10 Acres)", "05 Aug 2026", "Direct Bank Credit", 3500, "CREDIT", "SETTLED"));
-        txnList.add(new WageTransaction("#WD-OP-195", "Operator Wage Payout to SBI Bank •••• 4120", "01 Aug 2026", "Instant IMPS", 20000, "WITHDRAWAL", "SETTLED"));
+        txnList.clear();
+        totalLifetime = 0;
+        availableBalance = 0;
+        pendingEscrow = 0;
+        totalWithdrawn = 0;
+        thisMonthEarnings = 0;
+        completedJobsCount = 0;
+
+        String currentMonth = java.time.LocalDate.now().getMonth().name().substring(0, 3); // e.g. "SEP"
+
+        try {
+            String opEmail = OperatorProfileStore.email;
+            if (opEmail == null || opEmail.trim().isEmpty()) return;
+            List<RentalRequestModel> list = new RentalRequestDAO().getRequestsByOperator(opEmail);
+            for (RentalRequestModel r : list) {
+                int wage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
+                String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
+
+                if ("COMPLETED".equals(st)) {
+                    totalLifetime += wage;
+                    completedJobsCount++;
+                    if (r.getStartDate() != null && r.getStartDate().toUpperCase().contains(currentMonth)) {
+                        thisMonthEarnings += wage;
+                    }
+                    txnList.add(new WageTransaction(
+                            "#" + (r.getRequestId() != null ? r.getRequestId() : "TXN"),
+                            "Shift Wage: " + (r.getMachineryName() != null ? r.getMachineryName() : "Field Operation") + " (" + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + ")",
+                            r.getStartDate() != null ? r.getStartDate() : "Recent",
+                            "Platform Escrow Direct Settlement",
+                            wage,
+                            "CREDIT",
+                            "SETTLED"
+                    ));
+                } else if ("ACTIVE".equals(st) || "CONFIRMED".equals(st)) {
+                    pendingEscrow += wage;
+                }
+            }
+
+            // Withdrawals from PayoutDAO
+            List<PayoutModel> payouts = new PayoutDAO().getPayoutsByUser(opEmail);
+            for (PayoutModel po : payouts) {
+                if ("PAID".equalsIgnoreCase(po.getStatus()) && po.getTransactionReference() != null && po.getTransactionReference().contains("WITHDRAW")) {
+                    totalWithdrawn += po.getAmount();
+                }
+            }
+        } catch (Exception ignored) {}
+        availableBalance = Math.max(0, totalLifetime - totalWithdrawn);
     }
 
     public static ScrollPane getEarningsSection(StackPane root) {
+        initTransactions();
+
         Text headerTitle = new Text("Operator Wages & Earnings Settlement");
         headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
@@ -84,16 +140,16 @@ public class OperatorEarnings {
         HBox topBar = new HBox(titleBox, topSpacer, withdrawBtn);
         topBar.setAlignment(Pos.CENTER_LEFT);
 
-        // 4 KPI Financial Cards
+        // 5 KPI Financial Cards (Requirement 8)
         HBox metricRow = createFinancialMetrics();
 
-        // Operation Category Contribution Breakdown
-        VBox categoryBreakdownCard = createCategoryBreakdown();
+        // Dynamic Operator Charts (Requirement 8)
+        HBox chartsRow = createOperatorCharts();
 
-        // Transaction History Table Section
+        // Transaction History Table Section (Requirement 9)
         VBox txnSection = createTransactionHistorySection(root);
 
-        VBox content = new VBox(22, topBar, metricRow, categoryBreakdownCard, txnSection);
+        VBox content = new VBox(22, topBar, metricRow, chartsRow, txnSection);
         content.setPadding(new Insets(25, 30, 35, 30));
 
         ScrollPane scrollPane = new ScrollPane(content);
@@ -106,20 +162,27 @@ public class OperatorEarnings {
     }
 
     private static HBox createFinancialMetrics() {
-        VBox c1 = createMetricCard("💰 Lifetime Wages Earned", "₹" + String.format("%,d", totalLifetime), "From 92 completed field operations", "#1B4332");
+        VBox c1 = createMetricCard("💰 Total Earnings", "₹" + String.format("%,d", totalLifetime), completedJobsCount + " jobs completed", "#1B4332");
 
         availBalanceText = new Text("₹" + String.format("%,d", availableBalance));
         availBalanceText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
         VBox c2 = createCustomMetricCard("🏦 Available for Payout", availBalanceText, "Instant 24/7 bank transfer", "#2E7D32");
 
-        VBox c3 = createMetricCard("⏱ Pending Job Escrow", "₹" + String.format("%,d", pendingEscrow), "Releases upon farmer job sign-off", "#E65100");
+        VBox c3 = createMetricCard("⏱ Pending Earnings", "₹" + String.format("%,d", pendingEscrow), "In active field escrow", "#E65100");
 
         withdrawnText = new Text("₹" + String.format("%,d", totalWithdrawn));
         withdrawnText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #374151;");
-        VBox c4 = createCustomMetricCard("💳 Total Settled to Bank", withdrawnText, "12 payouts deposited to SBI", "#374151");
+        VBox c4 = createCustomMetricCard("💳 Paid Out", withdrawnText, "Transferred to bank", "#374151");
 
-        HBox row = new HBox(15, c1, c2, c3, c4);
+        VBox c5 = createMetricCard("📅 This Month", "₹" + String.format("%,d", thisMonthEarnings), "Current calendar month", "#2D6A4F");
+
+        HBox row = new HBox(12, c1, c2, c3, c4, c5);
         row.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(c1, Priority.ALWAYS);
+        HBox.setHgrow(c2, Priority.ALWAYS);
+        HBox.setHgrow(c3, Priority.ALWAYS);
+        HBox.setHgrow(c4, Priority.ALWAYS);
+        HBox.setHgrow(c5, Priority.ALWAYS);
         return row;
     }
 
@@ -134,7 +197,6 @@ public class OperatorEarnings {
         s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, v, s);
-        b.setPrefWidth(240);
         b.setPadding(new Insets(16));
         b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
@@ -148,44 +210,168 @@ public class OperatorEarnings {
         s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #374151;");
 
         VBox b = new VBox(6, t, vText, s);
-        b.setPrefWidth(240);
         b.setPadding(new Insets(16));
         b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
         return b;
     }
 
-    private static VBox createCategoryBreakdown() {
-        Text title = new Text("Operator Wage Earnings by Machine Category");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    // =========================================================
+    // Dynamic Operator Graphs (Requirement 8)
+    // =========================================================
+    private static HBox createOperatorCharts() {
+        VBox monthlyChart = createMonthlyEarningsChart();
+        VBox bookingChart = createEarningsByBookingChart();
+        VBox statusChart = createPendingVsPaidChart();
 
-        VBox r1 = createProgressRow("🌾 Combine Harvester Operations", "₹68,500 (48%)", 0.48, "#2D6A4F");
-        VBox r2 = createProgressRow("🚜 Heavy Tractor Tillage & Plowing", "₹45,600 (32%)", 0.32, "#2E7D32");
-        VBox r3 = createProgressRow("⚙ Laser Land Leveling & Grading", "₹17,100 (12%)", 0.12, "#E65100");
-        VBox r4 = createProgressRow("🚁 Precision Agri-Drone Spraying", "₹11,600 (8%)", 0.08, "#1976D2");
+        monthlyChart.setMinWidth(0);
+        bookingChart.setMinWidth(0);
+        statusChart.setMinWidth(0);
 
-        VBox card = new VBox(12, title, r1, r2, r3, r4);
-        card.setPadding(new Insets(18));
+        HBox.setHgrow(monthlyChart, Priority.ALWAYS);
+        HBox.setHgrow(bookingChart, Priority.ALWAYS);
+        HBox.setHgrow(statusChart, Priority.ALWAYS);
+
+        HBox row = new HBox(16, monthlyChart, bookingChart, statusChart);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static VBox createMonthlyEarningsChart() {
+        Text title = new Text("📈 Monthly Wage Trend");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Shift wages earned across 2026 calendar months");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Month");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Wages (₹)");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setAnimated(false);
+        barChart.setLegendVisible(false);
+        barChart.setPrefHeight(240);
+        barChart.setMinHeight(240);
+
+        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        java.util.Map<String, Integer> monthTotals = new java.util.LinkedHashMap<>();
+        for (String m : months) monthTotals.put(m, 0);
+
+        for (WageTransaction t : txnList) {
+            if ("CREDIT".equals(t.type) && t.date != null) {
+                for (String m : months) {
+                    if (t.date.toLowerCase().contains(m.toLowerCase())) {
+                        monthTotals.put(m, monthTotals.get(m) + t.amount);
+                        break;
+                    }
+                }
+            }
+        }
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (String m : months) {
+            series.getData().add(new XYChart.Data<>(m, monthTotals.get(m)));
+        }
+        barChart.getData().add(series);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), barChart);
+        card.setPadding(new Insets(16));
         card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
         return card;
     }
 
-    private static VBox createProgressRow(String label, String value, double progress, String barColor) {
-        Text l = new Text(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    private static VBox createEarningsByBookingChart() {
+        Text title = new Text("🥧 Wages by Machine Type");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
+        Text sub = new Text("Operator earnings per equipment category");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(l, spacer, v);
+        java.util.Map<String, Integer> catMap = new java.util.HashMap<>();
+        for (WageTransaction t : txnList) {
+            if ("CREDIT".equals(t.type)) {
+                String desc = t.title != null ? t.title.replaceAll("Shift Wage:\\s*", "") : "Field Operation";
+                if (desc.contains("(")) desc = desc.substring(0, desc.indexOf("(")).trim();
+                catMap.put(desc, catMap.getOrDefault(desc, 0) + t.amount);
+            }
+        }
 
-        ProgressBar pb = new ProgressBar(progress);
-        pb.setPrefWidth(980);
-        pb.setPrefHeight(10);
-        pb.setStyle("-fx-accent: " + barColor + ";");
+        if (catMap.isEmpty()) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(240);
+            Text emptyIco = new Text("🚜");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text emptyTxt = new Text("No completed jobs yet.");
+            emptyTxt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Completed job wage shares will display here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, emptyTxt, emptySub);
 
-        return new VBox(4, top, pb);
+            VBox card = new VBox(8, new VBox(2, title, sub), emptyBox);
+            card.setPadding(new Insets(16));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+            return card;
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        for (java.util.Map.Entry<String, Integer> entry : catMap.entrySet()) {
+            pieData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+        }
+
+        PieChart pieChart = new PieChart(pieData);
+        pieChart.setAnimated(false);
+        pieChart.setLegendVisible(true);
+        pieChart.setPrefHeight(240);
+        pieChart.setMinHeight(240);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), pieChart);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+        return card;
+    }
+
+    private static VBox createPendingVsPaidChart() {
+        Text title = new Text("📊 Pending vs Paid Wages");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Settled earnings vs active shift escrow");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
+
+        if (totalLifetime == 0 && pendingEscrow == 0) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(240);
+            Text emptyIco = new Text("💵");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text emptyTxt = new Text("No earnings recorded.");
+            emptyTxt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Pending and paid wage breakdown will appear here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, emptyTxt, emptySub);
+
+            VBox card = new VBox(8, new VBox(2, title, sub), emptyBox);
+            card.setPadding(new Insets(16));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+            return card;
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        if (totalLifetime > 0) pieData.add(new PieChart.Data("Settled Wages (₹" + totalLifetime + ")", totalLifetime));
+        if (pendingEscrow > 0) pieData.add(new PieChart.Data("In Escrow (₹" + pendingEscrow + ")", pendingEscrow));
+
+        PieChart pieChart = new PieChart(pieData);
+        pieChart.setAnimated(false);
+        pieChart.setLegendVisible(true);
+        pieChart.setPrefHeight(240);
+        pieChart.setMinHeight(240);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), pieChart);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+        return card;
     }
 
     private static VBox createTransactionHistorySection(StackPane root) {
@@ -193,13 +379,29 @@ public class OperatorEarnings {
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         txnListContainer = new VBox(10);
-        renderTxnList();
+        renderTxnList(root);
 
         return new VBox(12, title, txnListContainer);
     }
 
-    private static void renderTxnList() {
+    private static void renderTxnList(StackPane root) {
         txnListContainer.getChildren().clear();
+
+        if (txnList.isEmpty()) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(30));
+            emptyBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            Text emptyIco = new Text("💳");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text empty = new Text("No completed jobs yet.");
+            empty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text subEmpty = new Text("When you complete assigned operator shifts, your wage settlement records will appear here.");
+            subEmpty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, empty, subEmpty);
+            txnListContainer.getChildren().add(emptyBox);
+            return;
+        }
 
         for (WageTransaction txn : txnList) {
             Text id = new Text(txn.txnId);
@@ -222,6 +424,7 @@ public class OperatorEarnings {
 
             Button receipt = new Button("📄 Pay Slip");
             receipt.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
+            receipt.setOnAction(e -> showPaySlipModal(txn, root));
 
             Region spacer = new Region();
             HBox.setHgrow(spacer, Priority.ALWAYS);
@@ -233,6 +436,68 @@ public class OperatorEarnings {
 
             txnListContainer.getChildren().add(row);
         }
+    }
+
+    private static void showPaySlipModal(WageTransaction txn, StackPane root) {
+        StackPane overlay = new StackPane();
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.55);");
+
+        VBox modal = new VBox(14);
+        modal.setPrefWidth(460);
+        modal.setMaxWidth(460);
+        modal.setPadding(new Insets(24));
+        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 16; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 16;");
+
+        Text appName = new Text("🌱 FarmEquip Operator Wage Slip");
+        appName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
+
+        Text subtitle = new Text("Verified Timesheet & Escrow Wage Settlement");
+        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
+
+        GridPane grid = new GridPane();
+        grid.setHgap(14);
+        grid.setVgap(10);
+        grid.setPadding(new Insets(10, 0, 10, 0));
+
+        grid.add(createLabel("Settlement ID:"), 0, 0);
+        grid.add(new Text(txn.txnId), 1, 0);
+
+        grid.add(createLabel("Operation Title:"), 0, 1);
+        grid.add(new Text(txn.title), 1, 1);
+
+        grid.add(createLabel("Shift Date:"), 0, 2);
+        grid.add(new Text(txn.date), 1, 2);
+
+        grid.add(createLabel("Disbursement Channel:"), 0, 3);
+        grid.add(new Text(txn.channel), 1, 3);
+
+        grid.add(createLabel("Payment Status:"), 0, 4);
+        Label stLabel = new Label("✔ " + txn.status);
+        stLabel.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-padding: 3 8; -fx-background-radius: 4;");
+        grid.add(stLabel, 1, 4);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Text totalTitle = new Text("Total Wage Amount:");
+        totalTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        Text totalValue = new Text("₹" + String.format("%,d", txn.amount));
+        totalValue.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
+
+        HBox totalRow = new HBox(totalTitle, spacer, totalValue);
+        totalRow.setAlignment(Pos.CENTER_LEFT);
+        totalRow.setPadding(new Insets(10, 14, 10, 14));
+        totalRow.setStyle("-fx-background-color: #F8FAF9; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
+
+        Button closeBtn = new Button("Close Slip");
+        closeBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 20;");
+        closeBtn.setOnAction(e -> root.getChildren().remove(overlay));
+
+        HBox btnBox = new HBox(closeBtn);
+        btnBox.setAlignment(Pos.CENTER_RIGHT);
+
+        modal.getChildren().addAll(new VBox(2, appName, subtitle), grid, totalRow, btnBox);
+        overlay.getChildren().add(modal);
+        root.getChildren().add(overlay);
     }
 
     private static void showWithdrawModal(StackPane root) {
@@ -298,7 +563,12 @@ public class OperatorEarnings {
                     availBalanceText.setText("₹" + String.format("%,d", availableBalance));
                     withdrawnText.setText("₹" + String.format("%,d", totalWithdrawn));
                     txnList.add(0, new WageTransaction("#WD-OP-" + (205 + txnList.size()), "Wage Payout to " + bankSelect.getValue().substring(0, 10), "Today (Instant)", modeSelect.getValue().substring(0, 12), amt, "WITHDRAWAL", "SETTLED"));
-                    renderTxnList();
+                    renderTxnList(root);
+                    new Thread(() -> {
+                        try {
+                            new PayoutDAO().recordPayout(new PayoutModel("PO_OP_WD_" + System.currentTimeMillis(), OperatorProfileStore.email, "OPERATOR", null, null, amt, "PAID", "WITHDRAWAL_SETTLED", "Bank IMPS"));
+                        } catch (Exception ignored) {}
+                    }).start();
                     root.getChildren().remove(overlay);
                 }
             } catch (Exception ignored) {}

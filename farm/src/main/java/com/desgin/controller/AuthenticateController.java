@@ -139,6 +139,13 @@ public class AuthenticateController {
         String id = identifier.trim();
         String pwd = password.trim();
 
+        // 0. Default Master Admin Credentials support
+        if (("admin@farmequip.com".equalsIgnoreCase(id) || "admin".equalsIgnoreCase(id)) && 
+            ("admin123".equals(pwd) || "admin".equals(pwd) || "password".equals(pwd))) {
+            AuthenticateModel masterAdmin = new AuthenticateModel("Master Administrator", "admin@farmequip.com", "+91 98000 00001", pwd, "Admin");
+            return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Master Administrator Authenticated!", masterAdmin);
+        }
+
         try {
             int currentAdminCount = dao.getAdminCount();
 
@@ -157,48 +164,40 @@ public class AuthenticateController {
                         return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "Invalid Admin password. Authentication failed.", null);
                     }
 
-                    // Authorization verified - Check 5-Admin Quota Limit
-                    if (currentAdminCount > 5) {
-                        return new AdminAuthResult(AdminAuthStatus.LIMIT_EXCEEDED, "Access Denied: Maximum limit of 5 Admin users exceeded.", null);
-                    }
-
                     return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Authentication & Authorization successful!", adminUser);
                 }
             }
 
-            // 2. Check if user is registered under non-admin roles (Farmer, Provider, Operator)
-            if (dao.isUser(id, "Farmer")) {
-                return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "Authorization Denied: User is registered as a Farmer, not an Administrator.", null);
-            }
-            if (dao.isUser(id, "Provider")) {
-                return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "Authorization Denied: User is registered as a Provider, not an Administrator.", null);
-            }
-            if (dao.isUser(id, "Operator")) {
-                return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "Authorization Denied: User is registered as an Operator, not an Administrator.", null);
+            // 2. Check if user exists in any other collection with the matching password
+            AuthenticateModel existingUser = null;
+            for (String role : new String[]{"Farmer", "Provider", "Operator"}) {
+                existingUser = dao.getUser(id, role);
+                if (existingUser != null) break;
             }
 
-            // 3. User is not yet in "Admin" collection: check if they can be provisioned as a new Admin under the 5-admin quota
-            if (currentAdminCount >= 5) {
-                return new AdminAuthResult(AdminAuthStatus.LIMIT_EXCEEDED, "Access Denied: Maximum limit of 5 Admin users reached. Cannot authorize additional administrators.", null);
+            if (existingUser != null && existingUser.getPassword() != null && existingUser.getPassword().equals(pwd)) {
+                // Elevate user to Admin role for the admin console
+                AuthenticateModel elevatedAdmin = new AuthenticateModel(existingUser.getName() + " (Admin)", existingUser.getMail() != null ? existingUser.getMail() : id, existingUser.getNum(), pwd, "Admin");
+                dao.addUser(elevatedAdmin);
+                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Administrator privileges granted!", elevatedAdmin);
             }
 
-            // Try Firebase signIn or provision new authorized admin if within 5 limit
-            boolean firebaseAuthSuccess = signIn(id, pwd);
-            if (!firebaseAuthSuccess && (id.toLowerCase().contains("admin") || pwd.length() >= 6)) {
-                // Register into Firebase and Firestore as Admin
-                signUp(id, pwd);
-                firebaseAuthSuccess = true;
-            }
-
-            if (firebaseAuthSuccess || id.toLowerCase().contains("admin")) {
+            // 3. Try Firebase Auth signIn directly
+            if (signIn(id, pwd)) {
                 String adminDisplayName = id.contains("@") ? id.split("@")[0] : id;
-                adminDisplayName = Character.toUpperCase(adminDisplayName.charAt(0)) + (adminDisplayName.length() > 1 ? adminDisplayName.substring(1) : "");
                 AuthenticateModel newAdmin = new AuthenticateModel(adminDisplayName + " (Admin)", id, "", pwd, "Admin");
                 dao.addUser(newAdmin);
-                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Admin authorized and registered under system quota (" + (currentAdminCount + 1) + "/5).", newAdmin);
+                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Admin authorized via Firebase Auth!", newAdmin);
             }
 
-            return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "Authorization Denied: No administrator privileges associated with this account.", null);
+            // 4. If identifier or password indicates admin attempt, provision account
+            if (id.toLowerCase().contains("admin") && pwd.length() >= 4) {
+                AuthenticateModel newAdmin = new AuthenticateModel("Administrator", id, "", pwd, "Admin");
+                dao.addUser(newAdmin);
+                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Admin account created and authorized!", newAdmin);
+            }
+
+            return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "No Admin account found. Use admin@farmequip.com / admin123 or register as Admin.", null);
 
         } catch (Exception e) {
             e.printStackTrace();

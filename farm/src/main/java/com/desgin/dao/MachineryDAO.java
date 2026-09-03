@@ -122,4 +122,30 @@ public class MachineryDAO {
             throw new DatabaseOperationException("Failed to delete machinery from Firestore: " + e.getMessage(), e);
         }
     }
+
+    public void updateMachinery(MachineryModel model) throws DatabaseOperationException {
+        if (model == null || model.getId() == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(model.getId()).set(model).get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to update machinery in Firestore: " + e.getMessage(), e);
+        }
+    }
+
+    public MachineryModel getMachineryById(String id) {
+        if (id == null || id.trim().isEmpty()) return null;
+        try {
+            Firestore db = getDb();
+            DocumentSnapshot doc = db.collection(COLLECTION_NAME).document(id.trim()).get().get();
+            if (doc.exists()) {
+                MachineryModel m = doc.toObject(MachineryModel.class);
+                if (m != null && m.getId() == null) m.setId(doc.getId());
+                return m;
+            }
+        } catch (Exception e) {
+            System.err.println("Notice: Could not load machinery by id: " + e.getMessage());
+        }
+        return null;
+    }
 }

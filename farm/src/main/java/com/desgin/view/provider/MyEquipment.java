@@ -299,26 +299,55 @@ public class MyEquipment {
 
     private static VBox createFleetCard(FleetItem item) {
         ImageView iv = new ImageView();
-        iv.setFitWidth(220);
-        iv.setFitHeight(110);
-        iv.setPreserveRatio(true);
+        iv.setFitWidth(232);
+        iv.setFitHeight(130);
+        iv.setPreserveRatio(false);
         iv.setSmooth(true);
 
+        Image img = null;
         if (item.imagePath != null && !item.imagePath.trim().isEmpty()) {
             try {
-                Image img = new Image(item.imagePath, true);
-                iv.setImage(img);
+                String cleanPath = item.imagePath.trim();
+                if (!cleanPath.startsWith("http://") && !cleanPath.startsWith("https://") && !cleanPath.startsWith("file:")) {
+                    cleanPath = new java.io.File(cleanPath).toURI().toString();
+                }
+                img = new Image(cleanPath, true);
             } catch (Exception ignored) {}
         }
+        if (img == null) {
+            try {
+                img = new Image("file:farm/src/main/resources/assets/Images/tractor.png");
+            } catch (Exception ignored) {}
+        }
+        if (img != null) {
+            iv.setImage(img);
+            img.errorProperty().addListener((obs, oldV, isError) -> {
+                if (isError) {
+                    try {
+                        iv.setImage(new Image("file:farm/src/main/resources/assets/Images/tractor.png"));
+                    } catch (Exception ignored) {}
+                }
+            });
+        }
 
-        Text iconBadge = new Text(item.icon);
-        iconBadge.setStyle("-fx-font-size: 24px;");
-
-        StackPane imgBox = new StackPane(iv, iconBadge);
-        StackPane.setAlignment(iconBadge, Pos.BOTTOM_RIGHT);
-        StackPane.setMargin(iconBadge, new Insets(0, 10, 6, 0));
-        imgBox.setPrefHeight(115);
+        StackPane imgBox = new StackPane(iv);
+        imgBox.setPrefSize(232, 130);
+        imgBox.setMinSize(232, 130);
+        imgBox.setMaxSize(232, 130);
         imgBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10;");
+
+        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(232, 130);
+        clip.setArcWidth(20);
+        clip.setArcHeight(20);
+        imgBox.setClip(clip);
+
+        if (item.icon != null && !item.icon.trim().isEmpty()) {
+            Label iconBadge = new Label(item.icon);
+            iconBadge.setStyle("-fx-background-color: rgba(0,0,0,0.5); -fx-text-fill: white; -fx-background-radius: 10; -fx-padding: 2 6; -fx-font-size: 12px;");
+            StackPane.setAlignment(iconBadge, Pos.BOTTOM_RIGHT);
+            StackPane.setMargin(iconBadge, new Insets(0, 8, 6, 0));
+            imgBox.getChildren().add(iconBadge);
+        }
 
         // Status Badge & Operator Indicator
         String stColor = "AVAILABLE".equalsIgnoreCase(item.status) ? "#2E7D32" : ("RENTED OUT".equalsIgnoreCase(item.status) ? "#E65100" : "#C62828");
