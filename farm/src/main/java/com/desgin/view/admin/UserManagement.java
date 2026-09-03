@@ -50,20 +50,37 @@ public class UserManagement {
     }
 
     private static void initUsers() {
-        if (!userList.isEmpty()) return;
-        userList.add(new UserItem("USR-F-1021", "Balasaheb Shirole", "FARMER", "+91 98229 11029", "Baramati, Pune", "VERIFIED", "ACTIVE", "14 Rentals • ₹1.68L Volume"));
-        userList.add(new UserItem("USR-P-2041", "Rajesh Patil (Agro Services)", "PROVIDER", "+91 98220 12345", "Pune Central", "VERIFIED", "ACTIVE", "9 Machines • ₹4.85L Earned"));
-        userList.add(new UserItem("USR-O-3012", "Ramesh Chavan", "OPERATOR", "+91 98901 44552", "Baramati", "VERIFIED", "ACTIVE", "4.9 ★ • 148 Engine Hrs"));
-        userList.add(new UserItem("USR-F-1088", "Anand Kadam", "FARMER", "+91 94230 78119", "Indapur", "VERIFIED", "ACTIVE", "6 Rentals • ₹82,000 Vol"));
-        userList.add(new UserItem("USR-P-2099", "Vikas More (AgriFleet)", "PROVIDER", "+91 98502 11234", "Indapur", "PENDING", "ACTIVE", "4 Machines • ₹1.20L Earned"));
-        userList.add(new UserItem("USR-O-3045", "Dilip Shinde", "OPERATOR", "+91 97632 99401", "Saswad", "PENDING", "ACTIVE", "4.8 ★ • Heavy Harvester"));
+        userList.clear();
+        try {
+            java.util.List<com.desgin.model.AuthenticateModel> dbUsers = new com.desgin.dao.AuthDAO().getAllUsers();
+            for (com.desgin.model.AuthenticateModel u : dbUsers) {
+                String r = u.getRole() != null ? u.getRole().toUpperCase() : "FARMER";
+                String st = u.getStatus() != null ? u.getStatus().toUpperCase() : "ACTIVE";
+                String loc = u.getTown() != null ? (u.getTown() + (u.getDistrict() != null ? ", " + u.getDistrict() : "")) : "Maharashtra";
+                userList.add(new UserItem(
+                        u.getMail() != null ? u.getMail() : (u.getNum() != null ? u.getNum() : "USR-" + System.currentTimeMillis()),
+                        u.getName() != null ? u.getName() : "Platform User",
+                        r,
+                        u.getNum() != null ? u.getNum() : "N/A",
+                        loc,
+                        "VERIFIED",
+                        st,
+                        "Registered " + r
+                ));
+            }
+        } catch (Exception ignored) {}
+        if (userList.isEmpty()) {
+            userList.add(new UserItem("admin@farmequip.com", AdminProfileStore.adminName, "ADMIN", AdminProfileStore.adminPhone, "HQ Central, Pune", "VERIFIED", "ACTIVE", "System Administrator (Seat 1/5)"));
+        }
     }
 
     public static ScrollPane getPage(StackPane root) {
+        initUsers();
+
         Text title = new Text("User Directory & KYC Compliance Desk");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text subtitle = new Text("Manage platform farmers, equipment providers, and certified field operators. Review KYC and moderate accounts.");
+        Text subtitle = new Text("Manage platform farmers, equipment providers, certified operators, and system administrators (Max 5 Admins).");
         subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(3, title, subtitle);
@@ -101,39 +118,49 @@ public class UserManagement {
     }
 
     private static HBox createRoleTabs(StackPane root) {
-        Button bAll = new Button("All (1,284)");
-        Button bFarmers = new Button("Farmers (840)");
-        Button bProviders = new Button("Providers (320)");
-        Button bOperators = new Button("Operators (124)");
+        long cAll = userList.size();
+        long cFarmers = userList.stream().filter(u -> "FARMER".equals(u.role)).count();
+        long cProviders = userList.stream().filter(u -> "PROVIDER".equals(u.role)).count();
+        long cOperators = userList.stream().filter(u -> "OPERATOR".equals(u.role)).count();
+        long cAdmins = userList.stream().filter(u -> "ADMIN".equals(u.role)).count();
+
+        Button bAll = new Button("All (" + cAll + ")");
+        Button bFarmers = new Button("Farmers (" + cFarmers + ")");
+        Button bProviders = new Button("Providers (" + cProviders + ")");
+        Button bOperators = new Button("Operators (" + cOperators + ")");
+        Button bAdmins = new Button("👑 Admins (" + cAdmins + "/5 Max)");
 
         styleTab(bAll, "ALL".equals(activeRoleFilter));
         styleTab(bFarmers, "FARMER".equals(activeRoleFilter));
         styleTab(bProviders, "PROVIDER".equals(activeRoleFilter));
         styleTab(bOperators, "OPERATOR".equals(activeRoleFilter));
+        styleTab(bAdmins, "ADMIN".equals(activeRoleFilter));
 
-        bAll.setOnAction(e -> { activeRoleFilter = "ALL"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bFarmers.setOnAction(e -> { activeRoleFilter = "FARMER"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bProviders.setOnAction(e -> { activeRoleFilter = "PROVIDER"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
-        bOperators.setOnAction(e -> { activeRoleFilter = "OPERATOR"; update(bAll, bFarmers, bProviders, bOperators); renderUsers(root); });
+        bAll.setOnAction(e -> { activeRoleFilter = "ALL"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bFarmers.setOnAction(e -> { activeRoleFilter = "FARMER"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bProviders.setOnAction(e -> { activeRoleFilter = "PROVIDER"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bOperators.setOnAction(e -> { activeRoleFilter = "OPERATOR"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
+        bAdmins.setOnAction(e -> { activeRoleFilter = "ADMIN"; updateTabs(bAll, bFarmers, bProviders, bOperators, bAdmins); renderUsers(root); });
 
-        HBox bar = new HBox(10, bAll, bFarmers, bProviders, bOperators);
+        HBox bar = new HBox(10, bAll, bFarmers, bProviders, bOperators, bAdmins);
         bar.setAlignment(Pos.CENTER_LEFT);
         bar.setMinWidth(0);
         return bar;
     }
 
-    private static void update(Button b1, Button b2, Button b3, Button b4) {
-        styleTab(b1, "ALL".equals(activeRoleFilter));
-        styleTab(b2, "FARMER".equals(activeRoleFilter));
-        styleTab(b3, "PROVIDER".equals(activeRoleFilter));
-        styleTab(b4, "OPERATOR".equals(activeRoleFilter));
+    private static void updateTabs(Button bAll, Button bFarmers, Button bProviders, Button bOperators, Button bAdmins) {
+        styleTab(bAll, "ALL".equals(activeRoleFilter));
+        styleTab(bFarmers, "FARMER".equals(activeRoleFilter));
+        styleTab(bProviders, "PROVIDER".equals(activeRoleFilter));
+        styleTab(bOperators, "OPERATOR".equals(activeRoleFilter));
+        styleTab(bAdmins, "ADMIN".equals(activeRoleFilter));
     }
 
     private static void styleTab(Button b, boolean active) {
         if (active) {
-            b.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-padding: 7 16 7 16; -fx-cursor: hand;");
+            b.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 14 6 14;");
         } else {
-            b.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-radius: 8; -fx-padding: 7 16 7 16; -fx-cursor: hand;");
+            b.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: 500; -fx-background-radius: 20; -fx-cursor: hand; -fx-padding: 6 14 6 14;");
         }
     }
 
@@ -153,10 +180,25 @@ public class UserManagement {
 
             listContainer.getChildren().add(createUserCard(u, root));
         }
+
+        if (listContainer.getChildren().isEmpty()) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(30));
+            emptyBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            Text emptyIco = new Text("👥");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text empty = new Text("No users found matching your criteria.");
+            empty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text subEmpty = new Text("Registered platform farmers, providers, and operators will appear here.");
+            subEmpty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, empty, subEmpty);
+            listContainer.getChildren().add(emptyBox);
+        }
     }
 
     private static VBox createUserCard(UserItem u, StackPane root) {
-        String roleIcon = "FARMER".equals(u.role) ? "👨‍🌾" : ("PROVIDER".equals(u.role) ? "🚜" : "👨‍🔧");
+        String roleIcon = "ADMIN".equals(u.role) ? "🛡️" : ("FARMER".equals(u.role) ? "👨‍🌾" : ("PROVIDER".equals(u.role) ? "🚜" : "👷"));
 
         Text icon = new Text(roleIcon);
         icon.setStyle("-fx-font-size: 22px;");
@@ -200,8 +242,14 @@ public class UserManagement {
         Button statusToggle = new Button("ACTIVE".equals(u.accountStatus) ? "Suspend" : "Activate");
         statusToggle.setStyle("-fx-background-color: " + ("ACTIVE".equals(u.accountStatus) ? "#8B3A3A" : "#2E7D32") + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10 5 10;");
         statusToggle.setOnAction(e -> {
-            u.accountStatus = "ACTIVE".equals(u.accountStatus) ? "SUSPENDED" : "ACTIVE";
+            String newSt = "ACTIVE".equals(u.accountStatus) ? "SUSPENDED" : "ACTIVE";
+            u.accountStatus = newSt;
             renderUsers(root);
+            new Thread(() -> {
+                try {
+                    new com.desgin.dao.AuthDAO().updateUserStatus(u.userId, u.role, newSt);
+                } catch (Exception ignored) {}
+            }).start();
         });
 
         HBox actions = new HBox(8, kyc, verifyKycBtn, statusToggle);

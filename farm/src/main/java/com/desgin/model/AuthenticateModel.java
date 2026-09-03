@@ -7,16 +7,41 @@ public class AuthenticateModel {
     String num;
     String password;
     String role;
+    String town;
+    String district;
+    String state;
+    String pincode;
+    String profilePic;
+    String accountHolder;
+    String bankName;
+    String accountNumber;
+    String ifsc;
+    String upiId;
+    String status = "ACTIVE";
+    String drivingExperience;
+    String equipmentProfession;
+    String licenseImage;
 
     public AuthenticateModel() {}
 
-    public AuthenticateModel(String name,String mail,String num,String password,String role) {
-        
+    public AuthenticateModel(String name, String mail, String num, String password, String role) {
         this.name = name;
         this.mail = mail;
         this.num = num;
         this.password = password;
         this.role = role;
+    }
+
+    public AuthenticateModel(String name, String mail, String num, String password, String role, String town, String district, String state, String pincode) {
+        this.name = name;
+        this.mail = mail;
+        this.num = num;
+        this.password = password;
+        this.role = role;
+        this.town = town;
+        this.district = district;
+        this.state = state;
+        this.pincode = pincode;
     }
 
     public String getName() {
@@ -59,6 +84,115 @@ public class AuthenticateModel {
         this.role = role;
     }
 
-    
-    
+    public String getTown() {
+        return town;
+    }
+
+    public void setTown(String town) {
+        this.town = town;
+    }
+
+    public String getDistrict() {
+        return district;
+    }
+
+    public void setDistrict(String district) {
+        this.district = district;
+    }
+
+    public String getState() {
+        return state;
+    }
+
+    public void setState(String state) {
+        this.state = state;
+    }
+
+    public String getPincode() {
+        return pincode;
+    }
+
+    public void setPincode(String pincode) {
+        this.pincode = pincode;
+    }
+
+    public String getProfilePic() {
+        return profilePic;
+    }
+
+    public void setProfilePic(String profilePic) {
+        this.profilePic = profilePic;
+    }
+
+    public String getAccountHolder() {
+        return accountHolder;
+    }
+
+    public void setAccountHolder(String accountHolder) {
+        this.accountHolder = accountHolder;
+    }
+
+    public String getBankName() {
+        return bankName;
+    }
+
+    public void setBankName(String bankName) {
+        this.bankName = bankName;
+    }
+
+    public String getAccountNumber() {
+        return accountNumber;
+    }
+
+    public void setAccountNumber(String accountNumber) {
+        this.accountNumber = accountNumber;
+    }
+
+    public String getIfsc() {
+        return ifsc;
+    }
+
+    public void setIfsc(String ifsc) {
+        this.ifsc = ifsc;
+    }
+
+    public String getUpiId() {
+        return upiId;
+    }
+
+    public void setUpiId(String upiId) {
+        this.upiId = upiId;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getDrivingExperience() {
+        return drivingExperience;
+    }
+
+    public void setDrivingExperience(String drivingExperience) {
+        this.drivingExperience = drivingExperience;
+    }
+
+    public String getEquipmentProfession() {
+        return equipmentProfession;
+    }
+
+    public void setEquipmentProfession(String equipmentProfession) {
+        this.equipmentProfession = equipmentProfession;
+    }
+
+    public String getLicenseImage() {
+        return licenseImage;
+    }
+
+    public void setLicenseImage(String licenseImage) {
+        this.licenseImage = licenseImage;
+    }
 }

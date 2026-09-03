@@ -15,18 +15,75 @@ import javafx.scene.text.Text;
 public class AdminProfileManagement {
 
     private static VBox profilePopupRef;
+    private static Text profilePillNameText;
+    private static Label verifiedDotLabel;
+
+    public static String getFormattedFirstName() {
+        String raw = AdminProfileStore.adminName;
+        if (raw == null || raw.trim().isEmpty()) {
+            return "Administrator";
+        }
+        raw = raw.trim();
+        if (raw.contains("@")) {
+            raw = raw.split("@")[0];
+        }
+        String first = raw.split("[ ._]")[0];
+        if (first.isEmpty()) {
+            return "Administrator";
+        }
+        return Character.toUpperCase(first.charAt(0)) + (first.length() > 1 ? first.substring(1) : "");
+    }
+
+    public static Text headerTitleText = new Text("Welcome back, " + getFormattedFirstName() + " 🛡️");
+    public static Text headerSubtitleText = new Text("FarmEquip Admin Console • Platform Controls & Security (Max 5 Admins)");
+    public static VBox headerTitleBox;
+
+    static {
+        headerTitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        headerSubtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
+        headerTitleBox = new VBox(2, headerTitleText, headerSubtitleText);
+        headerTitleBox.setAlignment(Pos.CENTER_LEFT);
+
+        AdminProfileStore.addListener(() -> {
+            javafx.application.Platform.runLater(AdminProfileManagement::refreshDynamicProfileUI);
+        });
+    }
+
+    public static void updateHeaderGreeting() {
+        String fName = getFormattedFirstName();
+        setHeaderTitle("Welcome back, " + fName + " 🛡️", "FarmEquip Admin Console • Platform Controls & Security (Max 5 Admins)");
+    }
+
+    public static void setHeaderTitle(String title, String subtitle) {
+        if (headerTitleText != null) headerTitleText.setText(title);
+        if (headerSubtitleText != null) {
+            if (subtitle != null && !subtitle.isEmpty()) {
+                headerSubtitleText.setText(subtitle);
+                headerSubtitleText.setVisible(true);
+                headerSubtitleText.setManaged(true);
+            } else {
+                headerSubtitleText.setVisible(false);
+                headerSubtitleText.setManaged(false);
+            }
+        }
+    }
+
+    public static void refreshDynamicProfileUI() {
+        updateHeaderGreeting();
+        if (profilePillNameText != null) {
+            profilePillNameText.setText(AdminProfileStore.adminName != null ? AdminProfileStore.adminName : "Administrator");
+        }
+        if (verifiedDotLabel != null) {
+            verifiedDotLabel.setText(AdminProfileStore.adminRole != null ? AdminProfileStore.adminRole : "HQ Root");
+        }
+    }
 
     public HBox getProfile(StackPane root) {
-        // System Health Indicator
-        Label systemStatus = new Label("● ALL SYSTEMS OPERATIONAL • ESCROW SECURE");
-        systemStatus.setPrefHeight(38);
-        systemStatus.setMinHeight(38);
-        systemStatus.setMaxHeight(38);
-        systemStatus.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-padding: 0 14px; -fx-background-radius: 20px; -fx-border-color: #A5D6A7; -fx-border-radius: 20px; -fx-border-width: 1.2px;");
+        updateHeaderGreeting();
 
         Button alertBtn = createPillButton("🔔", "System Alerts", "4 Flagged");
 
-        HBox profileBox = createProfilePill("🛡️", "Super Administrator", "HQ Root");
+        HBox profileBox = createProfilePill("🛡️", AdminProfileStore.adminName, AdminProfileStore.adminRole);
 
         // Profile Popup
         profilePopupRef = createAdminProfileModal();
@@ -49,9 +106,10 @@ public class AdminProfileManagement {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        HBox topHeader = new HBox(12, systemStatus, spacer, alertBtn, profileBox);
+        HBox topHeader = new HBox(16, headerTitleBox, spacer, alertBtn, profileBox);
         topHeader.setAlignment(Pos.CENTER_LEFT);
-        topHeader.setPadding(new Insets(10, 22, 10, 22));
+        topHeader.setPadding(new Insets(10, 24, 10, 24));
+        topHeader.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
         return topHeader;
     }
@@ -109,16 +167,16 @@ public class AdminProfileManagement {
         Text profileIcon = new Text(icon);
         profileIcon.setStyle("-fx-font-size: 14px;");
 
-        Text profileName = new Text(name);
-        profileName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        profilePillNameText = new Text(name != null ? name : "Administrator");
+        profilePillNameText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Label verifiedDot = new Label(tag);
-        verifiedDot.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 6px; -fx-background-radius: 8px;");
+        verifiedDotLabel = new Label(tag != null ? tag : "HQ Root");
+        verifiedDotLabel.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 1px 6px; -fx-background-radius: 8px;");
 
         Text dropdownArrow = new Text("▾");
         dropdownArrow.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #2D6A4F; -fx-font-weight: bold;");
 
-        HBox profileBox = new HBox(6, profileIcon, profileName, verifiedDot, dropdownArrow);
+        HBox profileBox = new HBox(6, profileIcon, profilePillNameText, verifiedDotLabel, dropdownArrow);
         profileBox.setAlignment(Pos.CENTER);
         profileBox.setPrefHeight(38);
         profileBox.setMinHeight(38);

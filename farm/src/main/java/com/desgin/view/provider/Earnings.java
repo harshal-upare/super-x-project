@@ -61,10 +61,11 @@ public class Earnings {
         }
     }
 
-    private static int totalLifetime = 485200;
-    private static int availableBalance = 48200;
-    private static int pendingEscrow = 12400;
-    private static int totalWithdrawn = 424600;
+    private static int totalLifetime = 0;
+    private static int availableBalance = 0;
+    private static int pendingEscrow = 0;
+    private static int totalWithdrawn = 0;
+    private static int thisMonthEarnings = 0;
 
     private static List<Transaction> txnList = new ArrayList<>();
     private static VBox txnListContainer;
@@ -77,17 +78,65 @@ public class Earnings {
         initTransactions();
     }
 
+    private static void calculateTotals() {
+        totalLifetime = txnList.stream().filter(t -> "CREDIT".equals(t.type)).mapToInt(t -> t.amount).sum();
+        totalWithdrawn = txnList.stream().filter(t -> "WITHDRAWAL".equals(t.type)).mapToInt(t -> t.amount).sum();
+        availableBalance = Math.max(0, totalLifetime - totalWithdrawn);
+    }
+
     private static void initTransactions() {
-        if (!txnList.isEmpty()) return;
-        txnList.add(new Transaction("#TXN-8921", "Harvester Rental Payout (Balasaheb Shirole)", "Balasaheb Shirole", "Kartar 4000 Harvester (14ft)", "14 Aug 2026", "Direct Bank IMPS", 12600, "CREDIT", "SETTLED", "IMPS-902188412"));
-        txnList.add(new Transaction("#TXN-8894", "Rotavator 3-Day Job Payout (Vikas More)", "Vikas More", "Shaktiman Semi-Champion 7ft", "13 Aug 2026", "Direct Bank IMPS", 2280, "CREDIT", "SETTLED", "IMPS-899471029"));
-        txnList.add(new Transaction("#WD-5021", "Provider Bank Withdrawal to HDFC Bank •••• 8842", "Rajesh Agro Services", "Fleet Settlement Account", "11 Aug 2026", "IMPS Transfer", 25000, "WITHDRAWAL", "SETTLED", "HDFC-WD-502189"));
-        txnList.add(new Transaction("#TXN-8850", "Tractor 5-Day Rental Payout (Ganesh Jadhav)", "Ganesh Jadhav", "Mahindra 575 DI Sarpanch 45HP", "10 Aug 2026", "Direct Bank IMPS", 7125, "CREDIT", "SETTLED", "IMPS-885023910"));
-        txnList.add(new Transaction("#TXN-8790", "Drone Spraying Service Payout (Kiran Bhosale)", "Kiran Bhosale", "Agri-Drone 16L Autonomous Sprayer", "05 Aug 2026", "Direct Bank IMPS", 1710, "CREDIT", "SETTLED", "IMPS-879011834"));
-        txnList.add(new Transaction("#WD-4980", "Provider Bank Withdrawal to SBI •••• 4120", "Rajesh Agro Services", "Fleet Settlement Account", "01 Aug 2026", "NEFT Transfer", 40000, "WITHDRAWAL", "SETTLED", "SBIN-WD-498002"));
+        txnList.clear();
+        totalLifetime = 0;
+        availableBalance = 0;
+        pendingEscrow = 0;
+        totalWithdrawn = 0;
+        thisMonthEarnings = 0;
+
+        String currentMonth = java.time.LocalDate.now().getMonth().name().substring(0, 3); // e.g. "SEP"
+
+        try {
+            String pEmail = ProviderProfileStore.email;
+            if (pEmail == null || pEmail.trim().isEmpty()) return;
+            List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByProvider(pEmail);
+            for (com.desgin.model.RentalRequestModel r : list) {
+                int gross = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+                int netPayout = (int) (gross * 0.93); // 7% platform fee deduction
+
+                if ("COMPLETED".equalsIgnoreCase(r.getStatus())) {
+                    totalLifetime += netPayout;
+                    if (r.getStartDate() != null && r.getStartDate().toUpperCase().contains(currentMonth)) {
+                        thisMonthEarnings += netPayout;
+                    }
+                    txnList.add(new Transaction(
+                        r.getRequestId() != null ? r.getRequestId() : "TXN-" + System.currentTimeMillis(),
+                        (r.getMachineryName() != null ? r.getMachineryName() : "Machinery") + " Rental (" + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + ")",
+                        r.getFarmerName() != null ? r.getFarmerName() : "Farmer",
+                        r.getMachineryName() != null ? r.getMachineryName() : "Machinery",
+                        r.getStartDate() != null ? r.getStartDate() : "Recent",
+                        "Escrow Bank IMPS",
+                        netPayout,
+                        "CREDIT",
+                        "SETTLED",
+                        "TXN-" + Math.abs((r.getRequestId() != null ? r.getRequestId() : "0").hashCode())
+                    ));
+                } else if ("ACTIVE".equalsIgnoreCase(r.getStatus()) || "APPROVED".equalsIgnoreCase(r.getStatus()) || "ACCEPTED".equalsIgnoreCase(r.getStatus()) || "CONFIRMED".equalsIgnoreCase(r.getStatus())) {
+                    pendingEscrow += netPayout;
+                }
+            }
+
+            // Read withdrawals from PayoutDAO
+            List<com.desgin.model.PayoutModel> payouts = new com.desgin.dao.PayoutDAO().getPayoutsByUser(pEmail);
+            for (com.desgin.model.PayoutModel po : payouts) {
+                if ("PAID".equalsIgnoreCase(po.getStatus()) && po.getTransactionReference() != null && po.getTransactionReference().contains("WITHDRAW")) {
+                    totalWithdrawn += po.getAmount();
+                }
+            }
+        } catch (Exception ignored) {}
+        calculateTotals();
     }
 
     public static ScrollPane getEarningsSection(StackPane root) {
+        initTransactions();
         rootPane = root;
 
         // ================= HEADER & ACTIONS =================
@@ -210,30 +259,34 @@ public class Earnings {
     }
 
     private static HBox createFinancialMetrics() {
-        VBox c1 = createMetricCard("💰 Lifetime Gross Revenue", "₹" + String.format("%,d", totalLifetime), "▲ +18.4% vs last cycle", "From 142 completed rentals", "#1B4332", "#FFFFFF");
+        VBox c1 = createMetricCard("💰 Total Earnings", "₹" + String.format("%,d", totalLifetime), "● Net Settled", "From completed rentals", "#1B4332", "#FFFFFF");
 
         availBalanceText = new Text("₹" + String.format("%,d", availableBalance));
         availBalanceText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
         VBox c2 = createCustomMetricCard("🏦 Available for Payout", availBalanceText, "● Ready to Withdraw", "Instant 24/7 bank transfer", "#2E7D32", "#E8F5E9");
 
-        VBox c3 = createMetricCard("⏱ Pending Escrow", "₹" + String.format("%,d", pendingEscrow), "3 Active Jobs", "Releases upon farmer sign-off", "#E65100", "#FFF3E0");
+        VBox c3 = createMetricCard("⏱ Pending Earnings", "₹" + String.format("%,d", pendingEscrow), "● In Escrow", "Releases on completion", "#E65100", "#FFF3E0");
 
         withdrawnText = new Text("₹" + String.format("%,d", totalWithdrawn));
         withdrawnText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-fill: #374151;");
-        VBox c4 = createCustomMetricCard("💳 Total Settled to Bank", withdrawnText, "18 Withdrawals", "100% successful transfers", "#374151", "#FFFFFF");
+        VBox c4 = createCustomMetricCard("💳 Paid Out", withdrawnText, "● Settled", "Transferred to bank", "#374151", "#FFFFFF");
+
+        VBox c5 = createMetricCard("📅 This Month", "₹" + String.format("%,d", thisMonthEarnings), "● Current Cycle", "Current month earnings", "#2D6A4F", "#FFFFFF");
 
         c1.setMinWidth(0);
         c2.setMinWidth(0);
         c3.setMinWidth(0);
         c4.setMinWidth(0);
+        c5.setMinWidth(0);
 
-        HBox row = new HBox(15, c1, c2, c3, c4);
+        HBox row = new HBox(12, c1, c2, c3, c4, c5);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setMinWidth(0);
         HBox.setHgrow(c1, Priority.ALWAYS);
         HBox.setHgrow(c2, Priority.ALWAYS);
         HBox.setHgrow(c3, Priority.ALWAYS);
         HBox.setHgrow(c4, Priority.ALWAYS);
+        HBox.setHgrow(c5, Priority.ALWAYS);
         return row;
     }
 
@@ -312,7 +365,7 @@ public class Earnings {
         Text cardTitle = new Text("📈 Monthly Rental Revenue & Settlement Curve");
         cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text cardSub = new Text("Gross booking income vs net settled payouts across recent months (in ₹)");
+        Text cardSub = new Text("Gross booking income vs net settled payouts across 2026 calendar months (in ₹)");
         cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
         CategoryAxis xAxis = new CategoryAxis();
@@ -328,23 +381,56 @@ public class Earnings {
         areaChart.setMinHeight(275);
         areaChart.setMinWidth(0);
 
+        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        java.util.Map<String, Integer> grossMap = new java.util.LinkedHashMap<>();
+        java.util.Map<String, Integer> netMap = new java.util.LinkedHashMap<>();
+        for (String m : months) {
+            grossMap.put(m, 0);
+            netMap.put(m, 0);
+        }
+
+        int totalDataPoints = 0;
+        for (Transaction t : txnList) {
+            if ("CREDIT".equals(t.type)) {
+                for (String m : months) {
+                    if (t.date != null && t.date.toLowerCase().contains(m.toLowerCase())) {
+                        netMap.put(m, netMap.get(m) + t.amount);
+                        grossMap.put(m, grossMap.get(m) + (int)(t.amount / 0.93));
+                        totalDataPoints++;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (totalDataPoints == 0 && totalLifetime == 0) {
+            VBox emptyBox = new VBox(10);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(275);
+            Text emptyIcon = new Text("📈");
+            emptyIcon.setStyle("-fx-font-size: 36px;");
+            Text emptyTitle = new Text("No Earnings Available Yet");
+            emptyTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("When farmers rent your machinery, monthly earning curves will appear here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIcon, emptyTitle, emptySub);
+
+            VBox card = new VBox(8, new VBox(2, cardTitle, cardSub), emptyBox);
+            card.setPadding(new Insets(18));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+            card.setMinWidth(0);
+            return card;
+        }
+
         XYChart.Series<String, Number> seriesGross = new XYChart.Series<>();
         seriesGross.setName("Gross Rental Revenue (₹)");
-        seriesGross.getData().add(new XYChart.Data<>("Mar 26", 42000));
-        seriesGross.getData().add(new XYChart.Data<>("Apr 26", 58000));
-        seriesGross.getData().add(new XYChart.Data<>("May 26", 72000));
-        seriesGross.getData().add(new XYChart.Data<>("Jun 26", 65000));
-        seriesGross.getData().add(new XYChart.Data<>("Jul 26", 89000));
-        seriesGross.getData().add(new XYChart.Data<>("Aug 26", 108000));
-
         XYChart.Series<String, Number> seriesSettled = new XYChart.Series<>();
         seriesSettled.setName("Bank Payouts Settled (₹)");
-        seriesSettled.getData().add(new XYChart.Data<>("Mar 26", 36000));
-        seriesSettled.getData().add(new XYChart.Data<>("Apr 26", 51000));
-        seriesSettled.getData().add(new XYChart.Data<>("May 26", 64000));
-        seriesSettled.getData().add(new XYChart.Data<>("Jun 26", 59000));
-        seriesSettled.getData().add(new XYChart.Data<>("Jul 26", 78000));
-        seriesSettled.getData().add(new XYChart.Data<>("Aug 26", 96000));
+
+        for (String m : months) {
+            seriesGross.getData().add(new XYChart.Data<>(m, grossMap.get(m)));
+            seriesSettled.getData().add(new XYChart.Data<>(m, netMap.get(m)));
+        }
 
         areaChart.getData().addAll(seriesGross, seriesSettled);
 
@@ -359,15 +445,40 @@ public class Earnings {
         Text cardTitle = new Text("🥧 Machinery Revenue Contribution Share");
         cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text cardSub = new Text("Proportion of rental income generated per equipment category");
+        Text cardSub = new Text("Proportion of rental income generated per equipment");
         cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
-        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList(
-            new PieChart.Data("Combine Harvesters (45%)", 217000),
-            new PieChart.Data("Tractors (32%)", 155000),
-            new PieChart.Data("Rotavators & Tillers (14%)", 68000),
-            new PieChart.Data("Agri Drones (9%)", 45200)
-        );
+        java.util.Map<String, Integer> machineMap = new java.util.HashMap<>();
+        for (Transaction t : txnList) {
+            if ("CREDIT".equals(t.type)) {
+                String mName = t.machine != null ? t.machine : "Machinery";
+                machineMap.put(mName, machineMap.getOrDefault(mName, 0) + t.amount);
+            }
+        }
+
+        if (machineMap.isEmpty()) {
+            VBox emptyBox = new VBox(10);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(275);
+            Text emptyIcon = new Text("🚜");
+            emptyIcon.setStyle("-fx-font-size: 36px;");
+            Text emptyTitle = new Text("No Equipment Performance Data Yet");
+            emptyTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Revenue generated per fleet unit will appear here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIcon, emptyTitle, emptySub);
+
+            VBox card = new VBox(8, new VBox(2, cardTitle, cardSub), emptyBox);
+            card.setPadding(new Insets(18));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+            card.setMinWidth(0);
+            return card;
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        for (java.util.Map.Entry<String, Integer> entry : machineMap.entrySet()) {
+            pieData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+        }
 
         PieChart pieChart = new PieChart(pieData);
         pieChart.setAnimated(false);
@@ -384,10 +495,10 @@ public class Earnings {
     }
 
     // =========================================================
-    // CHARTS ROW 2: BarChart (Weekly Cash Flow) + Escrow Security Matrix
+    // CHARTS ROW 2: BarChart (Booking Revenue Pipeline) + Escrow Security Matrix
     // =========================================================
     private static HBox createChartsRow2() {
-        VBox barCard = createWeeklyInflowBarChart();
+        VBox barCard = createBookingRevenueBarChart();
         VBox escrowCard = createEscrowPipelineCard();
 
         barCard.setMinWidth(0);
@@ -401,18 +512,18 @@ public class Earnings {
         return row;
     }
 
-    private static VBox createWeeklyInflowBarChart() {
-        Text cardTitle = new Text("📊 Day-of-Week Inflow Cash Velocity");
+    private static VBox createBookingRevenueBarChart() {
+        Text cardTitle = new Text("📊 Booking Revenue by Pipeline Stage");
         cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text cardSub = new Text("Daily booking revenue distribution showing peak agricultural weekend demand");
+        Text cardSub = new Text("Total revenue pipeline distribution across booking statuses (in ₹)");
         cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Day of Week");
+        xAxis.setLabel("Booking Status");
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Daily Revenue (₹)");
+        yAxis.setLabel("Revenue (₹)");
 
         BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
         barChart.setAnimated(false);
@@ -421,15 +532,33 @@ public class Earnings {
         barChart.setMinHeight(270);
         barChart.setMinWidth(0);
 
+        int compRev = totalLifetime;
+        int activeRev = pendingEscrow;
+        int pendRev = 0;
+        int cancRev = 0;
+
+        try {
+            String pEmail = ProviderProfileStore.email;
+            if (pEmail != null) {
+                List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByProvider(pEmail);
+                for (com.desgin.model.RentalRequestModel r : list) {
+                    int gross = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+                    int net = (int) (gross * 0.93);
+                    if ("PENDING".equalsIgnoreCase(r.getStatus())) {
+                        pendRev += net;
+                    } else if ("CANCELLED".equalsIgnoreCase(r.getStatus()) || "REJECTED".equalsIgnoreCase(r.getStatus())) {
+                        cancRev += net;
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
+
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Revenue (₹)");
-        series.getData().add(new XYChart.Data<>("Mon", 14200));
-        series.getData().add(new XYChart.Data<>("Tue", 18600));
-        series.getData().add(new XYChart.Data<>("Wed", 22400));
-        series.getData().add(new XYChart.Data<>("Thu", 19800));
-        series.getData().add(new XYChart.Data<>("Fri", 28500));
-        series.getData().add(new XYChart.Data<>("Sat (Peak)", 38200));
-        series.getData().add(new XYChart.Data<>("Sun", 32100));
+        series.getData().add(new XYChart.Data<>("Completed", compRev));
+        series.getData().add(new XYChart.Data<>("Active", activeRev));
+        series.getData().add(new XYChart.Data<>("Pending", pendRev));
+        series.getData().add(new XYChart.Data<>("Cancelled", cancRev));
 
         barChart.getData().add(series);
 
@@ -618,8 +747,14 @@ public class Earnings {
             VBox emptyBox = new VBox(8);
             emptyBox.setAlignment(Pos.CENTER);
             emptyBox.setPadding(new Insets(30));
-            Text empty = new Text("No transaction records found matching your filter.");
-            empty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-fill: #4B5563;");
+            emptyBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            Text emptyIco = new Text("💳");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text empty = new Text(txnList.isEmpty() ? "No earnings available yet." : "No transaction records found matching your filter.");
+            empty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text subEmpty = new Text("Rental earnings and payouts will appear here once bookings are completed.");
+            subEmpty.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, empty, subEmpty);
             txnListContainer.getChildren().add(emptyBox);
         }
     }
@@ -793,8 +928,24 @@ public class Earnings {
                     totalWithdrawn += amt;
                     availBalanceText.setText("₹" + String.format("%,d", availableBalance));
                     withdrawnText.setText("₹" + String.format("%,d", totalWithdrawn));
-                    txnList.add(0, new Transaction("#WD-" + (5050 + txnList.size()), "Withdrawal to " + bankSelect.getValue().substring(0, 9), "Rajesh Agro Services", "Fleet Settlement Account", "Today (Instant)", modeSelect.getValue().substring(0, 12), amt, "WITHDRAWAL", "SETTLED", "TXN-WD-" + System.currentTimeMillis() % 1000000));
+                    String pName = ProviderProfileStore.fullName != null ? ProviderProfileStore.fullName : "Provider Account";
+                    txnList.add(0, new Transaction("#WD-" + (5050 + txnList.size()), "Withdrawal to " + bankSelect.getValue(), pName, "Fleet Settlement Account", "Today (Instant)", modeSelect.getValue().substring(0, 12), amt, "WITHDRAWAL", "SETTLED", "TXN-WD-" + System.currentTimeMillis() % 1000000));
                     renderTxnList();
+                    new Thread(() -> {
+                        try {
+                            new com.desgin.dao.PayoutDAO().recordPayout(new com.desgin.model.PayoutModel(
+                                    "PO_PROV_WD_" + System.currentTimeMillis(),
+                                    ProviderProfileStore.email,
+                                    "PROVIDER",
+                                    null,
+                                    null,
+                                    amt,
+                                    "PAID",
+                                    "WITHDRAWAL_SETTLED",
+                                    bankSelect.getValue()
+                            ));
+                        } catch (Exception ignored) {}
+                    }).start();
                     root.getChildren().remove(overlay);
                 }
             } catch (Exception ignored) {}

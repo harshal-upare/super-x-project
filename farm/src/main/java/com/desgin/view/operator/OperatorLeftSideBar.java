@@ -149,26 +149,31 @@ public class OperatorLeftSideBar {
 
         dashboardBtn.setOnAction(event -> {
             setActiveButton(dashboardBtn, navigationButtons);
+            OperatorProfileManagement.updateHeaderGreeting();
             OperatorDashboard.borderPane.setCenter(OperatorHome.getPage());
         });
 
         jobsBtn.setOnAction(event -> {
             setActiveButton(jobsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(root));
         });
 
         earningsBtn.setOnAction(event -> {
             setActiveButton(earningsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Daily Wages & Cashout 💵", "Track completed job settlements, incentives & bank withdrawals");
             OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(root));
         });
 
         settingsBtn.setOnAction(event -> {
             setActiveButton(settingsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Operator Settings ⚙", "Manage operator license, contact profile and security");
             OperatorDashboard.borderPane.setCenter(OperatorSettings.getSettingsSection());
         });
 
         supportBtn.setOnAction(event -> {
             setActiveButton(supportBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "24x7 machinery hotline and technical field support");
             OperatorDashboard.borderPane.setCenter(OperatorHelp.getHelpSection());
         });
 
