@@ -28,10 +28,6 @@ import javafx.scene.text.Text;
 
 public class OperatorHome {
 
-    private static boolean isShiftRunning = true;
-    private static Text shiftStatusBadge;
-    private static Button pauseShiftBtn;
-
     private static Text cardMachinesVal;
     private static Text cardMachinesSub;
     private static Text cardJobsVal;
@@ -178,9 +174,6 @@ public class OperatorHome {
         HBox cards = new HBox(15, cardMachines, cardActiveJobs, cardHours, cardEarnings);
         cards.setAlignment(Pos.CENTER_LEFT);
 
-        // Live Shift Cockpit Panel
-        VBox liveShiftCard = createLiveCockpitCard();
-
         // Upcoming Work Orders Section
         VBox scheduleSection = createUpcomingScheduleSection();
 
@@ -192,7 +185,6 @@ public class OperatorHome {
                 weatherCard,
                 searchBox,
                 cards,
-                liveShiftCard,
                 scheduleSection,
                 recentLogsSection
         );
@@ -206,202 +198,6 @@ public class OperatorHome {
 
         OperatorDashboard.borderPane.setCenter(scrollPane);
         return scrollPane;
-    }
-
-    private static VBox createLiveCockpitCard() {
-        shiftStatusBadge = new Text("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
-        shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
-
-        Label reqToken = new Label("🏷 JOB-7821 • WORK ORDER REQUEST");
-        reqToken.setStyle("-fx-background-color: #F0FDF4; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4; -fx-border-color: #BBF7D0; -fx-border-radius: 4; -fx-border-width: 1;");
-
-        Label gpsPill = new Label("● GPS LIVE TRACKING (Sector 4 Baramati)");
-        gpsPill.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox badgeRow = new HBox(10, shiftStatusBadge, reqToken, spacer, gpsPill);
-        badgeRow.setAlignment(Pos.CENTER_LEFT);
-
-        Text title = new Text("🌾 Deep Tillage & Soil Preparation (14.0 Acres)");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subInfo = new Text("🎋 Crop: Sugarcane Planting  |  Plot: Sector 4 Baramati (Plot B)  |  Shift: Today, 08:00 AM – 04:30 PM");
-        subInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
-
-        // 3 Structured Info Panels: Farmer Information, Farm & Land Details, Wage & Terms
-        VBox farmerPanel = createInfoPanel(
-                "👨‍🌾 Farmer Information",
-                "Farmer Name", "Balasaheb Shirole (✔ Verified)",
-                "Phone / Contact", "+91 98220 12345",
-                "Village / Sector", "Baramati Rural, Pune District",
-                "Farmer Rating", "⭐ 4.9 Rating (18 Completed Jobs)"
-        );
-
-        VBox farmPanel = createInfoPanel(
-                "📍 Farm & Land Details",
-                "Plot Location", "Plot B, Sector 4 (Gat No. 112)",
-                "Land Area", "14.0 Acres (7.5 Acres Completed)",
-                "Soil & Irrigation", "Black Cotton Soil • Canal Fed",
-                "Target Crop", "Sugarcane Seedbed Tillage"
-        );
-
-        VBox wagePanel = createInfoPanel(
-                "💰 Work Terms & Payout",
-                "Wage Rate", "₹400 / Acre (₹5,600 Total)",
-                "Escrow Status", "🔒 Guaranteed Escrow Hold",
-                "Fuel Supply", "Provided by Farmer (On-Site)",
-                "Settlement", "Instant Wage Credit"
-        );
-
-        HBox panelsRow = new HBox(12, farmerPanel, farmPanel, wagePanel);
-        panelsRow.setAlignment(Pos.CENTER_LEFT);
-
-        // 4 Telemetry Dials
-        VBox tel1 = createTelemetryStat("⛽ Fuel Level", "78% (42 Liters Left)", 0.78, "#2E7D32");
-        VBox tel2 = createTelemetryStat("⚡ Engine Speed", "1,850 RPM (Optimal)", 0.74, "#2E7D32");
-        VBox tel3 = createTelemetryStat("🌡 Coolant Temp", "84°C (Normal)", 0.55, "#2D6A4F");
-        VBox tel4 = createTelemetryStat("⏱ Shift Duration", "3h 45m (7.5 of 14 Acres Done)", 0.54, "#1976D2");
-
-        HBox telRow = new HBox(12, tel1, tel2, tel3, tel4);
-        telRow.setAlignment(Pos.CENTER_LEFT);
-
-        // Action Buttons (Removed Verify Job OTP & Call Farmer buttons per request)
-        pauseShiftBtn = new Button("⏸  Pause Shift");
-        pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        pauseShiftBtn.setOnAction(e -> {
-            isShiftRunning = !isShiftRunning;
-            if (isShiftRunning) {
-                pauseShiftBtn.setText("⏸  Pause Shift");
-                pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-                shiftStatusBadge.setText("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
-                shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
-            } else {
-                pauseShiftBtn.setText("▶  Resume Shift");
-                pauseShiftBtn.setStyle("-fx-background-color: #6B8E23; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-                shiftStatusBadge.setText("🟡  SHIFT PAUSED • IDLE IN FIELD");
-                shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #D97706; -fx-letter-spacing: 1px;");
-            }
-        });
-
-        Button completeBtn = new Button("✓  Complete Shift & Payout");
-        completeBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        completeBtn.setOnAction(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
-
-        Button directionsBtn = new Button("🗺  Farm Plot Directions");
-        directionsBtn.setStyle("-fx-background-color: #FFFFFF; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-border-color: #A5D6A7; -fx-border-radius: 8; -fx-border-width: 1.2px; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        directionsBtn.setOnAction(e -> showPlotMapModal(OperatorDashboard.root));
-
-        HBox btnRow = new HBox(10, pauseShiftBtn, completeBtn, directionsBtn);
-        btnRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(14, badgeRow, title, subInfo, panelsRow, telRow, btnRow);
-        card.setPadding(new Insets(20));
-        card.setStyle(
-                "-fx-background-color: #FFFFFF;" +
-                "-fx-background-radius: 14;" +
-                "-fx-border-color: #2E7D32;" +
-                "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 14;" +
-                "-fx-effect: dropshadow(gaussian, rgba(46,125,50,0.15), 10, 0.2, 0, 4);");
-
-        return card;
-    }
-
-    private static VBox createInfoPanel(String headerTitle, String line1Label, String line1Val, String line2Label, String line2Val, String line3Label, String line3Val, String line4Label, String line4Val) {
-        Text h = new Text(headerTitle);
-        h.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        VBox content = new VBox(5);
-        content.getChildren().addAll(
-                createDetailRow(line1Label, line1Val),
-                createDetailRow(line2Label, line2Val),
-                createDetailRow(line3Label, line3Val),
-                createDetailRow(line4Label, line4Val)
-        );
-
-        VBox panel = new VBox(8, h, content);
-        panel.setPadding(new Insets(12, 14, 12, 14));
-        panel.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
-        HBox.setHgrow(panel, Priority.ALWAYS);
-        return panel;
-    }
-
-    private static HBox createDetailRow(String label, String value) {
-        Text l = new Text(label + ": ");
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-fill: #4B5563;");
-
-        Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #1B4332;");
-
-        HBox row = new HBox(4, l, v);
-        row.setAlignment(Pos.CENTER_LEFT);
-        return row;
-    }
-
-    private static void showPlotMapModal(StackPane root) {
-        if (root == null) return;
-        StackPane overlay = new StackPane();
-        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.55);");
-
-        VBox modal = new VBox(14);
-        modal.setPrefWidth(480);
-        modal.setMaxWidth(480);
-        modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 16; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 16;");
-
-        Text title = new Text("🗺 Farm Plot Navigation & Field Info");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text sub = new Text("Plot B, Sector 4, Baramati Rural (Balasaheb Shirole Farm)");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
-
-        VBox detailsBox = new VBox(8);
-        detailsBox.setPadding(new Insets(12));
-        detailsBox.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-radius: 8;");
-        detailsBox.getChildren().addAll(
-                createDetailRow("GPS Coordinates", "18.1512° N, 74.5771° E (Baramati Sector 4)"),
-                createDetailRow("Field Route", "SH-10 -> Baramati Canal Road -> North Farm Gate"),
-                createDetailRow("Tractor Access", "Wide double-gate gravel pathway (15ft width)"),
-                createDetailRow("Diesel Tank Location", "On-site farm shed (Gate #2)"),
-                createDetailRow("Farmer Contact", "+91 98220 12345 (Balasaheb Shirole)")
-        );
-
-        Button closeBtn = new Button("Close Directions");
-        closeBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        closeBtn.setPrefHeight(36);
-        closeBtn.setOnAction(e -> root.getChildren().remove(overlay));
-
-        HBox btns = new HBox(closeBtn);
-        btns.setAlignment(Pos.CENTER_RIGHT);
-
-        modal.getChildren().addAll(title, sub, detailsBox, btns);
-        overlay.getChildren().add(modal);
-        root.getChildren().add(overlay);
-    }
-
-    private static VBox createTelemetryStat(String label, String value, double progress, String barColor) {
-        Text l = new Text(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
-
-        Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        ProgressBar pb = new ProgressBar(progress);
-        pb.setPrefWidth(210);
-        pb.setPrefHeight(6);
-        pb.setStyle("-fx-accent: " + barColor + ";");
-
-        VBox b = new VBox(4, l, v, pb);
-        HBox.setHgrow(b, Priority.ALWAYS);
-        b.setPadding(new Insets(10, 12, 10, 12));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
-        return b;
     }
 
     private static VBox createUpcomingScheduleSection() {
