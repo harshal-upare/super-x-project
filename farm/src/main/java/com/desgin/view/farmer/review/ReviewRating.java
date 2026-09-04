@@ -94,6 +94,14 @@ public class ReviewRating {
                     list.add(new CompletedBooking(b.bookingId, b.equipmentName, "Verified Machinery Provider", b.endDate, b.dailyRate, icon, false));
                 }
             }
+            if (list.isEmpty()) {
+                if (!reviewedBookingIds.contains("BK-8821")) {
+                    list.add(new CompletedBooking("BK-8821", "Mahindra 575 DI Tractor", "Verified Machinery Provider", "02 Sep 2026", "₹1,800/day", "🚜", false));
+                }
+                if (!reviewedBookingIds.contains("BK-8835")) {
+                    list.add(new CompletedBooking("BK-8835", "Rotavator Heavy Tillage", "Verified Machinery Provider", "28 Aug 2026", "₹1,200/day", "⚙️", false));
+                }
+            }
         } else {
             // Operator pending jobs
             for (SearchOperator.OperatorItem op : SearchOperator.operatorsList) {
@@ -101,6 +109,19 @@ public class ReviewRating {
                     String icon = op.category.equalsIgnoreCase("Harvester") ? "🌾" :
                                   (op.category.equalsIgnoreCase("Drone") ? "🚁" : "👨‍🌾");
                     list.add(new CompletedBooking(op.id, op.name + " (" + op.specialty + ")", op.locationDisplay, "Recently Completed", op.rate, icon, true));
+                }
+            }
+            for (BookingDataStore.BookingItem b : BookingDataStore.getCompletedBookings()) {
+                if (b.operatorRequired && b.operatorName != null && !reviewedBookingIds.contains("OP-" + b.bookingId)) {
+                    list.add(new CompletedBooking("OP-" + b.bookingId, b.operatorName + " (Tractor & Tillage Specialist)", "Field Shift Completed", b.endDate, "₹800/day", "👨‍🌾", true));
+                }
+            }
+            if (list.isEmpty()) {
+                if (!reviewedBookingIds.contains("OP-REQ-25234")) {
+                    list.add(new CompletedBooking("OP-REQ-25234", "Rameshwar Patil (Sugarcane & Harvester Expert)", "Baramati Agri Sector", "03 Sep 2026", "₹800/shift", "👨‍🌾", true));
+                }
+                if (!reviewedBookingIds.contains("OP-REQ-19820")) {
+                    list.add(new CompletedBooking("OP-REQ-19820", "Anand Kulkarni (Rotavator & Precision Tillage)", "Shirur Farm Plot 45", "01 Sep 2026", "₹750/shift", "👨‍🌾", true));
                 }
             }
         }
@@ -113,6 +134,9 @@ public class ReviewRating {
     private static Text statTotalReviewsText;
     private static Text statPendingText;
     private static Label selectedBadge;
+    private static TextField headlineField;
+    private static TextArea commentArea;
+    private static Label statusMsg;
     private static CompletedBooking selectedBooking = null;
     private static int selectedStars = 5;
     private static final Set<String> activeTags = new HashSet<>();
@@ -382,37 +406,47 @@ public class ReviewRating {
         Text s2Title = new Text("2. Rate & Share Your Experience");
         s2Title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        selectedBadge = new Label("Please select a completed rental above");
+        selectedBadge = new Label("Please select a completed " + (isEquipmentMode ? "equipment" : "operator") + " above");
         selectedBadge.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 6px 12px; -fx-background-radius: 8px;");
 
-        Text starLabel = new Text("Overall Performance Rating:");
+        Text starLabel = new Text("Overall Performance Rating: *");
         starLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         HBox starBox = new HBox(8);
         starBox.setAlignment(Pos.CENTER_LEFT);
         List<Button> starButtons = new ArrayList<>();
+        Label starDescLbl = new Label("★★★★★ (5.0 - Outstanding)");
+        starDescLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #D97706; -fx-padding: 0 0 0 6;");
+
+        Runnable updateStars = () -> {
+            for (int j = 0; j < starButtons.size(); j++) {
+                int val = j + 1;
+                starButtons.get(j).setStyle(val <= selectedStars ?
+                        "-fx-background-color: #FEF3C7; -fx-text-fill: #B45309; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #FCD34D; -fx-border-radius: 8px; -fx-cursor: hand; -fx-padding: 6 14;" :
+                        "-fx-background-color: #FFFFFF; -fx-text-fill: #9CA3AF; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-border-color: #E5E7EB; -fx-border-radius: 8px; -fx-cursor: hand; -fx-padding: 6 14;");
+            }
+            if (selectedStars == 5) starDescLbl.setText("★★★★★ (5.0 - Outstanding)");
+            else if (selectedStars == 4) starDescLbl.setText("★★★★☆ (4.0 - Very Good)");
+            else if (selectedStars == 3) starDescLbl.setText("★★★☆☆ (3.0 - Good / Average)");
+            else if (selectedStars == 2) starDescLbl.setText("★★☆☆☆ (2.0 - Poor)");
+            else starDescLbl.setText("★☆☆☆☆ (1.0 - Very Poor)");
+        };
+
         for (int i = 1; i <= 5; i++) {
             final int starVal = i;
             Button starBtn = new Button("★ " + starVal);
             starBtn.setPrefHeight(36);
-            starBtn.setStyle(starVal <= selectedStars ?
-                    "-fx-background-color: #FEF3C7; -fx-text-fill: #B45309; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #FCD34D; -fx-border-radius: 8px; -fx-cursor: hand;" :
-                    "-fx-background-color: #FFFFFF; -fx-text-fill: #9CA3AF; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-border-color: #E5E7EB; -fx-border-radius: 8px; -fx-cursor: hand;");
-
             starBtn.setOnAction(ev -> {
                 selectedStars = starVal;
-                for (int j = 0; j < starButtons.size(); j++) {
-                    int val = j + 1;
-                    starButtons.get(j).setStyle(val <= selectedStars ?
-                            "-fx-background-color: #FEF3C7; -fx-text-fill: #B45309; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-border-color: #FCD34D; -fx-border-radius: 8px; -fx-cursor: hand;" :
-                            "-fx-background-color: #FFFFFF; -fx-text-fill: #9CA3AF; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-background-radius: 8px; -fx-border-color: #E5E7EB; -fx-border-radius: 8px; -fx-cursor: hand;");
-                }
+                updateStars.run();
             });
             starButtons.add(starBtn);
             starBox.getChildren().add(starBtn);
         }
+        updateStars.run();
+        starBox.getChildren().add(starDescLbl);
 
-        Text tagLabel = new Text("Performance Highlights:");
+        Text tagLabel = new Text("Performance Highlights (Optional):");
         tagLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         FlowPane tagsPane = new FlowPane(8, 8);
@@ -432,24 +466,24 @@ public class ReviewRating {
             tagsPane.getChildren().add(tagBtn);
         }
 
-        Label titleLbl = new Label("Review Headline");
+        Label titleLbl = new Label("Review Headline * (Mandatory)");
         titleLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
 
-        TextField headlineField = new TextField();
-        headlineField.setPromptText("E.g., Excellent tractor power and smooth field operation!");
+        headlineField = new TextField();
+        headlineField.setPromptText("Type your review headline (required)...");
         headlineField.setPrefHeight(42);
         headlineField.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-width: 1.2px; -fx-border-radius: 10px; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-padding: 0 14px;");
 
-        Label feedbackLbl = new Label("Detailed Review & Comments");
+        Label feedbackLbl = new Label("Detailed Review & Comments * (Mandatory)");
         feedbackLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
 
-        TextArea commentArea = new TextArea();
-        commentArea.setPromptText("Share specific details about machine performance, fuel consumption, speed, or on-field experience to help other farmers...");
+        commentArea = new TextArea();
+        commentArea.setPromptText("Type specific details about machine/operator performance, work speed, or field quality (required)...");
         commentArea.setPrefRowCount(4);
         commentArea.setWrapText(true);
         commentArea.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-width: 1.2px; -fx-border-radius: 10px; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-padding: 8px;");
 
-        Label statusMsg = new Label();
+        statusMsg = new Label();
         statusMsg.setVisible(false);
         statusMsg.setManaged(false);
 
@@ -469,17 +503,33 @@ public class ReviewRating {
 
         submitBtn.setOnAction(e -> {
             if (selectedBooking == null) {
-                statusMsg.setText("⚠️ Please select a completed " + (isEquipmentMode ? "rental" : "operator assignment") + " first.");
-                statusMsg.setStyle("-fx-background-color: #FEF2F2; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-padding: 8px 14px; -fx-background-radius: 8px;");
+                statusMsg.setText("⚠️ Please select a completed " + (isEquipmentMode ? "equipment" : "operator") + " from section 1 above first.");
+                statusMsg.setStyle("-fx-background-color: #FEF2F2; -fx-text-fill: #DC2626; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 8px 14px; -fx-background-radius: 8px; -fx-border-color: #FCA5A5; -fx-border-radius: 8px;");
                 statusMsg.setVisible(true);
                 statusMsg.setManaged(true);
                 return;
             }
 
-            String head = headlineField.getText().trim();
-            String comm = commentArea.getText().trim();
-            if (head.isEmpty()) head = selectedBooking.title + " Field Experience";
-            if (comm.isEmpty()) comm = "Delivered satisfactory field performance on time.";
+            String head = headlineField.getText() != null ? headlineField.getText().trim() : "";
+            String comm = commentArea.getText() != null ? commentArea.getText().trim() : "";
+
+            if (head.isEmpty()) {
+                statusMsg.setText("⚠️ Review Headline is mandatory. Please type a relevant headline.");
+                statusMsg.setStyle("-fx-background-color: #FEF2F2; -fx-text-fill: #DC2626; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 8px 14px; -fx-background-radius: 8px; -fx-border-color: #FCA5A5; -fx-border-radius: 8px;");
+                statusMsg.setVisible(true);
+                statusMsg.setManaged(true);
+                headlineField.requestFocus();
+                return;
+            }
+
+            if (comm.isEmpty()) {
+                statusMsg.setText("⚠️ Detailed Review & Comments is mandatory. Please type your feedback.");
+                statusMsg.setStyle("-fx-background-color: #FEF2F2; -fx-text-fill: #DC2626; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 8px 14px; -fx-background-radius: 8px; -fx-border-color: #FCA5A5; -fx-border-radius: 8px;");
+                statusMsg.setVisible(true);
+                statusMsg.setManaged(true);
+                commentArea.requestFocus();
+                return;
+            }
 
             String today = LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMM yyyy"));
             String revId = "REV-" + System.currentTimeMillis();
@@ -506,13 +556,30 @@ public class ReviewRating {
             final String fComm = comm;
             final String fToday = today;
             final List<String> fTags = new ArrayList<>(activeTags);
-            final boolean fIsOp = !isEquipmentMode;
+            final boolean fIsOp = !isEquipmentMode || selectedBooking.isOperator;
+
+            String currentFarmerName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
+            final String fFarmerName = (currentFarmerName != null && !currentFarmerName.trim().isEmpty()) ? currentFarmerName.trim() : "Swapnil Jadhav";
+            String currentFarmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+            final String fFarmerEmail = (currentFarmerEmail != null && !currentFarmerEmail.trim().isEmpty()) ? currentFarmerEmail.trim() : "farmer@farm.com";
+
+            // If reviewing an operator, immediately update OperatorReviews in memory as well
+            if (fIsOp) {
+                com.desgin.view.operator.OperatorReviews.addOperatorReview(
+                    revId,
+                    fFarmerName,
+                    fTitle,
+                    (double) fStars,
+                    fHead,
+                    fComm,
+                    fToday
+                );
+            }
+
             Thread t = new Thread(() -> {
                 try {
-                    String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
-                    String farmerName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
                     com.desgin.model.ReviewModel rm = new com.desgin.model.ReviewModel(
-                        revId, fBookingId, fTitle, farmerEmail, farmerName, fStars, fHead, fComm, fToday, fTags,
+                        revId, fBookingId, fTitle, fFarmerEmail, fFarmerName, fStars, fHead, fComm, fToday, fTags,
                         "Thank you for your valuable feedback!", fIsOp
                     );
                     new com.desgin.dao.ReviewDAO().addReview(rm);
@@ -526,10 +593,13 @@ public class ReviewRating {
             statAvgRatingText.setText(calculateAvgRating() + " ★");
 
             selectedBooking = null;
-            selectedBadge.setText("Please select a completed work above");
+            selectedBadge.setText("Please select a completed " + (isEquipmentMode ? "equipment" : "operator") + " above");
+            selectedBadge.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 6px 12px; -fx-background-radius: 8px;");
             headlineField.clear();
             commentArea.clear();
             activeTags.clear();
+            statusMsg.setVisible(false);
+            statusMsg.setManaged(false);
             refreshPendingBookingsList();
 
             tabHistoryBtn.fire();
@@ -562,7 +632,11 @@ public class ReviewRating {
             t2.setWrappingWidth(750);
             t2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563; -fx-text-alignment: center;");
 
-            empty.getChildren().addAll(icon, t1, t2);
+            Button gotoBookingsBtn = new Button("📅  View All Bookings & Field Shifts ➔");
+            gotoBookingsBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 14;");
+            gotoBookingsBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToBookings());
+
+            empty.getChildren().addAll(icon, t1, t2, gotoBookingsBtn);
             pendingBookingsBox.getChildren().add(empty);
             return;
         }
@@ -593,7 +667,15 @@ public class ReviewRating {
             selectBtn.setOnAction(e -> {
                 selectedBooking = b;
                 if (selectedBadge != null) {
-                    selectedBadge.setText("Rating for: " + b.title + " (" + b.bookingId + ")");
+                    selectedBadge.setText("Reviewing: " + b.title + " (" + (b.isOperator ? "Operator" : "Equipment") + " - " + b.bookingId + ")");
+                    selectedBadge.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-padding: 6px 14px; -fx-background-radius: 8px; -fx-border-color: #86EFAC; -fx-border-radius: 8px;");
+                }
+                if (headlineField != null) {
+                    headlineField.requestFocus();
+                }
+                if (statusMsg != null) {
+                    statusMsg.setVisible(false);
+                    statusMsg.setManaged(false);
                 }
                 refreshPendingBookingsList();
             });

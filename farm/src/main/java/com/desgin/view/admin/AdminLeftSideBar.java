@@ -25,6 +25,7 @@ public class AdminLeftSideBar {
     public static Button usersBtn;
     public static Button escrowBtn;
     public static Button disputesBtn;
+    public static Button queriesBtn;
     public static Button settingsBtn;
 
     public static StackPane root;
@@ -100,10 +101,13 @@ public class AdminLeftSideBar {
         disputesBtn = new Button("⚖   Dispute Resolution");
         styleMenuButton(disputesBtn);
 
+        queriesBtn = new Button("💬   User Queries");
+        styleMenuButton(queriesBtn);
+
         settingsBtn = new Button("⚙   Platform Settings");
         styleMenuButton(settingsBtn);
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, approvalsBtn, usersBtn, escrowBtn, disputesBtn, settingsBtn);
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, approvalsBtn, usersBtn, escrowBtn, disputesBtn, queriesBtn, settingsBtn);
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -138,6 +142,7 @@ public class AdminLeftSideBar {
         navigationButtons.add(usersBtn);
         navigationButtons.add(escrowBtn);
         navigationButtons.add(disputesBtn);
+        navigationButtons.add(queriesBtn);
         navigationButtons.add(settingsBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
@@ -170,6 +175,12 @@ public class AdminLeftSideBar {
             setActiveButton(disputesBtn, navigationButtons);
             AdminProfileManagement.setHeaderTitle("Dispute Resolution & Claims ⚖", "Arbitrate farm work order disputes, fuel adjustment claims, and refund cases");
             AdminDashboard.borderPane.setCenter(DisputeResolution.getPage(root));
+        });
+
+        queriesBtn.setOnAction(event -> {
+            setActiveButton(queriesBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("User Queries & Live Support 💬", "Real-time WhatsApp-style helpdesk for operator and farmer queries");
+            AdminDashboard.borderPane.setCenter(UserQueries.getPage(root));
         });
 
         settingsBtn.setOnAction(event -> {

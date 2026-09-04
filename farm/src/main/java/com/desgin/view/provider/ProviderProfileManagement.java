@@ -578,6 +578,8 @@ public class ProviderProfileManagement {
         ScrollPane scroll = new ScrollPane(notifListContainer);
         scroll.setFitToWidth(true);
         scroll.setPrefHeight(280);
+        scroll.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scroll.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         scroll.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         modal.getChildren().addAll(topH, scroll);
@@ -588,12 +590,13 @@ public class ProviderProfileManagement {
         Text t = new Text(title);
         t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #1B4332;");
         Text d = new Text(desc);
-        d.setWrappingWidth(300);
+        d.setWrappingWidth(275);
         d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
         Text tm = new Text(time);
         tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #9CA3AF;");
 
         VBox box = new VBox(2, t, d, tm);
+        box.setMaxWidth(Double.MAX_VALUE);
         box.setPadding(new Insets(6, 8, 6, 8));
         box.setStyle("-fx-background-color: #F9FAFB; -fx-background-radius: 6;");
         return box;

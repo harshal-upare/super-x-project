@@ -1,15 +1,12 @@
 package com.desgin.view.operator;
 
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
-import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.RadioButton;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
-import javafx.scene.control.TextField;
-import javafx.scene.control.ToggleGroup;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
@@ -18,33 +15,12 @@ import javafx.scene.text.Text;
 public class OperatorSettings {
 
     public static ScrollPane getSettingsSection() {
-        Text title = new Text("Operator Settings & Dispatch Preferences");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        // Section: Security & Password Management (Firestore Sync)
+        VBox passwordCard = createPasswordCard();
 
-        Text subtitle = new Text("Configure your field availability status, operating radius, machinery dispatch alerts, and language preferences.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
-
-        VBox titleBox = new VBox(4, title, subtitle);
-
-        // Section 1: Availability Status
-        VBox availCard = createAvailabilityCard();
-
-        // Section 2: Operating Radius & Machinery Preferences
-        VBox radiusCard = createRadiusCard();
-
-        // Section 3: Notification Alerts
-        VBox notifCard = createNotificationSettingsCard();
-
-        // Section 4: Language
-        VBox langCard = createLanguageCard();
-
-        // Save Button
-        Button saveBtn = new Button("Save Operator Preferences");
-        saveBtn.setPrefHeight(42);
-        saveBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 0 24 0 24;");
-
-        VBox content = new VBox(20, titleBox, availCard, radiusCard, notifCard, langCard, saveBtn);
-        content.setPadding(new Insets(25, 30, 35, 30));
+        VBox content = new VBox(18, passwordCard);
+        content.setPadding(new Insets(20, 30, 35, 30));
+        content.setMaxWidth(Double.MAX_VALUE);
 
         ScrollPane scrollPane = new ScrollPane(content);
         scrollPane.setFitToWidth(true);
@@ -55,128 +31,158 @@ public class OperatorSettings {
         return scrollPane;
     }
 
-    private static VBox createAvailabilityCard() {
-        Text t = new Text("Field Dispatch Availability");
+    // =========================================================
+    // Password Change Field via Firestore
+    // =========================================================
+    private static VBox createPasswordCard() {
+        Text t = new Text("🔒 Security & Change Password (Firestore Sync)");
         t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        RadioButton r1 = new RadioButton("🟢 Available for Field Dispatch (Receive new farmer bookings)");
-        RadioButton r2 = new RadioButton("🟡 Busy on Active Shift");
-        RadioButton r3 = new RadioButton("🔴 On Leave / Off-Duty (Do not assign new jobs)");
-
-        ToggleGroup tg = new ToggleGroup();
-        r1.setToggleGroup(tg);
-        r2.setToggleGroup(tg);
-        r3.setToggleGroup(tg);
-        r1.setSelected(OperatorProfileStore.availableForShifts);
-        if (!OperatorProfileStore.availableForShifts) r3.setSelected(true);
-
-        r1.setOnAction(e -> {
-            OperatorProfileStore.availableForShifts = true;
-            OperatorProfileStore.status = "Available for Field Shifts";
-            new Thread(() -> {
-                try {
-                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "ACTIVE");
-                } catch (Exception ignored) {}
-            }).start();
-        });
-        r2.setOnAction(e -> {
-            OperatorProfileStore.availableForShifts = false;
-            OperatorProfileStore.status = "Busy on Active Shift";
-            new Thread(() -> {
-                try {
-                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "BUSY");
-                } catch (Exception ignored) {}
-            }).start();
-        });
-        r3.setOnAction(e -> {
-            OperatorProfileStore.availableForShifts = false;
-            OperatorProfileStore.status = "On Leave / Off-Duty";
-            new Thread(() -> {
-                try {
-                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "OFF_DUTY");
-                } catch (Exception ignored) {}
-            }).start();
-        });
-
-        String rbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #1B4332;";
-        r1.setStyle(rbStyle);
-        r2.setStyle(rbStyle);
-        r3.setStyle(rbStyle);
-
-        VBox b = new VBox(10, t, r1, r2, r3);
-        b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
-        return b;
-    }
-
-    private static VBox createRadiusCard() {
-        Text t = new Text("Operating Range & Machine Preferences");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        Text sub = new Text("Update your operator account login password securely stored in Firestore");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
 
         GridPane g = new GridPane();
         g.setHgap(15);
-        g.setVgap(10);
+        g.setVgap(12);
 
-        ComboBox<String> radiusSelect = new ComboBox<>();
-        radiusSelect.getItems().addAll("Within 15 km", "Within 30 km (Recommended)", "Within 50 km", "All Sub-District (Baramati / Pune)");
-        radiusSelect.setValue("Within 30 km (Recommended)");
-        radiusSelect.setPrefWidth(260);
+        PasswordField currentPassField = new PasswordField();
+        currentPassField.setPromptText("Enter current account password");
+        currentPassField.setPrefHeight(38);
+        currentPassField.setPrefWidth(280);
+        currentPassField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
 
-        TextField baseField = new TextField("Baramati Sector 4 Hub, Pune");
-        baseField.setPrefHeight(36);
-        baseField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
+        PasswordField newPassField = new PasswordField();
+        newPassField.setPromptText("Enter new password");
+        newPassField.setPrefHeight(38);
+        newPassField.setPrefWidth(280);
+        newPassField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
 
-        g.add(createLabel("Base Dispatch Location:"), 0, 0);
-        g.add(baseField, 1, 0);
+        PasswordField confirmPassField = new PasswordField();
+        confirmPassField.setPromptText("Re-enter new password to confirm");
+        confirmPassField.setPrefHeight(38);
+        confirmPassField.setPrefWidth(280);
+        confirmPassField.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-background-color: white; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
 
-        g.add(createLabel("Maximum Travel Radius:"), 0, 1);
-        g.add(radiusSelect, 1, 1);
+        g.add(createLabel("Current Password:"), 0, 0);
+        g.add(currentPassField, 1, 0);
 
-        VBox b = new VBox(10, t, g);
+        g.add(createLabel("New Password:"), 0, 1);
+        g.add(newPassField, 1, 1);
+
+        g.add(createLabel("Confirm New Password:"), 0, 2);
+        g.add(confirmPassField, 1, 2);
+
+        Label feedbackLbl = new Label();
+        feedbackLbl.setVisible(false);
+        feedbackLbl.setManaged(false);
+
+        Button updatePassBtn = new Button("🔑  Update Password in Firestore");
+        updatePassBtn.setPrefHeight(38);
+        updatePassBtn.setStyle("-fx-background-color: linear-gradient(to right, #15803D, #22C55E); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 0 20; -fx-effect: dropshadow(gaussian, rgba(21,128,61,0.25), 6, 0, 0, 2);");
+
+        updatePassBtn.setOnAction(e -> {
+            String curr = currentPassField.getText().trim();
+            String newP = newPassField.getText().trim();
+            String confP = confirmPassField.getText().trim();
+
+            if (curr.isEmpty()) {
+                showPassFeedback(feedbackLbl, "✕ Please enter your current password.", false);
+                return;
+            }
+            if (newP.isEmpty()) {
+                showPassFeedback(feedbackLbl, "✕ Please enter your new password.", false);
+                return;
+            }
+            if (!newP.equals(confP)) {
+                showPassFeedback(feedbackLbl, "✕ New password and confirmation password do not match.", false);
+                return;
+            }
+
+            updatePassBtn.setDisable(true);
+            updatePassBtn.setText("Updating Firestore...");
+
+            new Thread(() -> {
+                try {
+                    String email = OperatorProfileStore.email;
+                    String phone = OperatorProfileStore.phone;
+                    com.desgin.dao.AuthDAO dao = new com.desgin.dao.AuthDAO();
+                    com.desgin.model.AuthenticateModel user = null;
+                    if (email != null && !email.trim().isEmpty()) {
+                        user = dao.getUser(email, "Operator");
+                    }
+                    if (user == null && phone != null && !phone.trim().isEmpty()) {
+                        user = dao.getUser(phone, "Operator");
+                    }
+
+                    boolean currentOk = false;
+                    if (user != null && user.getPassword() != null && !user.getPassword().isEmpty()) {
+                        currentOk = user.getPassword().equals(curr);
+                    } else if (OperatorProfileStore.currentPassword != null && !OperatorProfileStore.currentPassword.isEmpty()) {
+                        currentOk = OperatorProfileStore.currentPassword.equals(curr);
+                    } else {
+                        // If no password recorded yet in Firestore, permit update
+                        currentOk = true;
+                    }
+
+                    if (!currentOk) {
+                        Platform.runLater(() -> {
+                            updatePassBtn.setDisable(false);
+                            updatePassBtn.setText("🔑  Update Password in Firestore");
+                            showPassFeedback(feedbackLbl, "✕ Current password is incorrect.", false);
+                        });
+                        return;
+                    }
+
+                    String identifier = (user != null && user.getMail() != null && !user.getMail().isEmpty()) 
+                            ? user.getMail() 
+                            : ((email != null && !email.isEmpty()) ? email : phone);
+
+                    boolean success = dao.updatePassword(identifier, "Operator", newP);
+                    if (phone != null && !phone.isEmpty() && !phone.equals(identifier)) {
+                        dao.updatePassword(phone, "Operator", newP);
+                    }
+
+                    Platform.runLater(() -> {
+                        updatePassBtn.setDisable(false);
+                        updatePassBtn.setText("🔑  Update Password in Firestore");
+                        if (success) {
+                            OperatorProfileStore.currentPassword = newP;
+                            currentPassField.clear();
+                            newPassField.clear();
+                            confirmPassField.clear();
+                            showPassFeedback(feedbackLbl, "✓ Password updated in Firestore! You can now log in with your new password.", true);
+                        } else {
+                            showPassFeedback(feedbackLbl, "✕ Failed to update password in Firestore. Please try again.", false);
+                        }
+                    });
+                } catch (Exception ex) {
+                    Platform.runLater(() -> {
+                        updatePassBtn.setDisable(false);
+                        updatePassBtn.setText("🔑  Update Password in Firestore");
+                        showPassFeedback(feedbackLbl, "✕ Error updating password: " + ex.getMessage(), false);
+                    });
+                }
+            }).start();
+        });
+
+        HBox btnRow = new HBox(12, updatePassBtn);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox b = new VBox(12, new VBox(3, t, sub), g, btnRow, feedbackLbl);
         b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.02), 4, 0, 0, 1);");
         return b;
     }
 
-    private static VBox createNotificationSettingsCard() {
-        Text t = new Text("Job Dispatch & Alert Preferences");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        CheckBox c1 = new CheckBox("Instant SMS alert for new work orders");
-        CheckBox c2 = new CheckBox("Push notification when wage payout is credited to bank");
-        CheckBox c3 = new CheckBox("Machine service interval reminders (40 hrs prior)");
-        CheckBox c4 = new CheckBox("Severe field weather / rain warning notifications");
-
-        c1.setSelected(true);
-        c2.setSelected(true);
-        c3.setSelected(true);
-        c4.setSelected(true);
-
-        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;";
-        c1.setStyle(cbStyle);
-        c2.setStyle(cbStyle);
-        c3.setStyle(cbStyle);
-        c4.setStyle(cbStyle);
-
-        VBox b = new VBox(10, t, c1, c2, c3, c4);
-        b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
-        return b;
-    }
-
-    private static VBox createLanguageCard() {
-        Text t = new Text("Language & Regional Options");
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        ComboBox<String> lang = new ComboBox<>();
-        lang.getItems().addAll("English", "मराठी (Marathi)", "हिन्दी (Hindi)");
-        lang.setValue("English");
-        lang.setPrefWidth(220);
-
-        VBox b = new VBox(10, t, lang);
-        b.setPadding(new Insets(18));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
-        return b;
+    private static void showPassFeedback(Label lbl, String msg, boolean isSuccess) {
+        lbl.setText(msg);
+        if (isSuccess) {
+            lbl.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8 14; -fx-background-radius: 6; -fx-border-color: #86EFAC; -fx-border-radius: 6;");
+        } else {
+            lbl.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 8 14; -fx-background-radius: 6; -fx-border-color: #FCA5A5; -fx-border-radius: 6;");
+        }
+        lbl.setVisible(true);
+        lbl.setManaged(true);
     }
 
     private static Label createLabel(String text) {

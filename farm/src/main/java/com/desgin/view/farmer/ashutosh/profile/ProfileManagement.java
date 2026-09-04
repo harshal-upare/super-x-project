@@ -26,6 +26,7 @@ import javafx.scene.text.Text;
 public class ProfileManagement {
 
     private static VBox profilePopupRef;
+    private static VBox notificationPopUpRef;
     private static Text profilePillNameText;
     private static StackPane profilePillAvatarBox;
     private static ImageView modalAvatarView;
@@ -195,13 +196,13 @@ public class ProfileManagement {
         });
 
         // Notifications Popup
-        VBox notificationPopUp = createNotificationModal();
-        root.getChildren().add(notificationPopUp);
+        notificationPopUpRef = createNotificationModal();
+        root.getChildren().add(notificationPopUpRef);
 
         notificationBtn1.setOnAction(e -> {
-            boolean isVis = notificationPopUp.isVisible();
-            if (profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
-            notificationPopUp.setVisible(!isVis);
+            boolean isVis = notificationPopUpRef.isVisible();
+            if (profilePopupRef != null && profilePopupRef.isVisible()) profilePopupRef.setVisible(false);
+            notificationPopUpRef.setVisible(!isVis);
             if (!isVis) refreshFarmerNotifications();
         });
 
@@ -857,13 +858,7 @@ public class ProfileManagement {
         if (profilePopupRef != null) {
             profilePopupRef.setVisible(false);
         }
-        ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
-        if (FarmerDashboard.borderPane != null) {
-            FarmerDashboard.borderPane.setCenter(Settings.getSetting());
-        }
-        if (LeftSideBar.settingsBtn1 != null && LeftSideBar.navigationButtons != null) {
-            LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
-        }
+        LeftSideBar.navigateToSettings();
     }
 
     private static HBox createInfoRowWithAction(String label, Text valText, Runnable onEdit) {
@@ -962,6 +957,8 @@ public class ProfileManagement {
         ScrollPane sp = new ScrollPane(farmerNotifList);
         sp.setFitToWidth(true);
         sp.setPrefHeight(380);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         modal.getChildren().addAll(topBar, sp);
@@ -1070,13 +1067,14 @@ public class ProfileManagement {
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         Text d = new Text(desc);
-        d.setWrappingWidth(410);
+        d.setWrappingWidth(390);
         d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563; -fx-line-spacing: 2px;");
 
         Text tm = new Text(time);
         tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #9CA3AF;");
 
         VBox card = new VBox(5, topRow, d, tm);
+        card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(12, 14, 12, 14));
         card.setStyle(
                 "-fx-background-color: #F8FAF8;" +
@@ -1085,6 +1083,26 @@ public class ProfileManagement {
                 "-fx-border-radius: 12px;" +
                 "-fx-border-width: 1px;"
         );
+
+        card.setCursor(javafx.scene.Cursor.HAND);
+        card.setOnMouseEntered(e -> card.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 12px; -fx-border-color: #2D6A4F; -fx-border-radius: 12px; -fx-border-width: 1.2px; -fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.15), 6, 0, 0, 2);"));
+        card.setOnMouseExited(e -> card.setStyle("-fx-background-color: #F8FAF8; -fx-background-radius: 12px; -fx-border-color: #E2EBE5; -fx-border-radius: 12px; -fx-border-width: 1px;"));
+
+        card.setOnMouseClicked(e -> {
+            if (notificationPopUpRef != null) {
+                notificationPopUpRef.setVisible(false);
+            }
+            if ("SYSTEM".equalsIgnoreCase(tag)) {
+                return;
+            }
+            String combined = (title + " " + desc + " " + tag).toUpperCase();
+            if (combined.contains("PAYMENT") || combined.contains("SPEND") || combined.contains("INVOICE")) {
+                LeftSideBar.navigateToPayments();
+            } else {
+                LeftSideBar.navigateToBookings();
+            }
+        });
+
         return card;
     }
 }

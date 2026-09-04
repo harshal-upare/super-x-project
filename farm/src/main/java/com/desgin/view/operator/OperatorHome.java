@@ -32,8 +32,6 @@ public class OperatorHome {
     private static Text cardMachinesSub;
     private static Text cardJobsVal;
     private static Text cardJobsSub;
-    private static Text cardHoursVal;
-    private static Text cardHoursSub;
     private static Text cardWagesVal;
     private static Text cardWagesSub;
 
@@ -48,8 +46,6 @@ public class OperatorHome {
         if (cardMachinesSub != null) cardMachinesSub.setText(OperatorProfileStore.assignedMachinerySub);
         if (cardJobsVal != null) cardJobsVal.setText(OperatorProfileStore.activeJobs);
         if (cardJobsSub != null) cardJobsSub.setText(OperatorProfileStore.activeJobsSub);
-        if (cardHoursVal != null) cardHoursVal.setText(OperatorProfileStore.engineHours);
-        if (cardHoursSub != null) cardHoursSub.setText(OperatorProfileStore.engineHoursSub);
         if (cardWagesVal != null) cardWagesVal.setText(OperatorProfileStore.wagesEarned);
         if (cardWagesSub != null) cardWagesSub.setText(OperatorProfileStore.wagesEarnedSub);
     }
@@ -59,38 +55,70 @@ public class OperatorHome {
             try {
                 String opEmail = OperatorProfileStore.email;
                 if (opEmail == null || opEmail.trim().isEmpty()) return;
+
+                // Sync availability status from Operator doc in Firestore
+                com.google.cloud.firestore.Firestore db = com.desgin.config.FirestoreConfig.getFirestore();
+                if (db != null) {
+                    var opDoc = db.collection("Operator").document(opEmail).get().get();
+                    if (opDoc.exists()) {
+                        Boolean avail = opDoc.getBoolean("available");
+                        if (avail != null) {
+                            OperatorProfileStore.availableForShifts = avail;
+                            OperatorProfileStore.status = avail ? "Available for Field Shifts" : "Not Available / Off-duty";
+                        }
+                    }
+                }
+
                 java.util.List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(opEmail);
                 int totalJobs = list.size();
                 int activeJobsCount = 0;
                 int completedJobsCount = 0;
                 int totalWages = 0;
+                int settledWages = 0;
+                int pendingWages = 0;
                 java.util.Set<String> machines = new java.util.HashSet<>();
 
                 for (com.desgin.model.RentalRequestModel r : list) {
                     if (r.getMachineryName() != null) machines.add(r.getMachineryName());
                     String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "";
-                    int wage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
-                    if ("ACTIVE".equals(st) || "CONFIRMED".equals(st) || "ACCEPTED".equals(st)) {
-                        activeJobsCount++;
-                        totalWages += wage;
-                    } else if ("COMPLETED".equals(st)) {
+                    String opSt = r.getOperatorStatus() != null ? r.getOperatorStatus().toUpperCase() : "";
+                    String paySt = r.getPaymentStatus() != null ? r.getPaymentStatus().toUpperCase() : "";
+                    int wage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (600 * Math.max(1, r.getDays()));
+
+                    boolean isCompleted = "COMPLETED".equals(st) || "COMPLETED".equals(opSt);
+                    boolean isCancelled = "CANCELLED".equals(st) || "REJECTED".equals(st) || "REJECTED".equals(opSt);
+                    boolean isActive = !isCompleted && !isCancelled && ("IN_PROGRESS".equals(st) || "IN_PROGRESS".equals(opSt) || "PAID".equals(paySt) || r.getShiftStartTime() > 0 || "ACTIVE".equals(st) || "CONFIRMED".equals(st));
+                    boolean isPending = !isCompleted && !isCancelled && !isActive;
+
+                    if (isCompleted) {
                         completedJobsCount++;
                         totalWages += wage;
+                        settledWages += wage;
+                    } else if (isActive) {
+                        activeJobsCount++;
+                        totalWages += wage;
+                        pendingWages += wage;
+                    } else if (isPending) {
+                        totalWages += wage;
+                        pendingWages += wage;
                     }
                 }
 
+                final int finalTotal = totalJobs;
                 final int finalActive = activeJobsCount;
-                final int finalMach = machines.size();
-                final int finalWages = totalWages;
                 final int finalCompleted = completedJobsCount;
+                final int finalWages = totalWages;
+                final int finalSettled = settledWages;
+                final int finalPending = pendingWages;
+                final int finalMach = machines.size();
 
                 javafx.application.Platform.runLater(() -> {
-                    OperatorProfileStore.assignedMachinery = finalMach + " Units";
-                    OperatorProfileStore.assignedMachinerySub = finalActive + " In Shift • " + Math.max(0, finalMach - finalActive) + " Ready";
-                    OperatorProfileStore.activeJobs = finalActive + " Active";
-                    OperatorProfileStore.activeJobsSub = finalCompleted + " Completed • " + totalJobs + " Total";
+                    OperatorProfileStore.assignedMachinery = finalMach + " Units Assigned";
+                    OperatorProfileStore.assignedMachinerySub = finalActive + " In Shift • " + Math.max(0, finalMach - finalActive) + " Standby";
+                    OperatorProfileStore.activeJobs = finalTotal + " Total Jobs";
+                    OperatorProfileStore.activeJobsSub = finalCompleted + " Completed • " + finalActive + " Active Shift";
                     OperatorProfileStore.wagesEarned = "₹" + String.format("%,d", finalWages);
-                    OperatorProfileStore.wagesEarnedSub = "Secured via Platform Escrow";
+                    OperatorProfileStore.wagesEarnedSub = "₹" + String.format("%,d", finalSettled) + " Settled • ₹" + String.format("%,d", finalPending) + " Escrow";
                     refreshDynamicMetrics();
                 });
             } catch (Exception ignored) {}
@@ -101,92 +129,76 @@ public class OperatorHome {
         OperatorProfileManagement.updateHeaderGreeting();
         loadOperatorMetricsFromFirestore();
 
-        // Weather Card
+        // 1. Weather Card
         HBox weatherCard = createWeatherCard("Pune Agri Zone", 18.5204, 73.8567);
 
-        // Search Bar & Filter
+        // 2. Full-Width Search Bar
         TextField searchField = new TextField();
-        searchField.setPromptText("Search assigned jobs, machinery, farmer name, or farm plot...");
-        searchField.setPrefHeight(42);
-        searchField.setPrefWidth(460);
+        searchField.setPromptText("🔍  Search assigned jobs, machinery, farmer name, or farm plot...");
+        searchField.setPrefHeight(44);
+        searchField.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(searchField, Priority.ALWAYS);
         searchField.setStyle(
                 "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 10;" +
-                "-fx-border-color: #E2EBE5;" +
+                "-fx-border-color: #C2E0CE;" +
                 "-fx-border-radius: 10;" +
-                "-fx-border-width: 1;" +
+                "-fx-border-width: 1.2;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
                 "-fx-text-fill: #1B4332;" +
-                "-fx-prompt-text-fill: #A18C7A;");
+                "-fx-padding: 0 16px;" +
+                "-fx-prompt-text-fill: #9CA3AF;");
 
-        Text searchIcon = new Text("🔍");
-        searchIcon.setStyle("-fx-font-size: 18px;");
-
-        Button searchButton = new Button("Search");
-        searchButton.setPrefWidth(90);
-        searchButton.setPrefHeight(42);
+        Button searchButton = new Button("Search Jobs ➔");
+        searchButton.setPrefHeight(44);
         searchButton.setStyle(
-                "-fx-background-color: #6B8E23;" +
+                "-fx-background-color: #2D6A4F;" +
                 "-fx-background-radius: 10;" +
                 "-fx-text-fill: white;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13px;" +
                 "-fx-font-weight: bold;" +
+                "-fx-padding: 0 20px;" +
                 "-fx-cursor: hand;");
 
-        HBox searchBox = new HBox(10, searchIcon, searchField, searchButton);
+        searchButton.setOnAction(e -> OperatorLeftSideBar.navigateToJobs());
+
+        HBox searchBox = new HBox(12, searchField, searchButton);
         searchBox.setAlignment(Pos.CENTER_LEFT);
+        searchBox.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(searchBox, Priority.ALWAYS);
 
-        // 4 Dynamic KPI Operator Metric Cards
-        cardMachinesVal = new Text(OperatorProfileStore.assignedMachinery);
-        cardMachinesSub = new Text(OperatorProfileStore.assignedMachinerySub);
-        VBox cardMachines = createDynamicDashboardCard("🚜", "Assigned Machinery", cardMachinesVal, cardMachinesSub, "#2E7D32", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
-
+        // 3. Top Key Metric Cards (Total Jobs, Total Earnings, Availability Status Toggle)
         cardJobsVal = new Text(OperatorProfileStore.activeJobs);
         cardJobsSub = new Text(OperatorProfileStore.activeJobsSub);
-        VBox cardActiveJobs = createDynamicDashboardCard("📋", "Active Field Jobs", cardJobsVal, cardJobsSub, "#E65100", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
-
-        cardHoursVal = new Text(OperatorProfileStore.engineHours);
-        cardHoursSub = new Text(OperatorProfileStore.engineHoursSub);
-        VBox cardHours = createDynamicDashboardCard("⏱", "Engine Hours (Month)", cardHoursVal, cardHoursSub, "#1976D2", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
+        VBox cardTotalJobs = createDynamicDashboardCard("📋", "Total Field Jobs", cardJobsVal, cardJobsSub, "#E65100", () -> {
+            OperatorLeftSideBar.navigateToJobs();
         });
 
         cardWagesVal = new Text(OperatorProfileStore.wagesEarned);
         cardWagesSub = new Text(OperatorProfileStore.wagesEarnedSub);
-        VBox cardEarnings = createDynamicDashboardCard("💰", "Wages Earned (Month)", cardWagesVal, cardWagesSub, "#2E7D32", () -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.earningsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Daily Wages & Cashout 💵", "Track completed job settlements, incentives & bank withdrawals");
-            OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(OperatorDashboard.root));
+        VBox cardTotalEarnings = createDynamicDashboardCard("💰", "Total Earnings", cardWagesVal, cardWagesSub, "#15803D", () -> {
+            OperatorLeftSideBar.navigateToEarnings();
         });
 
-        HBox cards = new HBox(15, cardMachines, cardActiveJobs, cardHours, cardEarnings);
+        VBox cardAvailability = createAvailabilityCard();
+
+        HBox cards = new HBox(18, cardTotalJobs, cardTotalEarnings, cardAvailability);
         cards.setAlignment(Pos.CENTER_LEFT);
+        HBox.setHgrow(cardTotalJobs, Priority.ALWAYS);
+        HBox.setHgrow(cardTotalEarnings, Priority.ALWAYS);
+        HBox.setHgrow(cardAvailability, Priority.ALWAYS);
 
-        // Upcoming Work Orders Section
-        VBox scheduleSection = createUpcomingScheduleSection();
-
-        // Recent Work Logs
-        VBox recentLogsSection = createRecentLogsSection();
+        // 4. Quick Overview / Assigned Machinery Banner
+        VBox quickOverview = createAssignedMachinerySection();
 
         VBox centerContent = new VBox(
                 20,
                 weatherCard,
                 searchBox,
                 cards,
-                scheduleSection,
-                recentLogsSection
+                quickOverview
         );
         centerContent.setPadding(new Insets(20, 30, 35, 30));
 
@@ -200,149 +212,104 @@ public class OperatorHome {
         return scrollPane;
     }
 
-    private static VBox createUpcomingScheduleSection() {
-        Text title = new Text("Upcoming Work Orders & Field Schedule");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    private static VBox createAvailabilityCard() {
+        VBox card = new VBox(8);
+        card.setPrefWidth(260);
+        card.setMinHeight(125);
+        card.setPadding(new Insets(12, 16, 12, 16));
 
-        Text viewAll = new Text("View Full Schedule →");
-        viewAll.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-cursor: hand;");
-        viewAll.setOnMouseClicked(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
+        Runnable updateUI = () -> {
+            card.getChildren().clear();
+            boolean isAvail = OperatorProfileStore.availableForShifts;
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox header = new HBox(title, spacer, viewAll);
-        header.setAlignment(Pos.CENTER_LEFT);
+            Text iconText = new Text(isAvail ? "🟢" : "🔴");
+            iconText.setStyle("-fx-font-size: 18px;");
 
-        HBox job1 = createScheduleRow("🌾 Wheat Harvesting (18.0 Acres)", "Farmer: Vikas More (📞 +91 98502 11234) • Gat No. 112, Daund Road, Pune", "Tomorrow, 07:00 AM", "₹450 / Acre (₹8,100)", "CONFIRMED", "Wheat Crop");
-        HBox job2 = createScheduleRow("🚜 Laser Land Leveling (8.0 Acres)", "Farmer: Kiran Bhosale (📞 +91 94220 89761) • Shiraswadi Farm, Baramati", "16 Aug 2026, 08:30 AM", "₹700 / Hour (₹4,200)", "SCHEDULED", "Cotton Land");
-        HBox job3 = createScheduleRow("🚁 Micronutrient Foliar Spraying (12.0 Acres)", "Farmer: Ganesh Jadhav (📞 +91 97631 55670) • Hol Village, Baramati", "17 Aug 2026, 06:00 AM", "₹350 / Acre (₹4,200)", "PENDING_ACCEPT", "Soybean Crop");
+            StackPane iconHolder = new StackPane(iconText);
+            iconHolder.setPrefSize(36, 36);
+            iconHolder.setMinSize(36, 36);
+            iconHolder.setMaxSize(36, 36);
+            iconHolder.setStyle("-fx-background-color: " + (isAvail ? "#E8F5E9" : "#FEE2E2") + "; -fx-background-radius: 10;");
 
-        VBox list = new VBox(10, header, job1, job2, job3);
-        return list;
-    }
+            Text titleText = new Text("Duty Status");
+            titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
 
-    private static HBox createScheduleRow(String jobName, String details, String timing, String pay, String status, String cropTag) {
-        Text t1 = new Text(jobName);
-        t1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text statusText = new Text(isAvail ? "Available for Shifts" : "Not Available (Busy)");
+            statusText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14.5px; -fx-font-weight: bold; -fx-fill: " + (isAvail ? "#15803D" : "#DC2626") + ";");
 
-        Text t2 = new Text(details);
-        t2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
+            VBox titleBox = new VBox(1, titleText, statusText);
+            HBox topRow = new HBox(8, iconHolder, titleBox);
+            topRow.setAlignment(Pos.CENTER_LEFT);
 
-        Label cropBadge = new Label(cropTag);
-        cropBadge.setStyle("-fx-background-color: #F4F9F4; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-font-weight: bold; -fx-padding: 2 6 2 6; -fx-background-radius: 4;");
+            Text descText = new Text(isAvail ? "✓ Visible to farmers for hiring & field requests" : "✕ Hidden from search (Farmers cannot hire)");
+            descText.setWrappingWidth(240);
+            descText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: " + (isAvail ? "#166534" : "#991B1B") + ";");
 
-        VBox info = new VBox(3, new HBox(8, t1, cropBadge), t2);
+            Button toggleBtn = new Button(isAvail ? "🔴 Set as Not Available" : "🟢 Set as Available");
+            toggleBtn.setMaxWidth(Double.MAX_VALUE);
+            toggleBtn.setStyle(
+                isAvail
+                ? "-fx-background-color: #FEF2F2; -fx-text-fill: #DC2626; -fx-border-color: #FCA5A5; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 4 8;"
+                : "-fx-background-color: #E8F5E9; -fx-text-fill: #15803D; -fx-border-color: #86EFAC; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 4 8;"
+            );
 
-        Text timeText = new Text("📅 " + timing);
-        timeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #374151;");
+            toggleBtn.setOnAction(e -> {
+                OperatorProfileStore.toggleAvailability();
+            });
 
-        Text payText = new Text("💰 " + pay);
-        payText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
+            card.getChildren().addAll(topRow, descText, toggleBtn);
 
-        Text statusBadge = new Text("● " + status);
-        statusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #2D6A4F;");
+            card.setStyle(
+                isAvail
+                ? "-fx-background-color: #F0FDF4; -fx-background-radius: 14; -fx-border-color: #86EFAC; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(22, 101, 52, 0.08), 8, 0, 0, 2);"
+                : "-fx-background-color: #FEF2F2; -fx-background-radius: 14; -fx-border-color: #FCA5A5; -fx-border-width: 1.2; -fx-border-radius: 14; -fx-effect: dropshadow(gaussian, rgba(185, 28, 28, 0.08), 8, 0, 0, 2);"
+            );
+        };
 
-        Button actionBtn = new Button("View Job ➔");
-        actionBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        actionBtn.setOnAction(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
-
-        Region s1 = new Region();
-        HBox.setHgrow(s1, Priority.ALWAYS);
-
-        HBox row = new HBox(20, info, s1, timeText, payText, statusBadge, actionBtn);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(12, 16, 12, 16));
-        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
-
-        return row;
-    }
-
-    private static VBox createSafetyChecklistCard() {
-        Text title = new Text("📋 Daily Pre-Operation Safety & Machinery Checklist");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text sub = new Text("Verify standard safety checklist before initiating field operations.");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
-
-        CheckBox c1 = new CheckBox("Engine Oil, Coolant & Diesel Levels Verified (OK)");
-        CheckBox c2 = new CheckBox("Hydraulic Pressure & Hoses Inspected for Leakage (OK)");
-        CheckBox c3 = new CheckBox("Tire Pressure & Implement Coupling Linchpin Locked (OK)");
-        CheckBox c4 = new CheckBox("Brakes, Safety Indicators & Hazard Flashers Operational (OK)");
-
-        c1.setSelected(true);
-        c2.setSelected(true);
-        c3.setSelected(true);
-        c4.setSelected(true);
-
-        String cbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;";
-        c1.setStyle(cbStyle);
-        c2.setStyle(cbStyle);
-        c3.setStyle(cbStyle);
-        c4.setStyle(cbStyle);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(30);
-        grid.setVgap(10);
-        grid.add(c1, 0, 0);
-        grid.add(c2, 1, 0);
-        grid.add(c3, 0, 1);
-        grid.add(c4, 1, 1);
-
-        Button submitChecklist = new Button("✓  Confirm Pre-Shift Safety Verification");
-        submitChecklist.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 16 6 16;");
-
-        VBox card = new VBox(10, title, sub, grid, submitChecklist);
-        card.setPadding(new Insets(16));
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+        updateUI.run();
+        OperatorProfileStore.addProfileListener(() -> Platform.runLater(updateUI));
 
         return card;
     }
 
-    private static VBox createRecentLogsSection() {
-        Text title = new Text("Recent Completed Field Logs");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    private static VBox createAssignedMachinerySection() {
+        VBox box = new VBox(12);
+        box.setPadding(new Insets(18, 20, 18, 20));
+        box.setStyle(
+                "-fx-background-color: #FFFFFF;" +
+                "-fx-background-radius: 16px;" +
+                "-fx-border-color: #E2EBE5;" +
+                "-fx-border-radius: 16px;" +
+                "-fx-border-width: 1px;"
+        );
 
-        HBox r1 = createLogRow("John Deere 5310 (Plowing)", "13 Aug 2026", "6.5 hrs", "12.0 Acres", "₹2,800 Payout", "VERIFIED");
-        HBox r2 = createLogRow("Mahindra 575 DI (Cultivator)", "11 Aug 2026", "4.0 hrs", "8.5 Acres", "₹1,900 Payout", "VERIFIED");
-        HBox r3 = createLogRow("Preet 987 (Paddy Harvest)", "09 Aug 2026", "8.0 hrs", "15.0 Acres", "₹6,000 Payout", "VERIFIED");
+        Text secTitle = new Text("🚜 Field Assignments & Quick Actions");
+        secTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        return new VBox(10, title, r1, r2, r3);
-    }
+        Text secSub = new Text("Instant access to start field shifts, review farmer requests, and view settlements");
+        secSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
 
-    private static HBox createLogRow(String machine, String date, String hours, String acres, String wage, String status) {
-        Text mText = new Text("🚜 " + machine);
-        mText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        Button openRequestsBtn = new Button("📥 Review Job Requests");
+        openRequestsBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 14;");
+        openRequestsBtn.setOnAction(e -> OperatorLeftSideBar.navigateToJobRequests());
 
-        Text dText = new Text("📅 " + date);
-        dText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
+        Button openJobsBtn = new Button("🚜 Jobs Schedule");
+        openJobsBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 14; -fx-border-color: #A7F3D0; -fx-border-radius: 8px;");
+        openJobsBtn.setOnAction(e -> OperatorLeftSideBar.navigateToJobs());
 
-        Text hText = new Text("⏱ " + hours);
-        hText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
+        Button openEarningsBtn = new Button("💳 Payment Details");
+        openEarningsBtn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 14; -fx-border-color: #E5E7EB; -fx-border-radius: 8px;");
+        openEarningsBtn.setOnAction(e -> OperatorLeftSideBar.navigateToEarnings());
 
-        Text aText = new Text("🌾 " + acres);
-        aText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #374151;");
+        Button openReviewsBtn = new Button("⭐ Farmer Ratings");
+        openReviewsBtn.setStyle("-fx-background-color: #FFFBEB; -fx-text-fill: #D97706; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 14; -fx-border-color: #FDE68A; -fx-border-radius: 8px;");
+        openReviewsBtn.setOnAction(e -> OperatorLeftSideBar.navigateToReviews());
 
-        Text wText = new Text(wage);
-        wText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
+        HBox btnRow = new HBox(10, openRequestsBtn, openJobsBtn, openEarningsBtn, openReviewsBtn);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
 
-        Text sText = new Text("✓ " + status);
-        sText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #2E7D32;");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox row = new HBox(25, mText, dText, spacer, hText, aText, wText, sText);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(12, 16, 12, 16));
-        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
-
-        return row;
+        box.getChildren().addAll(new VBox(3, secTitle, secSub), btnRow);
+        return box;
     }
 
     private static VBox createDynamicDashboardCard(String icon, String title, Text valueText, Text subText, String color, Runnable onClick) {

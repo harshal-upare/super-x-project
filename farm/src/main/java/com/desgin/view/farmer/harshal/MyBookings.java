@@ -240,7 +240,12 @@ public class MyBookings {
             emptyLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
             Label sub = new Label("Browse the machinery catalog and rent farm equipment to see your bookings here.");
             sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #4B5563;");
-            emptyBox.getChildren().addAll(icon, emptyLabel, sub);
+
+            Button browseBtn = new Button("⚒  Browse Equipment Catalog ➔");
+            browseBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8 16;");
+            browseBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToBrowseEquip());
+
+            emptyBox.getChildren().addAll(icon, emptyLabel, sub, browseBtn);
             bookingList.getChildren().add(emptyBox);
         } else {
             for (BookingItem item : list) {
@@ -442,6 +447,7 @@ public class MyBookings {
                     pricePerDay,
                     totalPrice,
                     status,
+                    imagePath,
                     () -> root.getChildren().remove(overlay),
                     () -> {
                         root.getChildren().remove(overlay);
@@ -489,15 +495,7 @@ public class MyBookings {
                     "-fx-border-color: rgba(45, 106, 79, 0.3);" +
                     "-fx-border-radius: 8px;"
             );
-            rateReviewBtn.setOnAction(e -> {
-                com.desgin.view.farmer.LeftSideBar.setActiveButton(
-                        com.desgin.view.farmer.LeftSideBar.reviewBtn1,
-                        com.desgin.view.farmer.LeftSideBar.navigationButtons
-                );
-                com.desgin.view.farmer.Swapnil.FarmerDashboard.borderPane.setCenter(
-                        com.desgin.view.farmer.review.ReviewRating.getReviewRatingPage(root)
-                );
-            });
+            rateReviewBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToReviews());
             btnRow.getChildren().add(rateReviewBtn);
         }
 
@@ -550,14 +548,20 @@ public class MyBookings {
             return;
         }
 
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        stage.setTitle("Pay Booking #" + item.bookingId + " via Razorpay");
+        StackPane rootPane = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+        if (rootPane == null) return;
+
+        StackPane overlay = new StackPane();
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
 
         VBox rootBox = new VBox(14);
         rootBox.setPadding(new Insets(24));
-        rootBox.setStyle("-fx-background-color: #F8FAF8; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-background-radius: 12; -fx-border-radius: 12;");
+        rootBox.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-background-radius: 14; -fx-border-radius: 14;");
         rootBox.setPrefWidth(460);
+        rootBox.setMaxWidth(460);
+        rootBox.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(rootBox, Pos.CENTER);
 
         Text title = new Text("💳 Razorpay Payment Checkout");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
@@ -626,7 +630,7 @@ public class MyBookings {
                             "Razorpay Online"
                     );
                     javafx.application.Platform.runLater(() -> {
-                        stage.close();
+                        rootPane.getChildren().remove(overlay);
                         syncBookingsFromFirestore();
                     });
                 } catch (Exception ex) {
@@ -641,16 +645,18 @@ public class MyBookings {
 
         Button cancelModalBtn = new Button("Close");
         cancelModalBtn.setStyle("-fx-background-color: #E5E7EB; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-background-radius: 6; -fx-cursor: hand;");
-        cancelModalBtn.setOnAction(e -> stage.close());
+        cancelModalBtn.setOnAction(e -> rootPane.getChildren().remove(overlay));
 
         HBox bottomRow = new HBox(8, cancelModalBtn);
         bottomRow.setAlignment(Pos.CENTER_RIGHT);
 
         rootBox.getChildren().addAll(title, info, statusLbl, payBtn, confirmBtn, bottomRow);
+        overlay.getChildren().add(rootBox);
+        overlay.setOnMouseClicked(e -> {
+            if (e.getTarget() == overlay) rootPane.getChildren().remove(overlay);
+        });
 
-        Scene sc = new Scene(rootBox);
-        stage.setScene(sc);
-        stage.show();
+        rootPane.getChildren().add(overlay);
     }
 
     private void showErrorAlert(String title, String message) {

@@ -34,8 +34,10 @@ public class OperatorDashboard {
         OperatorProfileManagement objProfileManagement = new OperatorProfileManagement();
         borderPane.setTop(objProfileManagement.getProfile(root));
 
-        // Initial Home Page
-        OperatorHome.getPage();
+        // Initial Home Dashboard Page
+        borderPane.setCenter(OperatorHome.getPage());
+        OperatorProfileManagement.updateHeaderGreeting();
+        OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.dashboardBtn, OperatorLeftSideBar.navigationButtons);
 
         root.setStyle("-fx-background-color: #F4F9F4;");
 

@@ -241,7 +241,18 @@ public class WishList {
                 "-fx-fill: #4B5563;"
         );
 
-        VBox emptyBox = new VBox(10, emptyIcon, emptyText, emptySub);
+        Button browseBtn = new Button("⚒  Browse Equipment ➔");
+        browseBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 16;");
+        browseBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToBrowseEquip());
+
+        Button findOpBtn = new Button("👷  Find Certified Operators ➔");
+        findOpBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 7 16; -fx-border-color: #A7F3D0; -fx-border-radius: 8px;");
+        findOpBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToSearchOperators());
+
+        HBox actionRow = new HBox(10, browseBtn, findOpBtn);
+        actionRow.setAlignment(Pos.CENTER);
+
+        VBox emptyBox = new VBox(12, emptyIcon, emptyText, emptySub, actionRow);
         emptyBox.setAlignment(Pos.CENTER);
         emptyBox.setPadding(new Insets(50));
         emptyBox.setStyle(
@@ -541,10 +552,7 @@ public class WishList {
 
         viewButton.setOnAction(event -> {
             Runnable backAction = () -> {
-                if (FarmerDashboard.borderPane != null) {
-                    com.desgin.view.farmer.ashutosh.profile.ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
-                    FarmerDashboard.borderPane.setCenter(getWishList());
-                }
+                com.desgin.view.farmer.LeftSideBar.navigateToWishlist();
             };
 
             EquipmentDetailPage detailPage = new EquipmentDetailPage(

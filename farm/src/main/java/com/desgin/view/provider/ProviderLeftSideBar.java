@@ -99,15 +99,17 @@ public class ProviderLeftSideBar {
         earningsBtn = new Button("💰  Earnings & Payouts");
         styleMenuButton(earningsBtn);
 
-        settingsBtn = new Button("⚙   Settings & Support");
+        settingsBtn = new Button("⚙   Settings & Profile");
         styleMenuButton(settingsBtn);
+
+        supportBtn = new Button("💬  Help & Support Desk");
+        styleMenuButton(supportBtn);
 
         // Keep references for compatibility
         maintenanceBtn = new Button("🛠  Service & Health");
         analyticsBtn = new Button("📊  Fleet Analytics");
-        supportBtn = new Button("❓  Help & Support");
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, fleetBtn, rentalRequestsBtn, earningsBtn, settingsBtn);
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, fleetBtn, rentalRequestsBtn, earningsBtn, settingsBtn, supportBtn);
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -142,6 +144,7 @@ public class ProviderLeftSideBar {
         navigationButtons.add(rentalRequestsBtn);
         navigationButtons.add(earningsBtn);
         navigationButtons.add(settingsBtn);
+        navigationButtons.add(supportBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
 
@@ -169,6 +172,11 @@ public class ProviderLeftSideBar {
         settingsBtn.setOnAction(event -> {
             setActiveButton(settingsBtn, navigationButtons);
             ProviderDashboard.borderPane.setCenter(ProviderSettings.getSettingsSection());
+        });
+
+        supportBtn.setOnAction(event -> {
+            setActiveButton(supportBtn, navigationButtons);
+            ProviderDashboard.borderPane.setCenter(ProviderHelp.getHelpSection());
         });
 
         return leftVB;

@@ -22,6 +22,8 @@ public class OperatorLeftSideBar {
     public static List<Button> navigationButtons = new ArrayList<>();
     public static Button dashboardBtn;
     public static Button jobsBtn;
+    public static Button jobRequestsBtn;
+    public static Button reviewsBtn;
     public static Button earningsBtn;
     public static Button settingsBtn;
 
@@ -92,10 +94,16 @@ public class OperatorLeftSideBar {
         dashboardBtn = new Button("⌂  Dashboard");
         styleMenuButton(dashboardBtn);
 
-        jobsBtn = new Button("📋  Field Tasks & Schedule");
+        jobsBtn = new Button("🚜  Jobs");
         styleMenuButton(jobsBtn);
 
-        earningsBtn = new Button("💵  Daily Wages & Cashout");
+        jobRequestsBtn = new Button("📥  Job Requests");
+        styleMenuButton(jobRequestsBtn);
+
+        reviewsBtn = new Button("⭐  Reviews & Rating");
+        styleMenuButton(reviewsBtn);
+
+        earningsBtn = new Button("💳  Payment Details");
         styleMenuButton(earningsBtn);
 
         settingsBtn = new Button("⚙   Settings");
@@ -109,7 +117,7 @@ public class OperatorLeftSideBar {
         fieldLogsBtn = new Button("⏱  Field Logs");
         analyticsBtn = new Button("📊  Performance");
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, earningsBtn);
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, jobRequestsBtn, reviewsBtn, earningsBtn);
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -141,43 +149,97 @@ public class OperatorLeftSideBar {
 
         navigationButtons.add(dashboardBtn);
         navigationButtons.add(jobsBtn);
+        navigationButtons.add(jobRequestsBtn);
+        navigationButtons.add(reviewsBtn);
         navigationButtons.add(earningsBtn);
         navigationButtons.add(settingsBtn);
         navigationButtons.add(supportBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
 
-        dashboardBtn.setOnAction(event -> {
-            setActiveButton(dashboardBtn, navigationButtons);
-            OperatorProfileManagement.updateHeaderGreeting();
-            OperatorDashboard.borderPane.setCenter(OperatorHome.getPage());
-        });
-
-        jobsBtn.setOnAction(event -> {
-            setActiveButton(jobsBtn, navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(root));
-        });
-
-        earningsBtn.setOnAction(event -> {
-            setActiveButton(earningsBtn, navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Daily Wages & Cashout 💵", "Track completed job settlements, incentives & bank withdrawals");
-            OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(root));
-        });
-
-        settingsBtn.setOnAction(event -> {
-            setActiveButton(settingsBtn, navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Operator Settings ⚙", "Manage operator license, contact profile and security");
-            OperatorDashboard.borderPane.setCenter(OperatorSettings.getSettingsSection());
-        });
-
-        supportBtn.setOnAction(event -> {
-            setActiveButton(supportBtn, navigationButtons);
-            OperatorProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "24x7 machinery hotline and technical field support");
-            OperatorDashboard.borderPane.setCenter(OperatorHelp.getHelpSection());
-        });
+        dashboardBtn.setOnAction(event -> navigateToDashboard());
+        jobsBtn.setOnAction(event -> navigateToJobs());
+        jobRequestsBtn.setOnAction(event -> navigateToJobRequests());
+        reviewsBtn.setOnAction(event -> navigateToReviews());
+        earningsBtn.setOnAction(event -> navigateToEarnings());
+        settingsBtn.setOnAction(event -> navigateToSettings());
+        supportBtn.setOnAction(event -> navigateToHelp());
 
         return leftVB;
+    }
+
+    public static void navigateToDashboard() {
+        if (dashboardBtn != null && navigationButtons != null) {
+            setActiveButton(dashboardBtn, navigationButtons);
+            OperatorProfileManagement.updateHeaderGreeting();
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorHome.getPage());
+            }
+        }
+    }
+
+    public static void navigateToJobs() {
+        if (jobsBtn != null && navigationButtons != null) {
+            setActiveButton(jobsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Jobs 🚜", "Search, track and manage all active, pending, completed and cancelled jobs");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(root != null ? root : OperatorDashboard.root));
+            }
+        }
+    }
+
+    public static void navigateToJobRequests() {
+        if (jobRequestsBtn != null && navigationButtons != null) {
+            setActiveButton(jobRequestsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Job Requests 📥", "Review incoming farmer requests, approve assignments & manage shifts");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorJobRequests.getJobRequestsSection(root != null ? root : OperatorDashboard.root));
+            }
+        }
+    }
+
+    public static void navigateToReviews() {
+        if (reviewsBtn != null && navigationButtons != null) {
+            setActiveButton(reviewsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Reviews & Rating ⭐", "View farmer ratings, feedback history and performance reputation");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorReviews.getReviewsSection(root != null ? root : OperatorDashboard.root));
+            }
+        }
+    }
+
+    public static void navigateToEarnings() {
+        if (earningsBtn != null && navigationButtons != null) {
+            setActiveButton(earningsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Payment Details 💳", "Track operator earnings, admin commission breakdown & payout settlements");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(root != null ? root : OperatorDashboard.root));
+            }
+        }
+    }
+
+    public static void navigateToPaymentDetails() {
+        navigateToEarnings();
+    }
+
+    public static void navigateToSettings() {
+        if (settingsBtn != null && navigationButtons != null) {
+            setActiveButton(settingsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Operator Settings ⚙", "Manage operator license, contact profile and security");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorSettings.getSettingsSection());
+            }
+        }
+    }
+
+    public static void navigateToHelp() {
+        if (supportBtn != null && navigationButtons != null) {
+            setActiveButton(supportBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "24x7 machinery hotline and technical field support");
+            if (OperatorDashboard.borderPane != null) {
+                OperatorDashboard.borderPane.setCenter(OperatorHelp.getHelpSection());
+            }
+        }
     }
 
     public static void setActiveButton(Button selected, List<Button> buttons) {
