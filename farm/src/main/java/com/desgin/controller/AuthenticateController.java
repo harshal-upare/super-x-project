@@ -139,65 +139,64 @@ public class AuthenticateController {
         String id = identifier.trim();
         String pwd = password.trim();
 
-        // 0. Default Master Admin Credentials support
-        if (("admin@farmequip.com".equalsIgnoreCase(id) || "admin".equalsIgnoreCase(id)) && 
-            ("admin123".equals(pwd) || "admin".equals(pwd) || "password".equals(pwd))) {
-            AuthenticateModel masterAdmin = new AuthenticateModel("Master Administrator", "admin@farmequip.com", "+91 98000 00001", pwd, "Admin");
-            return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Master Administrator Authenticated!", masterAdmin);
-        }
-
         try {
-            int currentAdminCount = dao.getAdminCount();
-
             // 1. Check if user exists in "Admin" collection
-            if (dao.isUser(id, "Admin")) {
-                AuthenticateModel adminUser = dao.getUser(id, "Admin");
-                if (adminUser != null) {
-                    boolean pwdMatches = false;
-                    if (adminUser.getPassword() != null && adminUser.getPassword().equals(pwd)) {
-                        pwdMatches = true;
-                    } else if (signIn(adminUser.getMail() != null ? adminUser.getMail() : id, pwd)) {
-                        pwdMatches = true;
-                    }
-
-                    if (!pwdMatches) {
-                        return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "Invalid Admin password. Authentication failed.", null);
-                    }
-
-                    return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Authentication & Authorization successful!", adminUser);
+            AuthenticateModel adminUser = dao.getUser(id, "Admin");
+            if (adminUser != null) {
+                if ("SUSPENDED".equalsIgnoreCase(adminUser.getStatus())) {
+                    return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "🚫 This Administrator account has been suspended by the platform.", null);
                 }
+
+                String storedPwd = adminUser.getPassword();
+                boolean pwdMatches = false;
+
+                if (storedPwd != null && !storedPwd.trim().isEmpty()) {
+                    // Strictly match against latest updated password in database
+                    pwdMatches = storedPwd.trim().equals(pwd);
+                } else if (("admin@farmequip.com".equalsIgnoreCase(id) || "admin".equalsIgnoreCase(id)) && "admin123".equals(pwd)) {
+                    pwdMatches = true;
+                } else {
+                    pwdMatches = signIn(adminUser.getMail() != null ? adminUser.getMail() : id, pwd);
+                }
+
+                if (!pwdMatches) {
+                    return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "Incorrect password. Please enter your valid updated password.", null);
+                }
+
+                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Authentication & Authorization successful!", adminUser);
             }
 
-            // 2. Check if user exists in any other collection with the matching password
+            // 2. Default initial Master Admin bootstrap (only if no admin doc exists in Firestore yet)
+            if (("admin@farmequip.com".equalsIgnoreCase(id) || "admin".equalsIgnoreCase(id)) && "admin123".equals(pwd)) {
+                AuthenticateModel masterAdmin = new AuthenticateModel("Master Administrator", "admin@farmequip.com", "+91 98000 00001", pwd, "Admin");
+                dao.addUser(masterAdmin);
+                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Master Administrator Authenticated!", masterAdmin);
+            }
+
+            // 3. Check if user exists in other collections with exact matching password
             AuthenticateModel existingUser = null;
             for (String role : new String[]{"Farmer", "Provider", "Operator"}) {
                 existingUser = dao.getUser(id, role);
                 if (existingUser != null) break;
             }
 
-            if (existingUser != null && existingUser.getPassword() != null && existingUser.getPassword().equals(pwd)) {
-                // Elevate user to Admin role for the admin console
-                AuthenticateModel elevatedAdmin = new AuthenticateModel(existingUser.getName() + " (Admin)", existingUser.getMail() != null ? existingUser.getMail() : id, existingUser.getNum(), pwd, "Admin");
-                dao.addUser(elevatedAdmin);
-                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Administrator privileges granted!", elevatedAdmin);
+            if (existingUser != null) {
+                if ("SUSPENDED".equalsIgnoreCase(existingUser.getStatus())) {
+                    return new AdminAuthResult(AdminAuthStatus.NOT_AUTHORIZED, "🚫 Your account has been suspended by the platform administrator.", null);
+                }
+                String exPwd = existingUser.getPassword();
+                if (exPwd != null && exPwd.equals(pwd)) {
+                    // Elevate user to Admin role
+                    AuthenticateModel elevatedAdmin = new AuthenticateModel(existingUser.getName() + " (Admin)", existingUser.getMail() != null ? existingUser.getMail() : id, existingUser.getNum(), pwd, "Admin");
+                    elevatedAdmin.setProfilePic(existingUser.getProfilePic());
+                    dao.addUser(elevatedAdmin);
+                    return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Administrator privileges granted!", elevatedAdmin);
+                } else {
+                    return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "Incorrect password. Please enter your valid updated password.", null);
+                }
             }
 
-            // 3. Try Firebase Auth signIn directly
-            if (signIn(id, pwd)) {
-                String adminDisplayName = id.contains("@") ? id.split("@")[0] : id;
-                AuthenticateModel newAdmin = new AuthenticateModel(adminDisplayName + " (Admin)", id, "", pwd, "Admin");
-                dao.addUser(newAdmin);
-                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Admin authorized via Firebase Auth!", newAdmin);
-            }
-
-            // 4. If identifier or password indicates admin attempt, provision account
-            if (id.toLowerCase().contains("admin") && pwd.length() >= 4) {
-                AuthenticateModel newAdmin = new AuthenticateModel("Administrator", id, "", pwd, "Admin");
-                dao.addUser(newAdmin);
-                return new AdminAuthResult(AdminAuthStatus.SUCCESS, "✓ Admin account created and authorized!", newAdmin);
-            }
-
-            return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "No Admin account found. Use admin@farmequip.com / admin123 or register as Admin.", null);
+            return new AdminAuthResult(AdminAuthStatus.INVALID_CREDENTIALS, "No Administrator account found for these credentials.", null);
 
         } catch (Exception e) {
             e.printStackTrace();

@@ -341,6 +341,7 @@ public class OperatorOnboardingPage {
         VBox card = new VBox(16, headerBox, formContent, btnRow);
         card.setAlignment(Pos.CENTER);
         card.setMaxWidth(620);
+        card.setMaxHeight(Region.USE_PREF_SIZE);
         card.setPadding(new Insets(24, 30, 24, 30));
         card.setStyle(
             "-fx-background-color: rgba(255, 255, 255, 0.88);" +

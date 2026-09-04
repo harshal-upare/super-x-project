@@ -1,9 +1,6 @@
 package com.desgin.config;
 
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
-
 import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.firestore.Firestore;
 import com.google.firebase.FirebaseApp;

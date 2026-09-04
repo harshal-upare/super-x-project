@@ -23,6 +23,9 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -366,12 +369,13 @@ public class Dashboard {
      * Horizontal Weather Card (Identical structure and emerald gradient to Farmer Dashboard)
      */
     private static HBox createHorizontalWeatherCard(String location, double latitude, double longitude) {
-        HBox weatherCard = new HBox(16);
+        HBox weatherCard = new HBox(20);
         weatherCard.setAlignment(Pos.CENTER_LEFT);
         weatherCard.setPadding(new Insets(14, 22, 14, 22));
+        weatherCard.setMaxWidth(Double.MAX_VALUE);
         weatherCard.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F, #40916C);" +
-                "-fx-background-radius: 16px;" +
+                "-fx-background-color: linear-gradient(to right, #1B5E20, #2E7D32, #388E3C);" +
+                "-fx-background-radius: 14px;" +
                 "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);"
         );
 
@@ -405,67 +409,208 @@ public class Dashboard {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        // Right Section: Wind & Humidity indicators
-        Text windText = new Text("💨 Wind: -- km/h");
-        windText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #E8F5E9;");
+        // Right Section: 4-Day Forecast in individual mini column cards
+        HBox forecastBox = new HBox(10);
+        forecastBox.setAlignment(Pos.CENTER_RIGHT);
 
-        Text humText = new Text("💧 Humidity: --%");
-        humText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #E8F5E9;");
+        Text[] dayNames = new Text[4];
+        Text[] dayIcons = new Text[4];
+        Text[] dayTemps = new Text[4];
 
-        Text dateText = new Text("📅 " + LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, dd MMM")));
-        dateText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-fill: #FFF9C4;");
+        for (int i = 0; i < 4; i++) {
+            dayNames[i] = new Text("Day");
+            dayNames[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #E8F5E9;");
 
-        VBox rightStats = new VBox(3, dateText, windText, humText);
-        rightStats.setAlignment(Pos.CENTER_RIGHT);
+            dayIcons[i] = new Text("☀");
+            dayIcons[i].setStyle("-fx-font-size: 13px; -fx-fill: #FFF9C4;");
 
-        weatherCard.getChildren().addAll(leftCurrentBox, agriChip, spacer, rightStats);
+            dayTemps[i] = new Text("--° / --°");
+            dayTemps[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: white;");
+
+            HBox dayHeader = new HBox(4, dayNames[i], dayIcons[i]);
+            dayHeader.setAlignment(Pos.CENTER);
+
+            VBox dayCard = new VBox(2, dayHeader, dayTemps[i]);
+            dayCard.setAlignment(Pos.CENTER);
+            dayCard.setPadding(new Insets(4, 10, 4, 10));
+            dayCard.setStyle("-fx-background-color: rgba(255, 255, 255, 0.12); -fx-background-radius: 8px;");
+
+            forecastBox.getChildren().add(dayCard);
+        }
+
+        weatherCard.getChildren().addAll(leftCurrentBox, agriChip, spacer, forecastBox);
 
         // Fetch Live Weather Asynchronously
-        Task<Void> weatherTask = new Task<>() {
-            @Override
-            protected Void call() {
-                try {
-                    String urlStr = String.format(Locale.US,
-                            "https://api.open-meteo.com/v1/forecast?latitude=%.4f&longitude=%.4f&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m",
-                            latitude, longitude);
-                    HttpClient client = HttpClient.newHttpClient();
-                    HttpRequest request = HttpRequest.newBuilder().uri(URI.create(urlStr)).build();
-                    HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-
-                    if (response.statusCode() == 200) {
-                        JSONObject json = new JSONObject(response.body());
-                        JSONObject current = json.getJSONObject("current");
-                        double temp = current.getDouble("temperature_2m");
-                        double wind = current.getDouble("wind_speed_10m");
-                        int humidity = current.getInt("relative_humidity_2m");
-                        int code = current.getInt("weather_code");
-
-                        Platform.runLater(() -> {
-                            tempText.setText(String.format(Locale.US, "%.0f°C", temp));
-                            windText.setText(String.format(Locale.US, "💨 Wind: %.1f km/h", wind));
-                            humText.setText(String.format(Locale.US, "💧 Humidity: %d%%", humidity));
-
-                            if (code == 0) {
-                                weatherIcon.setText("☀");
-                                condText.setText("Clear Sky");
-                            } else if (code <= 3) {
-                                weatherIcon.setText("⛅");
-                                condText.setText("Partly Cloudy");
-                            } else if (code <= 67) {
-                                weatherIcon.setText("🌧");
-                                condText.setText("Rain Showers");
-                            } else {
-                                weatherIcon.setText("🌦");
-                                condText.setText("Overcast");
-                            }
-                        });
-                    }
-                } catch (Exception ignored) {}
-                return null;
-            }
-        };
-        new Thread(weatherTask).start();
+        loadWeather(latitude, longitude, weatherIcon, tempText, condText, dayNames, dayIcons, dayTemps);
 
         return weatherCard;
+    }
+
+    private static void loadWeather(
+            double latitude,
+            double longitude,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
+
+        Task<String> weatherTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                String url = "https://api.open-meteo.com/v1/forecast"
+                        + "?latitude=" + latitude
+                        + "&longitude=" + longitude
+                        + "&current=temperature_2m,weather_code"
+                        + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
+                        + "&timezone=auto"
+                        + "&forecast_days=4";
+
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
+                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    throw new RuntimeException("API returned HTTP " + response.statusCode());
+                }
+
+                return response.body();
+            }
+        };
+
+        weatherTask.setOnSucceeded(e -> {
+            updateWeatherUI(weatherTask.getValue(), weatherIcon, temperature, condition, dayNames, dayIcons, dayTemps);
+        });
+
+        weatherTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Weather unavailable");
+                weatherIcon.setText("☀");
+                for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                    dayNames[i].setText("Day");
+                    dayIcons[i].setText("☀");
+                    dayTemps[i].setText("--°");
+                }
+            });
+        });
+
+        Thread thread = new Thread(weatherTask);
+        thread.setDaemon(true);
+        thread.start();
+    }
+
+    private static void updateWeatherUI(
+            String json,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
+
+        try {
+            int currentStart = json.indexOf("\"current\":{");
+            if (currentStart == -1) throw new RuntimeException("Current weather data not found");
+
+            int currentEnd = json.indexOf("}", currentStart);
+            String currentData = json.substring(currentStart, currentEnd);
+
+            String currentTemperature = extractNumberFromSection(currentData, "\"temperature_2m\":");
+            String currentCode = extractNumberFromSection(currentData, "\"weather_code\":");
+
+            double temperatureValue = Double.parseDouble(currentTemperature);
+            int weatherCode = Integer.parseInt(currentCode);
+
+            temperature.setText(Math.round(temperatureValue) + "°C");
+            condition.setText(getWeatherDescription(weatherCode));
+            weatherIcon.setText(getWeatherIcon(weatherCode));
+
+            int dailyStart = json.indexOf("\"daily\":{");
+            if (dailyStart == -1) return;
+
+            String dailyData = json.substring(dailyStart);
+
+            String datesPart = extractArray(dailyData, "\"time\":[");
+            String maxPart = extractArray(dailyData, "\"temperature_2m_max\":[");
+            String minPart = extractArray(dailyData, "\"temperature_2m_min\":[");
+            String codePart = extractArray(dailyData, "\"weather_code\":[");
+
+            String[] dateArray = datesPart.split(",");
+            String[] maxArray = maxPart.split(",");
+            String[] minArray = minPart.split(",");
+            String[] codeArray = codePart.split(",");
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
+
+            for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                String date = dateArray[i].replace("\"", "").trim();
+                LocalDate localDate = LocalDate.parse(date);
+
+                double maxTemperature = Double.parseDouble(maxArray[i].trim());
+                double minTemperature = Double.parseDouble(minArray[i].trim());
+                int dailyWeatherCode = Integer.parseInt(codeArray[i].trim());
+
+                String dayName = localDate.format(formatter);
+                String max = Math.round(maxTemperature) + "°";
+                String min = Math.round(minTemperature) + "°";
+
+                dayNames[i].setText(dayName);
+                dayIcons[i].setText(getWeatherIcon(dailyWeatherCode));
+                dayTemps[i].setText(max + "/" + min);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Unable to load weather");
+            });
+        }
+    }
+
+    private static String extractNumberFromSection(String section, String key) {
+        int start = section.indexOf(key);
+        if (start == -1) throw new RuntimeException("Key not found: " + key);
+        start += key.length();
+        int end = start;
+        while (end < section.length() && section.charAt(end) != ',' && section.charAt(end) != '}') {
+            end++;
+        }
+        return section.substring(start, end).trim();
+    }
+
+    private static String extractArray(String json, String key) {
+        int start = json.indexOf(key);
+        if (start == -1) return "";
+        start += key.length();
+        int end = json.indexOf("]", start);
+        if (end == -1) return "";
+        return json.substring(start, end);
+    }
+
+    private static String getWeatherIcon(int code) {
+        if (code == 0) return "☀";
+        if (code >= 1 && code <= 3) return "⛅";
+        if (code >= 45 && code <= 48) return "🌫";
+        if (code >= 51 && code <= 67) return "🌧";
+        if (code >= 71 && code <= 77) return "❄";
+        if (code >= 80 && code <= 82) return "🌦";
+        if (code >= 95 && code <= 99) return "⛈";
+        return "☀";
+    }
+
+    private static String getWeatherDescription(int code) {
+        if (code == 0) return "Clear Sky";
+        if (code == 1) return "Mainly Clear";
+        if (code == 2) return "Partly Cloudy";
+        if (code == 3) return "Overcast";
+        if (code == 45 || code == 48) return "Foggy";
+        if (code >= 51 && code <= 55) return "Drizzle";
+        if (code >= 61 && code <= 65) return "Rain";
+        if (code >= 80 && code <= 82) return "Rain Showers";
+        if (code >= 95) return "Thunderstorm";
+        return "Pleasant Weather";
     }
 }

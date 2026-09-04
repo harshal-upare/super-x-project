@@ -505,10 +505,12 @@ public class RegisterPage {
             "-fx-padding: 16px 30px 16px 30px;"
         );
 
-        registerCard.setPrefWidth(430);
-        registerCard.setMaxWidth(430);
+        registerCard.setPrefWidth(410);
+        registerCard.setMaxWidth(410);
+        registerCard.setMaxHeight(Region.USE_PREF_SIZE);
 
         borderPane.setCenter(registerCard);
+        BorderPane.setAlignment(registerCard, Pos.CENTER);
         borderPane.setStyle("-fx-background-color: transparent;");
 
         // ================= BACKGROUND =================

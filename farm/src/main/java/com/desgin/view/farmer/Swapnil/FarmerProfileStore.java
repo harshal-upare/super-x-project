@@ -61,14 +61,12 @@ public class FarmerProfileStore {
 
     public static synchronized void setFullProfile(String newName, String newEmail, String newPhone, String newTown, String newDistrict, String newState, String newPincode, String newProfilePic) {
         setFullProfile(newName, newEmail, newPhone, newTown, newDistrict, newState, newPincode);
-        if (newProfilePic != null && !newProfilePic.trim().isEmpty()) {
-            profilePic = newProfilePic.trim();
-            notifyProfileListeners();
-        }
+        profilePic = (newProfilePic != null && !newProfilePic.trim().isEmpty()) ? newProfilePic.trim() : null;
+        notifyProfileListeners();
     }
 
     public static synchronized void setProfilePic(String newProfilePic) {
-        profilePic = newProfilePic;
+        profilePic = (newProfilePic != null && !newProfilePic.trim().isEmpty()) ? newProfilePic.trim() : null;
         notifyProfileListeners();
     }
 

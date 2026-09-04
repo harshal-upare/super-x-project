@@ -57,6 +57,7 @@ public class Authentication {
         // ------------------ MAIN CARD IN CENTER ------------------
         VBox userCard = createStandardUserLoginCard(borderPane);
         borderPane.setCenter(userCard);
+        BorderPane.setAlignment(userCard, Pos.CENTER);
         borderPane.setStyle("-fx-background-color: transparent;");
 
         // ------------------ BACKGROUND ------------------
@@ -270,10 +271,13 @@ public class Authentication {
                             result.getUser().getName(),
                             result.getUser().getMail(),
                             result.getUser().getNum(),
-                            "Master Admin"
+                            "Master Admin",
+                            result.getUser().getProfilePic()
                         );
                     }
                     com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
+                    String adminKey = (result.getUser() != null && result.getUser().getMail() != null) ? result.getUser().getMail() : inputUser;
+                    com.desgin.service.UserStatusWatcher.startWatching(adminKey, "Admin", backToLogin);
                     com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
                 } else {
@@ -295,16 +299,32 @@ public class Authentication {
                 return;
             }
 
-            // Verify password strictly against database
+            // Verify account is not suspended
+            if ("SUSPENDED".equalsIgnoreCase(userDoc.getStatus())) {
+                String errorMsg = "🚫 Your account has been suspended by the platform administrator. Access denied.";
+                emailErrorLabel.setText(errorMsg);
+                emailErrorLabel.setVisible(true);
+                emailErrorLabel.setManaged(true);
+                mailAndPhoneTextField.setStyle(INPUT_ERROR_STYLE);
+
+                try {
+                    javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                    alert.setTitle("Account Suspended");
+                    alert.setHeaderText("Access Denied - Account Suspended");
+                    alert.setContentText("Your " + selectedRole + " account (" + inputUser + ") has been suspended by the platform administrator.\n\nYou cannot access your portal while under suspension.");
+                    alert.show();
+                } catch (Exception ignored) {}
+                return;
+            }
+
+            // Verify password strictly against database (Firestore updated password is source of truth)
             boolean pwdValid = false;
             String storedPwd = userDoc.getPassword();
-            if (storedPwd != null && storedPwd.equals(inputPassword)) {
-                pwdValid = true;
+            if (storedPwd != null && !storedPwd.trim().isEmpty()) {
+                pwdValid = storedPwd.trim().equals(inputPassword);
             } else {
                 String emailToAuth = (userDoc.getMail() != null && !userDoc.getMail().isEmpty()) ? userDoc.getMail() : inputUser;
-                if (objController.signIn(emailToAuth, inputPassword)) {
-                    pwdValid = true;
-                }
+                pwdValid = objController.signIn(emailToAuth, inputPassword);
             }
 
             if (!pwdValid) {
@@ -316,6 +336,9 @@ public class Authentication {
                 passwordTextField.clear();
                 return;
             }
+
+            String userKey = (userDoc.getMail() != null && !userDoc.getMail().isEmpty()) ? userDoc.getMail() : inputUser;
+            com.desgin.service.UserStatusWatcher.startWatching(userKey, selectedRole, backToLogin);
 
             if ("Provider".equalsIgnoreCase(selectedRole)) {
                 com.desgin.view.provider.ProviderProfileStore.setFullProfile(
@@ -407,7 +430,9 @@ public class Authentication {
         adminLoginLabel.setOnMouseClicked(event -> {
             String initialUser = mailAndPhoneTextField.getText() != null ? mailAndPhoneTextField.getText().trim() : "";
             String initialPass = passwordTextField.getText() != null ? passwordTextField.getText() : "";
-            borderPane.setCenter(createAdminLoginCard(borderPane, initialUser, initialPass));
+            VBox adminCard = createAdminLoginCard(borderPane, initialUser, initialPass);
+            borderPane.setCenter(adminCard);
+            BorderPane.setAlignment(adminCard, Pos.CENTER);
         });
 
         VBox adminBox = new VBox(8, divider, adminLoginLabel);
@@ -426,8 +451,9 @@ public class Authentication {
             "-fx-padding: 24px 34px 22px 34px;"
         );
 
-        loginVBox.setPrefWidth(420);
-        loginVBox.setMaxWidth(420);
+        loginVBox.setPrefWidth(390);
+        loginVBox.setMaxWidth(390);
+        loginVBox.setMaxHeight(Region.USE_PREF_SIZE);
 
         return loginVBox;
     }
@@ -604,12 +630,15 @@ public class Authentication {
                             result.getUser().getName(),
                             result.getUser().getMail(),
                             result.getUser().getNum(),
-                            "Master Admin"
+                            "Master Admin",
+                            result.getUser().getProfilePic()
                         );
                     }
                     com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
 
                     Runnable backToLogin = () -> backtologin();
+                    String adminKey = (result.getUser() != null && result.getUser().getMail() != null) ? result.getUser().getMail() : inputUser;
+                    com.desgin.service.UserStatusWatcher.startWatching(adminKey, "Admin", backToLogin);
                     com.desgin.view.admin.AdminDashboard obj = new com.desgin.view.admin.AdminDashboard();
                     WelcomePage.welcomePageStage.setScene(obj.getAdminDashboardScene(backToLogin));
                 } else {
@@ -648,7 +677,9 @@ public class Authentication {
         registerAdminHBox.setOnMouseExited(e -> registerAdminText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
 
         registerAdminHBox.setOnMouseClicked(event -> {
-            borderPane.setCenter(createAdminRegisterCard(borderPane, mailAndPhoneTextField.getText()));
+            VBox regCard = createAdminRegisterCard(borderPane, mailAndPhoneTextField.getText());
+            borderPane.setCenter(regCard);
+            BorderPane.setAlignment(regCard, Pos.CENTER);
         });
 
         // ------------------ SWITCH TO USER LOGIN LINK ------------------
@@ -666,7 +697,9 @@ public class Authentication {
         backToUserHBox.setOnMouseExited(e -> backToUserText.setStyle("-fx-font-size: 13.5px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand; -fx-font-family: 'Poppins';"));
 
         backToUserHBox.setOnMouseClicked(event -> {
-            borderPane.setCenter(createStandardUserLoginCard(borderPane));
+            VBox userCard = createStandardUserLoginCard(borderPane);
+            borderPane.setCenter(userCard);
+            BorderPane.setAlignment(userCard, Pos.CENTER);
         });
 
         // ------------------ USER LOGIN FOOTER PILL ------------------
@@ -684,7 +717,11 @@ public class Authentication {
         userPortalPill.setStyle(adminNormalStyle);
         userPortalPill.setOnMouseEntered(e -> userPortalPill.setStyle(adminHoverStyle));
         userPortalPill.setOnMouseExited(e -> userPortalPill.setStyle(adminNormalStyle));
-        userPortalPill.setOnMouseClicked(e -> borderPane.setCenter(createStandardUserLoginCard(borderPane)));
+        userPortalPill.setOnMouseClicked(e -> {
+            VBox userCard = createStandardUserLoginCard(borderPane);
+            borderPane.setCenter(userCard);
+            BorderPane.setAlignment(userCard, Pos.CENTER);
+        });
 
         VBox userPortalBox = new VBox(8, divider, userPortalPill);
         userPortalBox.setAlignment(Pos.CENTER);
@@ -702,8 +739,9 @@ public class Authentication {
             "-fx-padding: 22px 34px 20px 34px;"
         );
 
-        adminVBox.setPrefWidth(420);
-        adminVBox.setMaxWidth(420);
+        adminVBox.setPrefWidth(390);
+        adminVBox.setMaxWidth(390);
+        adminVBox.setMaxHeight(Region.USE_PREF_SIZE);
 
         return adminVBox;
     }
@@ -976,7 +1014,8 @@ public class Authentication {
                             result.getUser().getName(),
                             result.getUser().getMail(),
                             result.getUser().getNum(),
-                            "Master Admin"
+                            "Master Admin",
+                            result.getUser().getProfilePic()
                         );
                     }
                     com.desgin.view.admin.AdminProfileManagement.updateHeaderGreeting();
@@ -1019,7 +1058,9 @@ public class Authentication {
         loginHBox.setOnMouseEntered(e -> adminLoginLink.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #1B4332; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;"));
         loginHBox.setOnMouseExited(e -> adminLoginLink.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #2D6A4F; -fx-font-weight: bold; -fx-underline: true; -fx-cursor: hand;"));
         loginHBox.setOnMouseClicked(event -> {
-            borderPane.setCenter(createAdminLoginCard(borderPane, emailF.getText(), ""));
+            VBox adminCard = createAdminLoginCard(borderPane, emailF.getText(), "");
+            borderPane.setCenter(adminCard);
+            BorderPane.setAlignment(adminCard, Pos.CENTER);
         });
 
         // Bottom User Portal Pill
@@ -1032,7 +1073,11 @@ public class Authentication {
 
         Label userPill = new Label("👨‍🌾 Farmer / Provider Portal");
         userPill.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2D6A4F; -fx-background-color: #E8F5E9; -fx-background-radius: 16px; -fx-padding: 5px 14px; -fx-cursor: hand; -fx-border-color: rgba(45, 106, 79, 0.3); -fx-border-radius: 16px; -fx-border-width: 1px; -fx-font-family: 'Poppins';");
-        userPill.setOnMouseClicked(e -> borderPane.setCenter(createStandardUserLoginCard(borderPane)));
+        userPill.setOnMouseClicked(e -> {
+            VBox userCard = createStandardUserLoginCard(borderPane);
+            borderPane.setCenter(userCard);
+            BorderPane.setAlignment(userCard, Pos.CENTER);
+        });
 
         VBox bottomBox = new VBox(6, div, userPill);
         bottomBox.setAlignment(Pos.CENTER);
@@ -1049,8 +1094,9 @@ public class Authentication {
             "-fx-padding: 18px 30px 18px 30px;"
         );
 
-        registerAdminCard.setPrefWidth(420);
-        registerAdminCard.setMaxWidth(420);
+        registerAdminCard.setPrefWidth(390);
+        registerAdminCard.setMaxWidth(390);
+        registerAdminCard.setMaxHeight(Region.USE_PREF_SIZE);
 
         return registerAdminCard;
     }

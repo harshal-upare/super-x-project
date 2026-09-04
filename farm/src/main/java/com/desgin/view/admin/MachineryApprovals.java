@@ -86,14 +86,6 @@ public class MachineryApprovals {
     }
 
     public static ScrollPane getPage(StackPane root) {
-        Text title = new Text("Machinery Listing Verification & Quality Moderation");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subtitle = new Text("Review newly registered machinery submitted by fleet providers, inspect RTO registration, and approve listings for public rental.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
-
-        VBox titleBox = new VBox(3, title, subtitle);
-
         // Search Field
         TextField searchField = new TextField();
         searchField.setPromptText("Search by Application ID, Machine Model, Provider or RTO No...");
@@ -112,7 +104,7 @@ public class MachineryApprovals {
         listContainer.setMinWidth(0);
         renderList(root);
 
-        VBox content = new VBox(18, titleBox, searchField, tabBox, listContainer);
+        VBox content = new VBox(18, searchField, tabBox, listContainer);
         content.setPadding(new Insets(20, 25, 35, 25));
         content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);

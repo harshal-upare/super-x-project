@@ -63,10 +63,8 @@ public class OperatorProfileStore {
     }
 
     public static synchronized void setProfilePic(String pic) {
-        if (pic != null && !pic.trim().isEmpty()) {
-            profilePic = pic.trim();
-            notifyListeners();
-        }
+        profilePic = (pic != null && !pic.trim().isEmpty()) ? pic.trim() : "";
+        notifyListeners();
     }
 
     public static synchronized void setBusinessProfile(String newName, String newPhone, String newEmail,

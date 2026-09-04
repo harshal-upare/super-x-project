@@ -9,11 +9,16 @@ public class AdminProfileStore {
     public static String adminEmail = "admin@farmequip.com";
     public static String adminPhone = "+91 98000 00001";
     public static String adminRole = "Master Admin";
+    public static String adminProfilePic = "";
     public static final int MAX_ADMIN_LIMIT = 5;
 
     private static final List<Runnable> listeners = new ArrayList<>();
 
     public static synchronized void setAdminProfile(String name, String email, String phone, String role) {
+        setAdminProfile(name, email, phone, role, adminProfilePic);
+    }
+
+    public static synchronized void setAdminProfile(String name, String email, String phone, String role, String pic) {
         if (name != null && !name.trim().isEmpty()) {
             adminName = name.trim();
         }
@@ -26,7 +31,17 @@ public class AdminProfileStore {
         if (role != null && !role.trim().isEmpty()) {
             adminRole = role.trim();
         }
+        adminProfilePic = (pic != null) ? pic.trim() : "";
 
+        notifyListeners();
+    }
+
+    public static synchronized void reset() {
+        adminName = "Super Administrator";
+        adminEmail = "admin@farmequip.com";
+        adminPhone = "+91 98000 00001";
+        adminRole = "Master Admin";
+        adminProfilePic = "";
         notifyListeners();
     }
 

@@ -1,7 +1,5 @@
 package com.desgin.view.farmer.harshal;
 
-import javax.swing.text.View;
-
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
@@ -174,51 +172,6 @@ public class BookingDetails {
                                 createInfoRow("Price Per Day", dRate != null ? dRate : "₹2,500/day"),
                                 createInfoRow("Total Amount", tAmt != null ? tAmt : "₹7,500"));
 
-                Label ownerTitle = new Label("Equipment Owner");
-                ownerTitle.setStyle(
-                                "-fx-font-size: 17px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #1B4332;");
-
-                com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem matched = null;
-                for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
-                    if (bId != null && bId.equalsIgnoreCase(b.bookingId)) {
-                        matched = b;
-                        break;
-                    }
-                }
-
-                String provName = (matched != null && matched.providerName != null && !matched.providerName.isEmpty())
-                        ? matched.providerName : "Verified Equipment Provider";
-                String provContact = (matched != null && matched.providerEmail != null && !matched.providerEmail.isEmpty())
-                        ? "Contact: " + matched.providerEmail : "Platform Verified Partner";
-
-                VBox ownerBox = new VBox(8);
-                ownerBox.setPadding(new Insets(15));
-                ownerBox.setStyle(
-                                "-fx-background-color: #F8FAF9;" +
-                                                "-fx-background-radius: 10;" +
-                                                "-fx-border-color: #E2E8E4;" +
-                                                "-fx-border-radius: 10;");
-
-                Label ownerName = new Label("👨‍🌾 " + provName);
-                ownerName.setStyle(
-                                "-fx-font-size: 15px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #374151;");
-
-                Label phone = new Label(provContact);
-                phone.setStyle(
-                                "-fx-font-size: 13px;" +
-                                                "-fx-text-fill: #6B7280;");
-                ownerBox.getChildren().addAll(ownerName, phone);
-
-                if (matched != null && matched.operatorRequired) {
-                    Label opTitle = new Label("👷 Assigned Field Operator: " + (matched.operatorName != null ? matched.operatorName : "District Operator"));
-                    opTitle.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
-                    ownerBox.getChildren().add(opTitle);
-                }
-
                 HBox statusBox = new HBox(8);
                 statusBox.setAlignment(Pos.CENTER_LEFT);
 
@@ -234,6 +187,14 @@ public class BookingDetails {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-font-size: 12px;");
 
+                com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem matched = null;
+                for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
+                    if (bId != null && bId.equalsIgnoreCase(b.bookingId)) {
+                        matched = b;
+                        break;
+                    }
+                }
+
                 String paySt = (matched != null && matched.paymentStatus != null) ? matched.paymentStatus : "PENDING";
                 Label payBadge = new Label("💳 Payment: " + paySt);
                 payBadge.setPadding(new Insets(7, 14, 7, 14));
@@ -246,37 +207,21 @@ public class BookingDetails {
                 HBox actions = new HBox(10);
                 actions.setAlignment(Pos.CENTER_RIGHT);
 
-                Button contactButton = new Button("Contact Owner");
-
-                contactButton.setOnAction(e -> {
-                        showContactOwnerPopup();
-                });
-                contactButton.setPrefHeight(38);
-
-                contactButton.setStyle(
-                                "-fx-background-color: #52796F;" +
-                                                "-fx-text-fill: white;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                Button cancelButton = new Button("Cancel Booking");
-                cancelButton.setOnAction(e -> {
+                if (!("CANCELLED".equalsIgnoreCase(currentStatus) || "COMPLETED".equalsIgnoreCase(currentStatus))) {
+                    Button cancelButton = new Button("Cancel Booking");
+                    cancelButton.setOnAction(e -> {
                         if (bId != null) {
-                                com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(bId);
+                            com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(bId);
                         }
                         showCancelConfirmation(cancelAction);
-                });
-                cancelButton.setPrefHeight(38);
-
-                cancelButton.setStyle(
-                                "-fx-background-color: #FEE2E2;" +
-                                                "-fx-text-fill: #B91C1C;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-                if (!"CANCELLED".equalsIgnoreCase(currentStatus) && !"COMPLETED".equalsIgnoreCase(currentStatus)) {
-                        actions.getChildren().addAll(contactButton, cancelButton);
-                } else {
-                        actions.getChildren().addAll(contactButton);
+                    });
+                    cancelButton.setPrefHeight(38);
+                    cancelButton.setStyle(
+                            "-fx-background-color: #FEE2E2;" +
+                            "-fx-text-fill: #B91C1C;" +
+                            "-fx-background-radius: 7;" +
+                            "-fx-font-weight: bold;");
+                    actions.getChildren().add(cancelButton);
                 }
 
                 mainBox.getChildren().addAll(
@@ -284,8 +229,6 @@ public class BookingDetails {
                                 equipmentBox,
                                 rentalTitle,
                                 rentalBox,
-                                ownerTitle,
-                                ownerBox,
                                 statusBox,
                                 actions);
 

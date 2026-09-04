@@ -934,7 +934,7 @@ public class ProfileManagement {
         Text title = new Text("Recent Activity & Alerts");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text sub = new Text("Rental confirmations, operator dispatches & farm alerts");
+        Text sub = new Text("Approved bookings from operators & providers only");
         sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
 
         VBox titleBox = new VBox(2, title, sub);
@@ -976,23 +976,24 @@ public class ProfileManagement {
                 String mail = FarmerProfileStore.email;
                 if (mail == null || mail.trim().isEmpty()) return;
 
-                // 1. Fetch real notifications from NotificationDAO
-                java.util.List<com.desgin.model.NotificationModel> dbNotifs = new com.desgin.dao.NotificationDAO().getNotificationsByUser(mail);
-                int unreadCount = 0;
-                for (com.desgin.model.NotificationModel n : dbNotifs) {
-                    if (!n.isRead()) unreadCount++;
-                }
-
-                // 2. Fetch farmer's own requests
+                // Fetch farmer's rental requests - ONLY show APPROVED/ACCEPTED from operators and providers
                 List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(mail);
-                final int finalUnread = unreadCount;
-                final java.util.List<com.desgin.model.NotificationModel> finalNotifs = dbNotifs;
-                final List<com.desgin.model.RentalRequestModel> finalRequests = list;
+
+                // Filter ONLY approved/accepted notifications from operators & providers
+                List<com.desgin.model.RentalRequestModel> approvedList = list.stream()
+                    .filter(r -> {
+                        String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "";
+                        return "APPROVED".equals(st) || "ACCEPTED".equals(st);
+                    })
+                    .toList();
+
+                final int unreadCount = approvedList.size();
+                final List<com.desgin.model.RentalRequestModel> finalApproved = approvedList;
 
                 javafx.application.Platform.runLater(() -> {
                     if (farmerNotifBadge != null) {
-                        if (finalUnread > 0) {
-                            farmerNotifBadge.setText(String.valueOf(finalUnread));
+                        if (unreadCount > 0) {
+                            farmerNotifBadge.setText(String.valueOf(unreadCount));
                             farmerNotifBadge.setVisible(true);
                             farmerNotifBadge.setManaged(true);
                         } else {
@@ -1004,46 +1005,28 @@ public class ProfileManagement {
                     if (farmerNotifList != null) {
                         farmerNotifList.getChildren().clear();
 
-                        if (!finalNotifs.isEmpty()) {
-                            for (com.desgin.model.NotificationModel n : finalNotifs.stream().limit(6).toList()) {
-                                String bg = n.isRead() ? "#F3F4F6" : "#DCFCE7";
-                                String fg = n.isRead() ? "#4B5563" : "#15803D";
-                                farmerNotifList.getChildren().add(createNotifCard(n.getTitle(), n.getMessage(), n.getCreatedAt(), n.getType(), bg, fg));
-                            }
-                        } else if (!finalRequests.isEmpty()) {
-                            for (com.desgin.model.RentalRequestModel r : finalRequests.stream().limit(6).toList()) {
-                                String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
-                                String title;
-                                String desc;
+                        if (!finalApproved.isEmpty()) {
+                            for (com.desgin.model.RentalRequestModel r : finalApproved.stream().limit(10).toList()) {
+                                String providerName = r.getProviderName() != null ? r.getProviderName() : "Provider";
+                                String machineryName = r.getMachineryName() != null ? r.getMachineryName() : "Equipment";
                                 String time = r.getStartDate() != null ? r.getStartDate() : "Recent";
-                                String bg;
-                                String fg;
 
-                                if ("APPROVED".equals(st) || "ACCEPTED".equals(st)) {
-                                    title = "✅ Booking Approved";
-                                    desc = "Your request for " + r.getMachineryName() + " was approved by provider " + (r.getProviderName() != null ? r.getProviderName() : "") + "!";
-                                    bg = "#DCFCE7";
-                                    fg = "#15803D";
-                                } else if ("DECLINED".equals(st) || "REJECTED".equals(st)) {
-                                    title = "❌ Booking Declined";
-                                    desc = "Provider was unable to fulfill request for " + r.getMachineryName() + ".";
-                                    bg = "#FEE2E2";
-                                    fg = "#DC2626";
-                                } else if ("COMPLETED".equals(st)) {
-                                    title = "✔ Rental Completed";
-                                    desc = "Rental completed for " + r.getMachineryName() + ". Thank you!";
-                                    bg = "#E0E7FF";
-                                    fg = "#4338CA";
-                                } else {
-                                    title = "⏳ Request Pending";
-                                    desc = "Booking inquiry for " + r.getMachineryName() + " (" + r.getDays() + " days) is awaiting provider confirmation.";
-                                    bg = "#FFF3E0";
-                                    fg = "#E65100";
-                                }
-                                farmerNotifList.getChildren().add(createNotifCard(title, desc, time, st, bg, fg));
+                                String notifTitle = "✅ Request Approved — " + machineryName;
+                                String desc = "Provider " + providerName + " approved your hire request for " + machineryName
+                                    + ". Your rental of " + r.getDays() + " day(s) is now confirmed.";
+
+                                farmerNotifList.getChildren().add(
+                                    createNotifCard(notifTitle, desc, time, "APPROVED", "#DCFCE7", "#15803D")
+                                );
                             }
                         } else {
-                            farmerNotifList.getChildren().add(createNotifCard("🔔 No Notifications", "You are all caught up! Booking and payment alerts will appear here.", "Just now", "SYSTEM", "#F3F4F6", "#4B5563"));
+                            farmerNotifList.getChildren().add(
+                                createNotifCard(
+                                    "🔔 No Approved Notifications",
+                                    "No approved bookings yet. Once a provider or operator approves your request, it will appear here.",
+                                    "Just now", "SYSTEM", "#F3F4F6", "#4B5563"
+                                )
+                            );
                         }
                     }
                 });

@@ -38,7 +38,6 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
-import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 
 import javafx.scene.text.Text;
@@ -65,7 +64,7 @@ private static CheckBox upi;
 private static CheckBox card;
 private static CheckBox net;
 
-private VBox paymentCards;
+//private VBox paymentCards;
    public static ScrollPane getPaymentSection() {
 
     Text paymentTitle = new Text("Payment Dashboard");

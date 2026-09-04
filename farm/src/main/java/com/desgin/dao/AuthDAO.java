@@ -11,13 +11,9 @@ public class AuthDAO {
     private Firestore db = FirestoreConfig.getFirestore();;
 
     public void addUser(AuthenticateModel objModel) {
-
         try {
-           
-            db.collection(objModel.getRole()).document(objModel.getMail()).create(objModel).get();
-
+            db.collection(objModel.getRole()).document(objModel.getMail()).set(objModel, com.google.cloud.firestore.SetOptions.merge()).get();
         } catch(Exception e) {
-            
             e.printStackTrace();
         }
     }
@@ -49,28 +45,25 @@ public class AuthDAO {
     }
 
     public AuthenticateModel getUser(String mail, String role) {
-
         try {
             if (mail == null || mail.trim().isEmpty()) return null;
             String key = mail.trim();
+            String col = role != null ? role.trim() : "Farmer";
+            if ("FARMER".equalsIgnoreCase(col)) col = "Farmer";
+            else if ("PROVIDER".equalsIgnoreCase(col)) col = "Provider";
+            else if ("OPERATOR".equalsIgnoreCase(col)) col = "Operator";
+            else if ("ADMIN".equalsIgnoreCase(col)) col = "Admin";
 
-            ApiFuture<DocumentSnapshot> future = db.collection(role).document(key).get();  
-            DocumentSnapshot doc = future.get();
+            // Search in specified collection
+            AuthenticateModel m = findUserDoc(col, key);
+            if (m != null) return m;
 
-            if (doc.exists()) {
-                return doc.toObject(AuthenticateModel.class);
-            }
-
-            // Query by email field
-            var queryMail = db.collection(role).whereEqualTo("mail", key).get().get();
-            if (!queryMail.isEmpty()) {
-                return queryMail.getDocuments().get(0).toObject(AuthenticateModel.class);
-            }
-
-            // Query by phone number field
-            var queryNum = db.collection(role).whereEqualTo("num", key).get().get();
-            if (!queryNum.isEmpty()) {
-                return queryNum.getDocuments().get(0).toObject(AuthenticateModel.class);
+            // Search across all other collections if not found in primary
+            for (String otherCol : new String[]{"Farmer", "Provider", "Operator", "Admin"}) {
+                if (!otherCol.equalsIgnoreCase(col)) {
+                    m = findUserDoc(otherCol, key);
+                    if (m != null) return m;
+                }
             }
 
         } catch(Exception e) {
@@ -78,6 +71,57 @@ public class AuthDAO {
         }
 
         return null;
+    }
+
+    private AuthenticateModel findUserDoc(String collection, String key) {
+        try {
+            // 1. Direct by doc ID
+            DocumentSnapshot doc = db.collection(collection).document(key).get().get();
+            if (doc.exists()) {
+                return parseAuthenticateModel(doc, collection);
+            }
+
+            // 2. Query by mail field
+            var queryMail = db.collection(collection).whereEqualTo("mail", key).get().get();
+            if (!queryMail.isEmpty()) {
+                return parseAuthenticateModel(queryMail.getDocuments().get(0), collection);
+            }
+
+            // 3. Query by num field
+            var queryNum = db.collection(collection).whereEqualTo("num", key).get().get();
+            if (!queryNum.isEmpty()) {
+                return parseAuthenticateModel(queryNum.getDocuments().get(0), collection);
+            }
+        } catch (Exception ignored) {}
+        return null;
+    }
+
+    private AuthenticateModel parseAuthenticateModel(DocumentSnapshot doc, String defaultRole) {
+        AuthenticateModel m = doc.toObject(AuthenticateModel.class);
+        if (m == null) m = new AuthenticateModel();
+
+        if (m.getMail() == null || m.getMail().isEmpty()) {
+            String mailVal = doc.getString("mail");
+            m.setMail(mailVal != null ? mailVal : doc.getId());
+        }
+        if (m.getRole() == null || m.getRole().isEmpty()) {
+            String roleVal = doc.getString("role");
+            m.setRole(roleVal != null ? roleVal : defaultRole);
+        }
+        String statusVal = doc.getString("status");
+        if (statusVal != null && !statusVal.trim().isEmpty()) {
+            m.setStatus(statusVal.trim().toUpperCase());
+        } else {
+            m.setStatus("ACTIVE");
+        }
+        if (m.getProfilePic() == null || m.getProfilePic().isEmpty()) {
+            String pic = doc.getString("profilePic");
+            if (pic == null) pic = doc.getString("profileImage");
+            if (pic == null) pic = doc.getString("photoUrl");
+            if (pic == null) pic = doc.getString("imageUrl");
+            if (pic != null) m.setProfilePic(pic);
+        }
+        return m;
     }
 
     public boolean updateLocation(String mail, String role, String town, String district, String state, String pincode) {
@@ -238,6 +282,61 @@ public class AuthDAO {
         }
     }
 
+    /**
+     * Verifies the current password of a user against Firestore.
+     * Returns true if the current password matches.
+     */
+    public boolean verifyCurrentPassword(String mail, String role, String currentPassword) {
+        try {
+            if (mail == null || mail.trim().isEmpty() || currentPassword == null) return false;
+            String key = mail.trim();
+            DocumentSnapshot doc = db.collection(role).document(key).get().get();
+            if (doc.exists()) {
+                String stored = doc.getString("password");
+                return currentPassword.equals(stored);
+            }
+            var query = db.collection(role).whereEqualTo("mail", key).get().get();
+            if (!query.isEmpty()) {
+                String stored = query.getDocuments().get(0).getString("password");
+                return currentPassword.equals(stored);
+            }
+            return false;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    /**
+     * Updates the password for a user in Firestore.
+     * Returns true on success.
+     */
+    public boolean updatePassword(String mail, String role, String newPassword) {
+        try {
+            if (mail == null || mail.trim().isEmpty() || newPassword == null || newPassword.trim().isEmpty()) return false;
+            String key = mail.trim();
+            java.util.Map<String, Object> updates = new java.util.HashMap<>();
+            updates.put("password", newPassword.trim());
+
+            DocumentSnapshot doc = db.collection(role).document(key).get().get();
+            if (doc.exists()) {
+                db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+            var query = db.collection(role).whereEqualTo("mail", key).get().get();
+            if (!query.isEmpty()) {
+                String docId = query.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+            db.collection(role).document(key).set(updates, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
+
     public int getAdminCount() {
         try {
             if (db == null) return 0;
@@ -274,11 +373,8 @@ public class AuthDAO {
                 if (db != null) {
                     var docs = db.collection(role).get().get().getDocuments();
                     for (var d : docs) {
-                        AuthenticateModel m = d.toObject(AuthenticateModel.class);
-                        if (m != null) {
-                            if (m.getRole() == null || m.getRole().isEmpty()) m.setRole(role);
-                            all.add(m);
-                        }
+                        AuthenticateModel m = parseAuthenticateModel(d, role);
+                        all.add(m);
                     }
                 }
             } catch (Exception e) {
@@ -326,10 +422,72 @@ public class AuthDAO {
     public boolean updateUserStatus(String email, String role, String newStatus) {
         if (email == null || role == null || newStatus == null || db == null) return false;
         try {
+            String targetStatus = newStatus.trim().toUpperCase();
+            String key = emailOrPhone.trim();
             java.util.Map<String, Object> update = new java.util.HashMap<>();
-            update.put("status", newStatus);
-            db.collection(role).document(email.trim()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
-            return true;
+            update.put("status", targetStatus);
+
+            String canonicalCol = "Farmer";
+            if (role != null) {
+                if ("PROVIDER".equalsIgnoreCase(role)) canonicalCol = "Provider";
+                else if ("OPERATOR".equalsIgnoreCase(role)) canonicalCol = "Operator";
+                else if ("ADMIN".equalsIgnoreCase(role)) canonicalCol = "Admin";
+                else if ("FARMER".equalsIgnoreCase(role)) canonicalCol = "Farmer";
+            }
+
+            boolean updated = false;
+
+            // 1. Direct doc by key in canonical collection
+            DocumentSnapshot doc = db.collection(canonicalCol).document(key).get().get();
+            if (doc.exists()) {
+                db.collection(canonicalCol).document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                updated = true;
+            }
+
+            // 2. Query by mail field in canonical collection
+            var queryMail = db.collection(canonicalCol).whereEqualTo("mail", key).get().get();
+            for (var d : queryMail.getDocuments()) {
+                db.collection(canonicalCol).document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                updated = true;
+            }
+
+            // 3. Query by num field in canonical collection
+            var queryNum = db.collection(canonicalCol).whereEqualTo("num", key).get().get();
+            for (var d : queryNum.getDocuments()) {
+                db.collection(canonicalCol).document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                updated = true;
+            }
+
+            // Search other canonical collections if not found in primary
+            if (!updated) {
+                for (String fallbackCol : new String[]{"Farmer", "Provider", "Operator", "Admin"}) {
+                    if (!fallbackCol.equals(canonicalCol)) {
+                        DocumentSnapshot dDoc = db.collection(fallbackCol).document(key).get().get();
+                        if (dDoc.exists()) {
+                            db.collection(fallbackCol).document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                            updated = true;
+                        }
+                        var qMail = db.collection(fallbackCol).whereEqualTo("mail", key).get().get();
+                        for (var d : qMail.getDocuments()) {
+                            db.collection(fallbackCol).document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                            updated = true;
+                        }
+                        var qNum = db.collection(fallbackCol).whereEqualTo("num", key).get().get();
+                        for (var d : qNum.getDocuments()) {
+                            db.collection(fallbackCol).document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                            updated = true;
+                        }
+                    }
+                }
+            }
+
+            // If still not updated, set it in canonicalCol under key
+            if (!updated) {
+                db.collection(canonicalCol).document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                updated = true;
+            }
+
+            return updated;
         } catch (Exception e) {
             System.err.println("Notice: Failed to update user status: " + e.getMessage());
             return false;

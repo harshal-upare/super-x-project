@@ -22,6 +22,8 @@ public class UserManagement {
         public String userId;
         public String name;
         public String role; // "FARMER", "PROVIDER", "OPERATOR"
+        public String canonicalRole; // "Farmer", "Provider", "Operator", "Admin"
+        public String email;
         public String phone;
         public String location;
         public String kycStatus; // "VERIFIED", "PENDING"
@@ -32,6 +34,8 @@ public class UserManagement {
             this.userId = userId;
             this.name = name;
             this.role = role;
+            this.canonicalRole = "Farmer";
+            this.email = userId;
             this.phone = phone;
             this.location = location;
             this.kycStatus = kycStatus;
@@ -55,35 +59,41 @@ public class UserManagement {
             java.util.List<com.desgin.model.AuthenticateModel> dbUsers = new com.desgin.dao.AuthDAO().getAllUsers();
             for (com.desgin.model.AuthenticateModel u : dbUsers) {
                 String r = u.getRole() != null ? u.getRole().toUpperCase() : "FARMER";
+                String canonical = "Farmer";
+                if ("PROVIDER".equalsIgnoreCase(r)) canonical = "Provider";
+                else if ("OPERATOR".equalsIgnoreCase(r)) canonical = "Operator";
+                else if ("ADMIN".equalsIgnoreCase(r)) canonical = "Admin";
+
                 String st = u.getStatus() != null ? u.getStatus().toUpperCase() : "ACTIVE";
+                String mail = u.getMail() != null ? u.getMail().trim() : "";
+                String num = u.getNum() != null ? u.getNum().trim() : "";
                 String loc = u.getTown() != null ? (u.getTown() + (u.getDistrict() != null ? ", " + u.getDistrict() : "")) : "Maharashtra";
-                userList.add(new UserItem(
-                        u.getMail() != null ? u.getMail() : (u.getNum() != null ? u.getNum() : "USR-" + System.currentTimeMillis()),
+
+                UserItem item = new UserItem(
+                        mail.isEmpty() ? (num.isEmpty() ? "USR-" + System.currentTimeMillis() : num) : mail,
                         u.getName() != null ? u.getName() : "Platform User",
                         r,
-                        u.getNum() != null ? u.getNum() : "N/A",
+                        num.isEmpty() ? "N/A" : num,
                         loc,
                         "VERIFIED",
                         st,
                         "Registered " + r
-                ));
+                );
+                item.canonicalRole = canonical;
+                item.email = mail;
+                item.phone = num;
+                userList.add(item);
             }
         } catch (Exception ignored) {}
         if (userList.isEmpty()) {
-            userList.add(new UserItem("admin@farmequip.com", AdminProfileStore.adminName, "ADMIN", AdminProfileStore.adminPhone, "HQ Central, Pune", "VERIFIED", "ACTIVE", "System Administrator (Seat 1/5)"));
+            UserItem defaultAdmin = new UserItem("admin@farmequip.com", AdminProfileStore.adminName, "ADMIN", AdminProfileStore.adminPhone, "HQ Central, Pune", "VERIFIED", "ACTIVE", "System Administrator (Seat 1/5)");
+            defaultAdmin.canonicalRole = "Admin";
+            userList.add(defaultAdmin);
         }
     }
 
     public static ScrollPane getPage(StackPane root) {
         initUsers();
-
-        Text title = new Text("User Directory & KYC Compliance Desk");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subtitle = new Text("Manage platform farmers, equipment providers, certified operators, and system administrators (Max 5 Admins).");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
-
-        VBox titleBox = new VBox(3, title, subtitle);
 
         // Search Bar
         TextField searchField = new TextField();
@@ -103,7 +113,7 @@ public class UserManagement {
         listContainer.setMinWidth(0);
         renderUsers(root);
 
-        VBox content = new VBox(18, titleBox, searchField, roleTabs, listContainer);
+        VBox content = new VBox(18, searchField, roleTabs, listContainer);
         content.setPadding(new Insets(20, 25, 35, 25));
         content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);
@@ -239,20 +249,35 @@ public class UserManagement {
             renderUsers(root);
         });
 
-        Button statusToggle = new Button("ACTIVE".equals(u.accountStatus) ? "Suspend" : "Activate");
-        statusToggle.setStyle("-fx-background-color: " + ("ACTIVE".equals(u.accountStatus) ? "#8B3A3A" : "#2E7D32") + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10 5 10;");
+        boolean isActive = "ACTIVE".equalsIgnoreCase(u.accountStatus);
+        Button statusToggle = new Button(isActive ? "Suspend" : "Activate");
+        statusToggle.setStyle("-fx-background-color: " + (isActive ? "#8B3A3A" : "#2E7D32") + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10 5 10;");
         statusToggle.setOnAction(e -> {
-            String newSt = "ACTIVE".equals(u.accountStatus) ? "SUSPENDED" : "ACTIVE";
+            String newSt = "ACTIVE".equalsIgnoreCase(u.accountStatus) ? "SUSPENDED" : "ACTIVE";
             u.accountStatus = newSt;
             renderUsers(root);
             new Thread(() -> {
                 try {
-                    new com.desgin.dao.AuthDAO().updateUserStatus(u.userId, u.role, newSt);
+                    com.desgin.dao.AuthDAO dao = new com.desgin.dao.AuthDAO();
+                    String roleToUse = u.canonicalRole != null ? u.canonicalRole : u.role;
+                    if (u.email != null && !u.email.isEmpty()) {
+                        dao.updateUserStatus(u.email, roleToUse, newSt);
+                    }
+                    if (u.phone != null && !u.phone.isEmpty() && !"N/A".equals(u.phone)) {
+                        dao.updateUserStatus(u.phone, roleToUse, newSt);
+                    }
+                    if (u.userId != null && !u.userId.isEmpty()) {
+                        dao.updateUserStatus(u.userId, roleToUse, newSt);
+                    }
                 } catch (Exception ignored) {}
             }).start();
         });
 
-        HBox actions = new HBox(8, kyc, verifyKycBtn, statusToggle);
+        // Account Status Badge
+        Label statusBadge = new Label(isActive ? "● ACTIVE" : "● SUSPENDED");
+        statusBadge.setStyle("-fx-background-color: " + (isActive ? "#E8F5E9" : "#FEE2E2") + "; -fx-text-fill: " + (isActive ? "#15803D" : "#DC2626") + "; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
+
+        HBox actions = new HBox(8, kyc, statusBadge, verifyKycBtn, statusToggle);
         actions.setAlignment(Pos.CENTER_RIGHT);
 
         HBox row = new HBox(12, iconBox, info, spacer, actions);

@@ -376,9 +376,10 @@ public class OperatorHome {
         weatherCard.setPadding(new Insets(14, 22, 14, 22));
         weatherCard.setMaxWidth(Double.MAX_VALUE);
         weatherCard.setStyle(
-                "-fx-background-color: linear-gradient(to right, #1B5E20, #2E7D32, #388E3C);" +
-                "-fx-background-radius: 14px;" +
-                "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);");
+                "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F, #40916C);" +
+                "-fx-background-radius: 16px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);"
+        );
 
         // Left: Current Weather Icon, Temperature & Details
         Text weatherIcon = new Text("☀");
