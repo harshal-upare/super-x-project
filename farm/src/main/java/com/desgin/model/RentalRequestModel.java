@@ -25,6 +25,8 @@ public class RentalRequestModel {
     private String createdAt;
     private String imagePath;
     private String district;
+    private long shiftStartTime;
+    private long shiftDurationMillis;
 
     public RentalRequestModel() {
         this.status = "PENDING";
@@ -398,5 +400,21 @@ public class RentalRequestModel {
 
     public void setRejectionReason(String rejectionReason) {
         this.rejectionReason = rejectionReason;
+    }
+
+    public long getShiftStartTime() {
+        return shiftStartTime;
+    }
+
+    public void setShiftStartTime(long shiftStartTime) {
+        this.shiftStartTime = shiftStartTime;
+    }
+
+    public long getShiftDurationMillis() {
+        return shiftDurationMillis;
+    }
+
+    public void setShiftDurationMillis(long shiftDurationMillis) {
+        this.shiftDurationMillis = shiftDurationMillis;
     }
 }

@@ -288,6 +288,41 @@ public class AuthDAO {
         return all;
     }
 
+    public boolean updatePassword(String mail, String role, String newPassword) {
+        if (mail == null || role == null || newPassword == null || db == null) return false;
+        try {
+            String key = mail.trim();
+            java.util.Map<String, Object> update = new java.util.HashMap<>();
+            update.put("password", newPassword.trim());
+
+            DocumentSnapshot doc = db.collection(role).document(key).get().get();
+            if (doc.exists()) {
+                db.collection(role).document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryMail = db.collection(role).whereEqualTo("mail", key).get().get();
+            if (!queryMail.isEmpty()) {
+                String docId = queryMail.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryNum = db.collection(role).whereEqualTo("num", key).get().get();
+            if (!queryNum.isEmpty()) {
+                String docId = queryNum.getDocuments().get(0).getId();
+                db.collection(role).document(docId).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            db.collection(role).document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Notice: Failed to update password in Firestore: " + e.getMessage());
+            return false;
+        }
+    }
+
     public boolean updateUserStatus(String email, String role, String newStatus) {
         if (email == null || role == null || newStatus == null || db == null) return false;
         try {
@@ -302,8 +337,13 @@ public class AuthDAO {
     }
 
     public boolean updateOperatorBusinessInfo(String email, String name, String phone, String photoUrl, String drivingExp, String equipProf, String licenseImgUrl) {
+        return updateOperatorBusinessInfo(email, name, phone, photoUrl, drivingExp, equipProf, licenseImgUrl, null, null);
+    }
+
+    public boolean updateOperatorBusinessInfo(String email, String name, String phone, String photoUrl, String drivingExp, String equipProf, String licenseImgUrl, String zone, String licenseNo) {
         if (email == null || db == null) return false;
         try {
+            String key = email.trim();
             java.util.Map<String, Object> update = new java.util.HashMap<>();
             if (name != null && !name.trim().isEmpty()) update.put("name", name.trim());
             if (phone != null && !phone.trim().isEmpty()) update.put("num", phone.trim());
@@ -311,7 +351,30 @@ public class AuthDAO {
             if (drivingExp != null && !drivingExp.trim().isEmpty()) update.put("drivingExperience", drivingExp.trim());
             if (equipProf != null && !equipProf.trim().isEmpty()) update.put("equipmentProfession", equipProf.trim());
             if (licenseImgUrl != null && !licenseImgUrl.trim().isEmpty()) update.put("licenseImage", licenseImgUrl.trim());
-            db.collection("Operator").document(email.trim()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+            if (zone != null && !zone.trim().isEmpty()) update.put("town", zone.trim());
+            if (licenseNo != null && !licenseNo.trim().isEmpty()) update.put("licenseNo", licenseNo.trim());
+
+            DocumentSnapshot doc = db.collection("Operator").document(key).get().get();
+            if (doc.exists()) {
+                db.collection("Operator").document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryMail = db.collection("Operator").whereEqualTo("mail", key).get().get();
+            if (!queryMail.isEmpty()) {
+                String docId = queryMail.getDocuments().get(0).getId();
+                db.collection("Operator").document(docId).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var queryNum = db.collection("Operator").whereEqualTo("num", key).get().get();
+            if (!queryNum.isEmpty()) {
+                String docId = queryNum.getDocuments().get(0).getId();
+                db.collection("Operator").document(docId).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            db.collection("Operator").document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
             return true;
         } catch (Exception e) {
             System.err.println("Notice: Failed to update operator business info: " + e.getMessage());

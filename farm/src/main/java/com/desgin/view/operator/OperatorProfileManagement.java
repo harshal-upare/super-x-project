@@ -1,6 +1,8 @@
 package com.desgin.view.operator;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.desgin.config.CloudinaryConfig;
 import com.desgin.dao.AuthDAO;
@@ -120,64 +122,169 @@ public class OperatorProfileManagement {
 
     private static Label operatorNotifBadge;
     private static VBox operatorNotifList;
+    private static VBox notifPopupRef;
+    private static final List<NotificationItemData> currentUnreadNotifs = new ArrayList<>();
+
+    private static class NotificationItemData {
+        String id;
+        String title;
+        String desc;
+        String time;
+        String tag;
+        String tagBg;
+        String tagColor;
+        String relatedId;
+
+        public NotificationItemData(String id, String title, String desc, String time, String tag, String tagBg, String tagColor, String relatedId) {
+            this.id = id;
+            this.title = title;
+            this.desc = desc;
+            this.time = time;
+            this.tag = tag;
+            this.tagBg = tagBg;
+            this.tagColor = tagColor;
+            this.relatedId = relatedId;
+        }
+    }
 
     public static void refreshOperatorNotifications() {
         Thread t = new Thread(() -> {
             try {
                 String email = OperatorProfileStore.email;
-                if (email == null || email.trim().isEmpty()) return;
+                if (email == null || email.trim().isEmpty()) email = "operator@farmequip.com";
 
-                java.util.List<com.desgin.model.NotificationModel> notifs = new com.desgin.dao.NotificationDAO().getNotificationsByUser(email);
-                int unread = 0;
-                for (com.desgin.model.NotificationModel n : notifs) {
-                    if (!n.isRead()) unread++;
+                java.util.List<com.desgin.model.NotificationModel> dbNotifs = new com.desgin.dao.NotificationDAO().getNotificationsByUser(email);
+                java.util.List<com.desgin.model.RentalRequestModel> reqs = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(email);
+
+                List<NotificationItemData> items = new ArrayList<>();
+                java.util.Set<String> processedReqIds = new java.util.HashSet<>();
+
+                // 1. Process notifications from DB
+                for (com.desgin.model.NotificationModel n : dbNotifs) {
+                    if (n.isRead() || OperatorProfileStore.isNotificationRead(n.getNotificationId())) continue;
+
+                    String tag = "🔔 UPDATE";
+                    String tagBg = "#DCFCE7";
+                    String tagColor = "#15803D";
+
+                    if ("PAYMENT".equalsIgnoreCase(n.getType())) {
+                        tag = "💰 PAYMENT DONE";
+                        tagBg = "#DCFCE7";
+                        tagColor = "#15803D";
+                    } else if ("REQUEST".equalsIgnoreCase(n.getType()) || "BOOKING".equalsIgnoreCase(n.getType())) {
+                        tag = "🚜 NEW REQUEST";
+                        tagBg = "#FEF3C7";
+                        tagColor = "#B45309";
+                    }
+
+                    items.add(new NotificationItemData(
+                        n.getNotificationId(),
+                        n.getTitle(),
+                        n.getMessage(),
+                        n.getCreatedAt() != null ? n.getCreatedAt() : "Recently",
+                        tag, tagBg, tagColor,
+                        n.getRelatedId()
+                    ));
+                    if (n.getRelatedId() != null) processedReqIds.add(n.getRelatedId());
                 }
 
-                java.util.List<com.desgin.model.RentalRequestModel> reqs = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(email);
-                long pending = reqs.stream().filter(r -> "PENDING".equalsIgnoreCase(r.getOperatorStatus()) || "ACCEPTED".equalsIgnoreCase(r.getStatus())).count();
-                int totalBadge = unread + (int) pending;
+                // 2. Real-time requests fallback
+                for (com.desgin.model.RentalRequestModel r : reqs) {
+                    if (r.getRequestId() == null) continue;
+                    if (processedReqIds.contains(r.getRequestId())) continue;
 
-                final int fBadge = totalBadge;
-                final java.util.List<com.desgin.model.NotificationModel> fNotifs = notifs;
-                final java.util.List<com.desgin.model.RentalRequestModel> fReqs = reqs;
+                    String reqId = r.getRequestId();
+                    if ("PENDING".equalsIgnoreCase(r.getOperatorStatus())) {
+                        String notifId = "NOTIF_REQ_" + reqId;
+                        if (!OperatorProfileStore.isNotificationRead(notifId)) {
+                            items.add(new NotificationItemData(
+                                notifId,
+                                "🚜 New Work Request: " + (r.getMachineryName() != null ? r.getMachineryName() : "Field Duty"),
+                                "Farmer " + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + " sent a request for " + (r.getDays() > 0 ? r.getDays() + " Days" : "Standard Shift") + " at " + (r.getFarmerLocation() != null ? r.getFarmerLocation() : "Field Plot") + ". Total wage: ₹" + String.format("%,d", r.getTotalAmount()),
+                                r.getCreatedAt() != null ? r.getCreatedAt() : "Recent",
+                                "🚜 NEW REQUEST",
+                                "#FEF3C7", "#B45309",
+                                reqId
+                            ));
+                        }
+                    } else if ("PAID".equalsIgnoreCase(r.getPaymentStatus()) && ("CONFIRMED".equalsIgnoreCase(r.getStatus()) || "ACCEPTED".equalsIgnoreCase(r.getStatus()))) {
+                        String notifId = "NOTIF_PAY_" + reqId;
+                        if (!OperatorProfileStore.isNotificationRead(notifId)) {
+                            items.add(new NotificationItemData(
+                                notifId,
+                                "💰 Wage Paid: Job #" + reqId,
+                                "Farmer " + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + " paid ₹" + String.format("%,d", r.getTotalAmount()) + " via Razorpay. Shift is ready to start!",
+                                r.getUpdatedAt() != null ? r.getUpdatedAt() : "Recent",
+                                "💰 PAYMENT DONE",
+                                "#DCFCE7", "#15803D",
+                                reqId
+                            ));
+                        }
+                    } else if ("IN_PROGRESS".equalsIgnoreCase(r.getStatus())) {
+                        String notifId = "NOTIF_ACT_" + reqId;
+                        if (!OperatorProfileStore.isNotificationRead(notifId)) {
+                            items.add(new NotificationItemData(
+                                notifId,
+                                "⏱ Shift In Progress: " + (r.getMachineryName() != null ? r.getMachineryName() : "Task"),
+                                "Field shift is running with active countdown. Complete button unlocks when timer finishes.",
+                                "Active",
+                                "⏱ SHIFT ACTIVE",
+                                "#E0F2FE", "#0284C7",
+                                reqId
+                            ));
+                        }
+                    }
+                }
 
                 javafx.application.Platform.runLater(() -> {
-                    if (operatorNotifBadge != null) {
-                        if (fBadge > 0) {
-                            operatorNotifBadge.setText(String.valueOf(fBadge));
-                            operatorNotifBadge.setVisible(true);
-                            operatorNotifBadge.setManaged(true);
-                        } else {
-                            operatorNotifBadge.setVisible(false);
-                            operatorNotifBadge.setManaged(false);
-                        }
-                    }
-
-                    if (operatorNotifList != null) {
-                        operatorNotifList.getChildren().clear();
-                        if (!fNotifs.isEmpty()) {
-                            for (com.desgin.model.NotificationModel n : fNotifs.stream().limit(5).toList()) {
-                                operatorNotifList.getChildren().add(createNotifCard(n.getTitle(), n.getMessage(), n.getCreatedAt(), n.getType(), "#DCFCE7", "#15803D"));
-                            }
-                        } else if (!fReqs.isEmpty()) {
-                            for (com.desgin.model.RentalRequestModel r : fReqs.stream().limit(5).toList()) {
-                                operatorNotifList.getChildren().add(createNotifCard(
-                                        "🚜 Assignment: " + r.getMachineryName(),
-                                        "Field operation for " + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + " (" + (r.getFarmerLocation() != null ? r.getFarmerLocation() : "Local") + ")",
-                                        r.getStartDate() != null ? r.getStartDate() : "Recent",
-                                        r.getStatus() != null ? r.getStatus() : "JOB",
-                                        "#DCFCE7", "#15803D"
-                                ));
-                            }
-                        } else {
-                            operatorNotifList.getChildren().add(createNotifCard("🔔 No Notifications", "No active shift assignments or wage settlements.", "Just now", "SYSTEM", "#F3F4F6", "#4B5563"));
-                        }
-                    }
+                    currentUnreadNotifs.clear();
+                    currentUnreadNotifs.addAll(items);
+                    updateNotifUI();
                 });
             } catch (Exception ignored) {}
         });
         t.setDaemon(true);
         t.start();
+    }
+
+    private static void updateNotifUI() {
+        int count = currentUnreadNotifs.size();
+        if (operatorNotifBadge != null) {
+            if (count > 0) {
+                operatorNotifBadge.setText(String.valueOf(count));
+                operatorNotifBadge.setVisible(true);
+                operatorNotifBadge.setManaged(true);
+            } else {
+                operatorNotifBadge.setVisible(false);
+                operatorNotifBadge.setManaged(false);
+            }
+        }
+
+        if (operatorNotifList != null) {
+            operatorNotifList.getChildren().clear();
+            if (currentUnreadNotifs.isEmpty()) {
+                VBox empty = new VBox(10);
+                empty.setAlignment(Pos.CENTER);
+                empty.setPadding(new Insets(30, 20, 30, 20));
+
+                Text bell = new Text("🔔");
+                bell.setStyle("-fx-font-size: 32px;");
+
+                Text t = new Text("No New Notifications");
+                t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+                Text sub = new Text("You're all caught up! New field requests and wage payments will appear here.");
+                sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280; -fx-text-alignment: center;");
+                sub.setWrappingWidth(360);
+
+                empty.getChildren().addAll(bell, t, sub);
+                operatorNotifList.getChildren().add(empty);
+            } else {
+                for (NotificationItemData item : currentUnreadNotifs) {
+                    operatorNotifList.getChildren().add(createInteractiveNotifCard(item));
+                }
+            }
+        }
     }
 
     public HBox getProfile(StackPane root) {
@@ -665,7 +772,14 @@ public class OperatorProfileManagement {
             msg.setManaged(true);
         });
 
-        HBox act = new HBox(12, saveBtn, msg);
+        Button settingsBtn = new Button("⚙ Operator Settings");
+        settingsBtn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 14px; -fx-cursor: hand; -fx-border-color: #E5E7EB; -fx-border-radius: 8px;");
+        settingsBtn.setOnAction(e -> {
+            modal.setVisible(false);
+            OperatorLeftSideBar.navigateToSettings();
+        });
+
+        HBox act = new HBox(10, saveBtn, settingsBtn, msg);
         act.setAlignment(Pos.CENTER_LEFT);
 
         card.getChildren().addAll(photoRow, grid, act);
@@ -688,8 +802,8 @@ public class OperatorProfileManagement {
     private VBox createNotificationModal() {
         VBox modal = new VBox(14);
         modal.setPadding(new Insets(18, 20, 18, 20));
-        modal.setPrefSize(500, 440);
-        modal.setMaxSize(500, 440);
+        modal.setPrefSize(500, 460);
+        modal.setMaxSize(500, 460);
         modal.setStyle(
                 "-fx-background-color: #FFFFFF;" +
                 "-fx-background-radius: 18px;" +
@@ -708,19 +822,37 @@ public class OperatorProfileManagement {
         bellBox.setMaxSize(38, 38);
         bellBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 10px; -fx-border-color: rgba(45, 106, 79, 0.2); -fx-border-radius: 10px;");
 
-        Text title = new Text("Operator Shift Alerts");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        Text title = new Text("Operator Shift Alerts & Requests");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
         Text sub = new Text("Field task assignments, daily wage credits & schedule updates");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #6B7280;");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #6B7280;");
 
         VBox titleBox = new VBox(2, title, sub);
         HBox titleGroup = new HBox(10, bellBox, titleBox);
         titleGroup.setAlignment(Pos.CENTER_LEFT);
 
+        Button markAllBtn = new Button("✓ Mark All Read");
+        markAllBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-cursor: hand; -fx-padding: 4 8;");
+        markAllBtn.setOnAction(e -> {
+            for (NotificationItemData itm : new ArrayList<>(currentUnreadNotifs)) {
+                OperatorProfileStore.markNotificationRead(itm.id);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.dao.NotificationDAO().markAsRead(itm.id);
+                    } catch (Exception ignored) {}
+                }).start();
+            }
+            currentUnreadNotifs.clear();
+            updateNotifUI();
+        });
+
         Button close = createCloseButton(() -> modal.setVisible(false));
 
-        HBox topBar = new HBox(titleGroup, close);
+        HBox topActions = new HBox(8, markAllBtn, close);
+        topActions.setAlignment(Pos.CENTER_RIGHT);
+
+        HBox topBar = new HBox(titleGroup, topActions);
         topBar.setAlignment(Pos.CENTER_LEFT);
         HBox.setHgrow(titleGroup, Priority.ALWAYS);
         topBar.setPadding(new Insets(0, 0, 12, 0));
@@ -731,7 +863,9 @@ public class OperatorProfileManagement {
         operatorNotifList.setPadding(new Insets(0, 6, 0, 0));
         ScrollPane sp = new ScrollPane(operatorNotifList);
         sp.setFitToWidth(true);
-        sp.setPrefHeight(340);
+        sp.setPrefHeight(360);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         modal.getChildren().addAll(topBar, sp);
@@ -739,16 +873,17 @@ public class OperatorProfileManagement {
         StackPane.setAlignment(modal, Pos.TOP_RIGHT);
         StackPane.setMargin(modal, new Insets(60, 22, 0, 0));
         modal.setVisible(false);
+        notifPopupRef = modal;
 
         return modal;
     }
 
-    private static VBox createNotifCard(String title, String desc, String time, String tag, String tagBg, String tagColor) {
-        Text t = new Text(title);
+    private static VBox createInteractiveNotifCard(NotificationItemData item) {
+        Text t = new Text(item.title);
         t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Label tagLabel = new Label(tag);
-        tagLabel.setStyle("-fx-background-color: " + tagBg + "; -fx-text-fill: " + tagColor + "; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
+        Label tagLabel = new Label(item.tag);
+        tagLabel.setStyle("-fx-background-color: " + item.tagBg + "; -fx-text-fill: " + item.tagColor + "; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 2px 6px; -fx-background-radius: 4px;");
 
         Region sp = new Region();
         HBox.setHgrow(sp, Priority.ALWAYS);
@@ -756,22 +891,71 @@ public class OperatorProfileManagement {
         HBox topRow = new HBox(8, t, sp, tagLabel);
         topRow.setAlignment(Pos.CENTER_LEFT);
 
-        Text d = new Text(desc);
-        d.setWrappingWidth(410);
+        Text d = new Text(item.desc);
+        d.setWrappingWidth(390);
         d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563; -fx-line-spacing: 2px;");
 
-        Text tm = new Text(time);
+        Text tm = new Text("🕒 " + item.time);
         tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #9CA3AF;");
 
-        VBox card = new VBox(5, topRow, d, tm);
+        Region sp2 = new Region();
+        HBox.setHgrow(sp2, Priority.ALWAYS);
+
+        Button openBtn = new Button("Open in Jobs ➔");
+        openBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6px; -fx-cursor: hand; -fx-padding: 4 10;");
+
+        Button markReadBtn = new Button("✓ Mark Read");
+        markReadBtn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #4B5563; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: 500; -fx-background-radius: 6px; -fx-cursor: hand; -fx-padding: 4 8;");
+
+        HBox actionRow = new HBox(8, tm, sp2, markReadBtn, openBtn);
+        actionRow.setAlignment(Pos.CENTER_LEFT);
+
+        VBox card = new VBox(6, topRow, d, actionRow);
         card.setPadding(new Insets(12, 14, 12, 14));
         card.setStyle(
                 "-fx-background-color: #F8FAF8;" +
                 "-fx-background-radius: 12px;" +
-                "-fx-border-color: #E2EBE5;" +
+                "-fx-border-color: #D1E7DD;" +
                 "-fx-border-radius: 12px;" +
-                "-fx-border-width: 1px;"
+                "-fx-border-width: 1px;" +
+                "-fx-cursor: hand;"
         );
+
+        Runnable markReadAction = () -> {
+            OperatorProfileStore.markNotificationRead(item.id);
+            new Thread(() -> {
+                try {
+                    new com.desgin.dao.NotificationDAO().markAsRead(item.id);
+                } catch (Exception ignored) {}
+            }).start();
+            currentUnreadNotifs.remove(item);
+            updateNotifUI();
+        };
+
+        markReadBtn.setOnAction(e -> {
+            e.consume();
+            markReadAction.run();
+        });
+
+        Runnable navigateAction = () -> {
+            markReadAction.run();
+            if (notifPopupRef != null) notifPopupRef.setVisible(false);
+            if (item.tag != null && (item.tag.toUpperCase().contains("REQUEST") || item.tag.toUpperCase().contains("BOOKING") || (item.title != null && item.title.toUpperCase().contains("REQUEST")))) {
+                OperatorLeftSideBar.navigateToJobRequests();
+            } else {
+                OperatorLeftSideBar.navigateToJobs();
+            }
+        };
+
+        openBtn.setOnAction(e -> {
+            e.consume();
+            navigateAction.run();
+        });
+
+        card.setOnMouseClicked(e -> {
+            navigateAction.run();
+        });
+
         return card;
     }
 

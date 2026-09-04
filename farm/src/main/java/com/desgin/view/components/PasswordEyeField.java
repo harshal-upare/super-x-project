@@ -109,6 +109,14 @@ public class PasswordEyeField extends StackPane {
 
         this.getChildren().addAll(hiddenField, shownField, toggleButton);
         this.setAlignment(Pos.CENTER_LEFT);
+        super.setStyle("-fx-background-color: transparent; -fx-border-color: transparent;");
+    }
+
+    public void setFieldStyle(String style) {
+        if (hiddenField != null && shownField != null) {
+            hiddenField.setStyle(style);
+            shownField.setStyle(style);
+        }
     }
 
     private void togglePasswordVisibility() {

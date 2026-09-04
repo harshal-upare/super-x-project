@@ -115,17 +115,32 @@ public class BookingDataStore {
             if (!bId.isEmpty() && !seenIds.add(bId)) {
                 continue; // Skip duplicate
             }
-            String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "PENDING";
-            if ("APPROVED".equals(st)) st = "ACCEPTED";
-            int total = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+            String opSt = r.getOperatorStatus() != null ? r.getOperatorStatus().toUpperCase().trim() : "";
+            String reqSt = r.getStatus() != null ? r.getStatus().toUpperCase().trim() : "";
+
+            String st = "PENDING";
+            if ("COMPLETED".equalsIgnoreCase(reqSt) || "COMPLETED".equalsIgnoreCase(opSt)) {
+                st = "COMPLETED";
+            } else if ("REJECTED".equalsIgnoreCase(opSt) || "CANCELLED".equalsIgnoreCase(reqSt) || "DECLINED".equalsIgnoreCase(opSt)) {
+                st = "CANCELLED";
+            } else if ("ACTIVE".equalsIgnoreCase(reqSt)) {
+                st = "ACTIVE";
+            } else if ("ACCEPTED".equalsIgnoreCase(opSt) || "ACCEPTED".equalsIgnoreCase(reqSt) || "CONFIRMED".equalsIgnoreCase(reqSt) || "APPROVED".equalsIgnoreCase(reqSt)) {
+                st = "ACCEPTED";
+            } else {
+                st = !reqSt.isEmpty() ? reqSt : "PENDING";
+            }
+
+            int daily = r.getDailyRate() > 0 ? r.getDailyRate() : 600;
+            int total = r.getTotalAmount() > 0 ? r.getTotalAmount() : (daily * Math.max(1, r.getDays()));
 
             BookingItem item = new BookingItem(
                 bId,
-                r.getMachineryName(),
-                r.getCategory(),
-                r.getStartDate(),
-                r.getEndDate(),
-                "₹" + r.getDailyRate() + " / day",
+                r.getMachineryName() != null ? r.getMachineryName() : "Agricultural Operation",
+                r.getCategory() != null ? r.getCategory() : "Machinery",
+                r.getStartDate() != null ? r.getStartDate() : "Standard Schedule",
+                r.getEndDate() != null ? r.getEndDate() : "Flexible",
+                "₹" + daily + " / day",
                 "₹" + total,
                 st,
                 r.getImagePath()

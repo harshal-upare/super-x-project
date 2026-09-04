@@ -14,10 +14,14 @@ import javafx.stage.Stage;
 public class BookingDetails {
 
         public VBox getBookingDetails(Runnable closeAction, Runnable cancelAction) {
-                return getBookingDetails("BK00123", "John Deere Tractor", "Heavy Duty Tractor", "15 Aug 2026", "18 Aug 2026", "₹2,500/day", "₹7,500", "ACTIVE", closeAction, cancelAction);
+                return getBookingDetails("BK00123", "John Deere Tractor", "Heavy Duty Tractor", "15 Aug 2026", "18 Aug 2026", "₹2,500/day", "₹7,500", "ACTIVE", null, closeAction, cancelAction);
         }
 
         public VBox getBookingDetails(String bId, String name, String cat, String sDate, String eDate, String dRate, String tAmt, String stat, Runnable closeAction, Runnable cancelAction) {
+                return getBookingDetails(bId, name, cat, sDate, eDate, dRate, tAmt, stat, null, closeAction, cancelAction);
+        }
+
+        public VBox getBookingDetails(String bId, String name, String cat, String sDate, String eDate, String dRate, String tAmt, String stat, String imagePath, Runnable closeAction, Runnable cancelAction) {
 
                 VBox mainBox = new VBox(20);
                 mainBox.setPadding(new Insets(25));
@@ -66,20 +70,68 @@ public class BookingDetails {
                                 "-fx-background-color: #F5F7F5;" +
                                                 "-fx-background-radius: 10;");
 
+                // Lookup equipment image if not directly provided
+                String resolvedImg = imagePath;
+                if (resolvedImg == null || resolvedImg.trim().isEmpty()) {
+                    for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
+                        if (bId != null && bId.equalsIgnoreCase(b.bookingId) && b.imagePath != null && !b.imagePath.trim().isEmpty()) {
+                            resolvedImg = b.imagePath;
+                            break;
+                        }
+                    }
+                }
+                if (resolvedImg == null || resolvedImg.trim().isEmpty()) {
+                    com.desgin.view.farmer.Swapnil.EquipmentDataStore.EquipmentItem eq = com.desgin.view.farmer.Swapnil.EquipmentDataStore.findByNameOrId(name);
+                    if (eq != null && eq.imagePath != null && !eq.imagePath.trim().isEmpty()) {
+                        resolvedImg = eq.imagePath;
+                    }
+                }
+
                 VBox imageBox = new VBox();
                 imageBox.setPrefWidth(130);
-                imageBox.setPrefHeight(100);
+                imageBox.setPrefHeight(95);
+                imageBox.setMinSize(130, 95);
+                imageBox.setMaxSize(130, 95);
                 imageBox.setAlignment(Pos.CENTER);
                 imageBox.setStyle(
                                 "-fx-background-color: #E8F1EB;" +
-                                                "-fx-background-radius: 10;");
+                                                "-fx-background-radius: 10;" +
+                                                "-fx-border-color: #C2E0CE;" +
+                                                "-fx-border-radius: 10;");
 
-                Label imageLabel = new Label("🚜 Machinery");
-                imageLabel.setStyle(
-                                "-fx-text-fill: #52796F;" +
-                                                "-fx-font-weight: bold;");
+                if (resolvedImg != null && !resolvedImg.trim().isEmpty()) {
+                    try {
+                        javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView();
+                        iv.setFitWidth(120);
+                        iv.setFitHeight(85);
+                        iv.setPreserveRatio(true);
+                        iv.setSmooth(true);
+                        javafx.scene.shape.Rectangle clip = new javafx.scene.shape.Rectangle(120, 85);
+                        clip.setArcWidth(10);
+                        clip.setArcHeight(10);
+                        iv.setClip(clip);
 
-                imageBox.getChildren().add(imageLabel);
+                        javafx.scene.image.Image img = new javafx.scene.image.Image(resolvedImg, true);
+                        iv.setImage(img);
+                        img.errorProperty().addListener((obs, oldV, err) -> {
+                            if (err) {
+                                imageBox.getChildren().clear();
+                                Label fallbackLabel = new Label("🚜 Machinery");
+                                fallbackLabel.setStyle("-fx-text-fill: #52796F; -fx-font-weight: bold;");
+                                imageBox.getChildren().add(fallbackLabel);
+                            }
+                        });
+                        imageBox.getChildren().add(iv);
+                    } catch (Exception ex) {
+                        Label imageLabel = new Label("🚜 Machinery");
+                        imageLabel.setStyle("-fx-text-fill: #52796F; -fx-font-weight: bold;");
+                        imageBox.getChildren().add(imageLabel);
+                    }
+                } else {
+                    Label imageLabel = new Label("🚜 Machinery");
+                    imageLabel.setStyle("-fx-text-fill: #52796F; -fx-font-weight: bold;");
+                    imageBox.getChildren().add(imageLabel);
+                }
 
                 VBox equipmentInfo = new VBox(7);
 
@@ -270,152 +322,22 @@ public class BookingDetails {
         }
 
         private void showContactOwnerPopup() {
-
-                VBox contactBox = new VBox(15);
-
-                contactBox.setPadding(new Insets(25));
-                contactBox.setPrefWidth(400);
-
-                contactBox.setStyle(
-                                "-fx-background-color: white;" +
-                                                "-fx-background-radius: 15;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-radius: 15;");
-
-                Label title = new Label("Contact Equipment Owner");
-
-                title.setStyle(
-                                "-fx-font-size: 22px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #1B4332;");
-
-                Label owner = new Label("Rahul Patil");
-
-                owner.setStyle(
-                                "-fx-font-size: 16px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #374151;");
-
-                Label phone = new Label("📞  +91 XXXXX XXXXX");
-
-                phone.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-text-fill: #6B7280;");
-
-                Label email = new Label("✉  rahul@example.com");
-
-                email.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-text-fill: #6B7280;");
-
-                Button closeButton = new Button("Close");
-
-                closeButton.setStyle(
-                                "-fx-background-color: #52796F;" +
-                                                "-fx-text-fill: white;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                contactBox.getChildren().addAll(
-                                title,
-                                owner,
-                                phone,
-                                email,
-                                closeButton);
-
-                Stage popup = new Stage();
-
-                popup.setTitle("Contact Owner");
-
-                Scene scene = new Scene(
-                                contactBox,
-                                400,
-                                280);
-
-                popup.setScene(scene);
-
-                closeButton.setOnAction(e -> popup.close());
-
-                popup.show();
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.INFORMATION);
+                alert.setTitle("Contact Owner");
+                alert.setHeaderText("Machinery Provider Contact Information");
+                alert.setContentText("Provider: Rahul Patil\n📞 Phone: +91 98220 12345\n✉ Email: rahul@farmequip.com\n\nDirect support is available 8 AM - 8 PM.");
+                alert.showAndWait();
         }
 
         private void showCancelConfirmation(Runnable cancelAction) {
-
-                Stage popup = new Stage();
-
-                VBox box = new VBox(15);
-                box.setPadding(new Insets(25));
-                box.setAlignment(Pos.CENTER);
-
-                box.setStyle(
-                                "-fx-background-color: white;" +
-                                                "-fx-background-radius: 15;");
-
-                Label title = new Label("Cancel Booking?");
-
-                title.setStyle(
-                                "-fx-font-size: 22px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #1B4332;");
-
-                Label message = new Label(
-                                "Are you sure you want to cancel this booking?");
-
-                message.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-text-fill: #6B7280;");
-
-                Label equipment = new Label(
-                                "John Deere Tractor\n15 Aug 2026 → 18 Aug 2026");
-
-                equipment.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #374151;");
-
-                HBox buttons = new HBox(10);
-                buttons.setAlignment(Pos.CENTER);
-
-                Button keepButton = new Button("Keep Booking");
-
-                keepButton.setStyle(
-                                "-fx-background-color: #E8F1EB;" +
-                                                "-fx-text-fill: #1B4332;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                Button cancelButton = new Button("Cancel Booking");
-
-                cancelButton.setStyle(
-                                "-fx-background-color: #B91C1C;" +
-                                                "-fx-text-fill: white;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                cancelButton.setOnAction(e -> {
-
-                        cancelAction.run();
-
-                        popup.close();
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Cancel Booking");
+                alert.setHeaderText("Are you sure you want to cancel this booking?");
+                alert.setContentText("This will release the reserved machinery and notify the provider.");
+                alert.showAndWait().ifPresent(response -> {
+                        if (response == javafx.scene.control.ButtonType.OK && cancelAction != null) {
+                                cancelAction.run();
+                        }
                 });
-                buttons.getChildren().addAll(
-                                keepButton,
-                                cancelButton);
-
-                box.getChildren().addAll(
-                                title,
-                                message,
-                                equipment,
-                                buttons);
-
-                Scene scene = new Scene(
-                                box,
-                                420,
-                                250);
-
-                popup.setScene(scene);
-
-                keepButton.setOnAction(e -> popup.close());
-                popup.show();
         }
 }

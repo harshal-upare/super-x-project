@@ -363,6 +363,8 @@ public class AdminProfileManagement {
         ScrollPane sp = new ScrollPane(list);
         sp.setFitToWidth(true);
         sp.setPrefHeight(380);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         modal.getChildren().addAll(topBar, sp);
@@ -401,13 +403,14 @@ public class AdminProfileManagement {
         topRow.setAlignment(Pos.CENTER_LEFT);
 
         Text d = new Text(desc);
-        d.setWrappingWidth(410);
+        d.setWrappingWidth(390);
         d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563; -fx-line-spacing: 2px;");
 
         Text tm = new Text(time);
         tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #9CA3AF;");
 
         VBox card = new VBox(5, topRow, d, tm);
+        card.setMaxWidth(Double.MAX_VALUE);
         card.setPadding(new Insets(12, 14, 12, 14));
         card.setStyle(
                 "-fx-background-color: #F8FAF8;" +

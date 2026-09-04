@@ -171,62 +171,108 @@ public class LeftSideBar {
 
                 setActiveButton(dashboardBtn1, navigationButtons);
 
-                dashboardBtn1.setOnAction(event -> {
-                        setActiveButton(dashboardBtn1, navigationButtons);
-                        ProfileManagement.updateHeaderGreeting();
-                        FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
-                });
-
-                equipmentBtn1.setOnAction(event -> {
-                        setActiveButton(equipmentBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
-                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
-                });
-
-                bookingBtn1.setOnAction(event -> {
-                        setActiveButton(bookingBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(root));
-                });
-
-                wishlistBtn1.setOnAction(event -> {
-                        setActiveButton(wishlistBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
-                        FarmerDashboard.borderPane.setCenter(WishList.getWishList());
-                });
-
-                payoutBtn1.setOnAction(event -> {
-                        setActiveButton(payoutBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Payments & Spending 💳", "Review transaction receipts, monthly spending curves, and invoices");
-                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.Payment.getPaymentSection());
-                });
-
-                paymentBtn1.setOnAction(event -> {
-                        setActiveButton(paymentBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
-                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(root));
-                });
-
-                reviewBtn1.setOnAction(event -> {
-                        setActiveButton(reviewBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Reviews & Field Ratings ⭐", "Rate your completed rentals and machine operators");
-                        FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.review.ReviewRating.getReviewRatingPage(root));
-                });
-
-                settingsBtn1.setOnAction(event -> {
-                        setActiveButton(settingsBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
-                        FarmerDashboard.borderPane.setCenter(Settings.getSetting());
-                });
-
-                supportBtn1.setOnAction(event -> {
-                        setActiveButton(supportBtn1, navigationButtons);
-                        ProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "Get 24x7 farmer assistance and AI advisory");
-                        FarmerDashboard.borderPane.setCenter(Help.getHelp());
-                });
+                dashboardBtn1.setOnAction(event -> navigateToDashboard());
+                equipmentBtn1.setOnAction(event -> navigateToBrowseEquip());
+                bookingBtn1.setOnAction(event -> navigateToBookings());
+                wishlistBtn1.setOnAction(event -> navigateToWishlist());
+                payoutBtn1.setOnAction(event -> navigateToPayments());
+                paymentBtn1.setOnAction(event -> navigateToSearchOperators());
+                reviewBtn1.setOnAction(event -> navigateToReviews());
+                settingsBtn1.setOnAction(event -> navigateToSettings());
+                supportBtn1.setOnAction(event -> navigateToHelp());
 
                 return leftVB;
+        }
+
+        public static void navigateToDashboard() {
+                if (dashboardBtn1 != null && navigationButtons != null) {
+                        setActiveButton(dashboardBtn1, navigationButtons);
+                        ProfileManagement.updateHeaderGreeting();
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
+                        }
+                }
+        }
+
+        public static void navigateToBrowseEquip() {
+                if (equipmentBtn1 != null && navigationButtons != null) {
+                        setActiveButton(equipmentBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
+                        }
+                }
+        }
+
+        public static void navigateToBookings() {
+                if (bookingBtn1 != null && navigationButtons != null) {
+                        setActiveButton(bookingBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
+                        if (FarmerDashboard.borderPane != null) {
+                                MyBookings obj = new MyBookings();
+                                FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root != null ? FarmerDashboard.root : root));
+                        }
+                }
+        }
+
+        public static void navigateToWishlist() {
+                if (wishlistBtn1 != null && navigationButtons != null) {
+                        setActiveButton(wishlistBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(WishList.getWishList());
+                        }
+                }
+        }
+
+        public static void navigateToPayments() {
+                if (payoutBtn1 != null && navigationButtons != null) {
+                        setActiveButton(payoutBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Payments & Spending 💳", "Review transaction receipts, monthly spending curves, and invoices");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.Payment.getPaymentSection());
+                        }
+                }
+        }
+
+        public static void navigateToSearchOperators() {
+                if (paymentBtn1 != null && navigationButtons != null) {
+                        setActiveButton(paymentBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(FarmerDashboard.root != null ? FarmerDashboard.root : root));
+                        }
+                }
+        }
+
+        public static void navigateToReviews() {
+                if (reviewBtn1 != null && navigationButtons != null) {
+                        setActiveButton(reviewBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Reviews & Field Ratings ⭐", "Rate your completed rentals and machine operators");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.review.ReviewRating.getReviewRatingPage(FarmerDashboard.root != null ? FarmerDashboard.root : root));
+                        }
+                }
+        }
+
+        public static void navigateToSettings() {
+                if (settingsBtn1 != null && navigationButtons != null) {
+                        setActiveButton(settingsBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+                        }
+                }
+        }
+
+        public static void navigateToHelp() {
+                if (supportBtn1 != null && navigationButtons != null) {
+                        setActiveButton(supportBtn1, navigationButtons);
+                        ProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "Get 24x7 farmer assistance and AI advisory");
+                        if (FarmerDashboard.borderPane != null) {
+                                FarmerDashboard.borderPane.setCenter(Help.getHelp());
+                        }
+                }
         }
 
         public static void setActiveButton(Button selected, List<Button> buttons) {
