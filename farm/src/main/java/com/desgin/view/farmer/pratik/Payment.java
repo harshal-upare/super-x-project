@@ -36,6 +36,7 @@ import javafx.scene.image.ImageView;
 
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -179,6 +180,27 @@ private static CheckBox net;
         }
     }
 
+    List<RentalRequestModel> activeShiftsRequests = new ArrayList<>();
+    for (RentalRequestModel r : farmerRequests) {
+        boolean isInProgress = "IN_PROGRESS".equalsIgnoreCase(r.getStatus()) || "IN_PROGRESS".equalsIgnoreCase(r.getOperatorStatus());
+        if (isInProgress) {
+            activeShiftsRequests.add(r);
+        }
+    }
+
+    VBox activeShiftsSection = createActiveShiftsSection(activeShiftsRequests);
+
+    List<RentalRequestModel> pendingPaymentRequests = new ArrayList<>();
+    for (RentalRequestModel r : farmerRequests) {
+        boolean isAccepted = "ACCEPTED".equalsIgnoreCase(r.getOperatorStatus()) || "ACCEPTED".equalsIgnoreCase(r.getStatus()) || "CONFIRMED".equalsIgnoreCase(r.getStatus());
+        boolean isUnpaid = !"PAID".equalsIgnoreCase(r.getPaymentStatus()) && !"COMPLETED".equalsIgnoreCase(r.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(r.getStatus()) && !"IN_PROGRESS".equalsIgnoreCase(r.getOperatorStatus());
+        if (isAccepted && isUnpaid) {
+            pendingPaymentRequests.add(r);
+        }
+    }
+
+    VBox pendingPaymentsSection = createPendingPaymentsSection(pendingPaymentRequests);
+
     // 5 Financial Cards (Requirement 4)
     HBox summaryCards = new HBox(14);
     summaryCards.getChildren().addAll(
@@ -276,6 +298,8 @@ private static CheckBox net;
                 heading,
                 searchBox,
                 summaryCards,
+                activeShiftsSection,
+                pendingPaymentsSection,
                 chartsRow,
                 mainContent
         );
@@ -307,6 +331,558 @@ private static CheckBox net;
 
         return scrollPane;
 
+    }
+
+    public static void markShiftCompleted(String requestId) {
+        if (requestId == null) return;
+        try {
+            for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
+                if (requestId.equalsIgnoreCase(b.bookingId) || requestId.equalsIgnoreCase(b.operatorId) || ("OP-" + b.bookingId).equalsIgnoreCase(requestId)) {
+                    b.status = "COMPLETED";
+                }
+            }
+        } catch (Exception ignored) {}
+    }
+
+    private static final java.util.Map<String, Label> farmerCountdownLabels = new java.util.HashMap<>();
+    private static javafx.animation.Timeline farmerCountdownTimeline;
+
+    private static VBox createActiveShiftsSection(List<RentalRequestModel> activeList) {
+        if (activeList == null || activeList.isEmpty()) {
+            return new VBox();
+        }
+
+        Text title = new Text("🚜 Active Field Shifts in Progress (Live Countdown)");
+        title.setStyle("-fx-font-family:'Poppins'; -fx-font-size:18px; -fx-font-weight:bold; -fx-fill:#065F46;");
+
+        Text subtitle = new Text("The operator is actively working in your field. Escrow funds are held securely and will be settled upon shift completion.");
+        subtitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12.5px; -fx-fill:#4B5563;");
+
+        VBox header = new VBox(3, title, subtitle);
+        VBox cardsContainer = new VBox(12);
+
+        for (RentalRequestModel r : activeList) {
+            long startTime = r.getShiftStartTime() > 0 ? r.getShiftStartTime() : System.currentTimeMillis();
+            long duration = r.getShiftDurationMillis() > 0 ? r.getShiftDurationMillis() : (3 * 3600 * 1000L);
+            String opName = r.getOperatorName() != null ? r.getOperatorName() : "Assigned Operator";
+            String opPhone = r.getOperatorPhone() != null ? r.getOperatorPhone() : "+91 98220 12345";
+            String task = r.getMachineryName() != null ? r.getMachineryName() : "Field Agricultural Operation";
+            String location = r.getFarmerLocation() != null ? r.getFarmerLocation() : "Your Farm Plot";
+
+            HBox card = new HBox(16);
+            card.setAlignment(Pos.CENTER_LEFT);
+            card.setPadding(new Insets(16, 20, 16, 20));
+            card.setStyle(
+                "-fx-background-color: #ECFDF5;" +
+                "-fx-background-radius: 12px;" +
+                "-fx-border-color: #10B981;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-border-radius: 12px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(16, 185, 129, 0.15), 10, 0, 0, 3);"
+            );
+
+            Text icon = new Text("🚜");
+            icon.setStyle("-fx-font-size: 30px;");
+            StackPane iconBox = new StackPane(icon);
+            iconBox.setPrefSize(50, 50);
+            iconBox.setStyle("-fx-background-color: #D1FAE5; -fx-background-radius: 10px;");
+
+            Label badge = new Label("🟢 OPERATOR ACTIVE • SHIFT IN PROGRESS");
+            badge.setStyle("-fx-background-color: #D1FAE5; -fx-text-fill: #065F46; -fx-font-family:'Poppins'; -fx-font-size:11px; -fx-font-weight:bold; -fx-padding: 3 8; -fx-background-radius: 6;");
+
+            Text taskTitle = new Text(task);
+            taskTitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:16px; -fx-font-weight:bold; -fx-fill:#065F46;");
+
+            Text opText = new Text("👷 On-Field Operator: " + opName + "  |  📞 " + opPhone);
+            opText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12.5px; -fx-font-weight:600; -fx-fill:#374151;");
+
+            Text locText = new Text("📍 Location: " + location + "  •  🔒 Escrow: SECURED & VERIFIED");
+            locText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-fill:#4B5563;");
+
+            VBox infoBox = new VBox(4, badge, taskTitle, opText, locText);
+            HBox.setHgrow(infoBox, Priority.ALWAYS);
+
+            Text timerTitle = new Text("⏱ Shift Countdown:");
+            timerTitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11px; -fx-font-weight:bold; -fx-fill:#065F46;");
+
+            Label timerVal = new Label(formatCountdown(startTime, duration));
+            timerVal.setStyle("-fx-font-family:'Poppins'; -fx-font-size:14px; -fx-font-weight:bold; -fx-text-fill:#047857; -fx-background-color:#D1FAE5; -fx-padding: 5 10; -fx-background-radius: 6;");
+
+            farmerCountdownLabels.put(r.getRequestId(), timerVal);
+
+            Button workDoneBtn = new Button("✔ Work Done");
+            workDoneBtn.setStyle("-fx-background-color: linear-gradient(to right, #059669, #10B981); -fx-text-fill: white; -fx-font-family:'Poppins'; -fx-font-size:12px; -fx-font-weight:bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 6 16; -fx-effect: dropshadow(gaussian, rgba(16,185,129,0.3), 6, 0, 0, 2);");
+
+            workDoneBtn.setOnAction(e -> {
+                r.setStatus("COMPLETED");
+                r.setOperatorStatus("COMPLETED");
+                new Thread(() -> {
+                    try {
+                        new RentalRequestDAO().completeShift(r.getRequestId());
+                        new com.desgin.dao.NotificationDAO().sendNotification(
+                            r.getOperatorId(),
+                            "✔ Work Done Confirmed by Farmer",
+                            "Farmer confirmed work completed for " + r.getMachineryName() + ". Escrow funds have been settled to your account.",
+                            "COMPLETED",
+                            r.getRequestId()
+                        );
+                    } catch (Exception ignored) {}
+                }).start();
+
+                markShiftCompleted(r.getRequestId());
+
+                workDoneBtn.setDisable(true);
+                workDoneBtn.setText("✓ Completed");
+                workDoneBtn.setStyle("-fx-background-color: #D1FAE5; -fx-text-fill: #065F46; -fx-font-family:'Poppins'; -fx-font-size:12px; -fx-font-weight:bold; -fx-background-radius: 8px; -fx-padding: 6 16;");
+                timerVal.setText("00h : 00m : 00s (Completed)");
+                badge.setText("✅ SHIFT COMPLETED • ESCROW SETTLED");
+                badge.setStyle("-fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-font-family:'Poppins'; -fx-font-size:11px; -fx-font-weight:bold; -fx-padding: 3 8; -fx-background-radius: 6;");
+            });
+
+            VBox rightSide = new VBox(6, timerTitle, timerVal, workDoneBtn);
+            rightSide.setAlignment(Pos.CENTER_RIGHT);
+
+            card.getChildren().addAll(iconBox, infoBox, rightSide);
+            cardsContainer.getChildren().add(card);
+        }
+
+        ensureFarmerCountdownRunning(activeList);
+
+        VBox section = new VBox(12, header, cardsContainer);
+        section.setPadding(new Insets(16, 20, 16, 20));
+        section.setStyle(
+            "-fx-background-color: rgba(209, 250, 229, 0.4);" +
+            "-fx-background-radius: 14px;" +
+            "-fx-border-color: #10B981;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-border-radius: 14px;"
+        );
+        return section;
+    }
+
+    private static String formatCountdown(long startTime, long durationMillis) {
+        long elapsed = System.currentTimeMillis() - startTime;
+        long remaining = Math.max(0, durationMillis - elapsed);
+        if (remaining == 0) {
+            return "00h : 00m : 00s (Time Over)";
+        }
+        long hours = remaining / (3600 * 1000);
+        long mins = (remaining % (3600 * 1000)) / (60 * 1000);
+        long secs = (remaining % (60 * 1000)) / 1000;
+        return String.format("%02dh : %02dm : %02ds remaining", hours, mins, secs);
+    }
+
+    private static void ensureFarmerCountdownRunning(List<RentalRequestModel> list) {
+        if (farmerCountdownTimeline != null) farmerCountdownTimeline.stop();
+        farmerCountdownTimeline = new javafx.animation.Timeline(
+            new javafx.animation.KeyFrame(javafx.util.Duration.seconds(1), ev -> {
+                for (RentalRequestModel r : list) {
+                    Label lbl = farmerCountdownLabels.get(r.getRequestId());
+                    if (lbl != null) {
+                        long st = r.getShiftStartTime() > 0 ? r.getShiftStartTime() : System.currentTimeMillis();
+                        long dur = r.getShiftDurationMillis() > 0 ? r.getShiftDurationMillis() : (3 * 3600 * 1000L);
+                        lbl.setText(formatCountdown(st, dur));
+                    }
+                }
+            })
+        );
+        farmerCountdownTimeline.setCycleCount(javafx.animation.Animation.INDEFINITE);
+        farmerCountdownTimeline.play();
+    }
+
+    private static VBox createPendingPaymentsSection(List<RentalRequestModel> pendingList) {
+        if (pendingList == null || pendingList.isEmpty()) {
+            return new VBox();
+        }
+
+        Text title = new Text("⚠️ Action Required: Pending Operator Wage Payments");
+        title.setStyle("-fx-font-family:'Poppins'; -fx-font-size:18px; -fx-font-weight:bold; -fx-fill:#B45309;");
+
+        Text subtitle = new Text("The operator has accepted your hiring request. Please complete the escrow payment to authorize the operator to start work.");
+        subtitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12.5px; -fx-fill:#4B5563;");
+
+        VBox header = new VBox(3, title, subtitle);
+
+        VBox cardsContainer = new VBox(12);
+
+        for (RentalRequestModel r : pendingList) {
+            int amt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+            String opName = r.getOperatorName() != null ? r.getOperatorName() : "Assigned Operator";
+            String opPhone = r.getOperatorPhone() != null ? r.getOperatorPhone() : "+91 98220 12345";
+            String task = r.getMachineryName() != null ? r.getMachineryName() : "Agricultural Field Operation";
+            String schedule = (r.getStartDate() != null ? r.getStartDate() : "Standard Schedule") + (r.getDays() > 0 ? " (" + r.getDays() + " Days)" : "");
+            String location = r.getFarmerLocation() != null ? r.getFarmerLocation() : "Farmer Plot";
+
+            HBox card = new HBox(16);
+            card.setAlignment(Pos.CENTER_LEFT);
+            card.setPadding(new Insets(16, 20, 16, 20));
+            card.setStyle(
+                "-fx-background-color: #FFFBEB;" +
+                "-fx-background-radius: 12px;" +
+                "-fx-border-color: #FCD34D;" +
+                "-fx-border-width: 1.5px;" +
+                "-fx-border-radius: 12px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(180, 83, 9, 0.1), 8, 0, 0, 2);"
+            );
+
+            // Icon / Avatar
+            Text icon = new Text("🚜");
+            if (task.toLowerCase().contains("harvester")) icon.setText("🌾");
+            else if (task.toLowerCase().contains("drone")) icon.setText("🚁");
+            icon.setStyle("-fx-font-size: 28px;");
+
+            StackPane iconBox = new StackPane(icon);
+            iconBox.setPrefSize(50, 50);
+            iconBox.setMinSize(50, 50);
+            iconBox.setStyle("-fx-background-color: #FEF3C7; -fx-background-radius: 10px;");
+
+            // Info Box
+            Label badge = new Label("🟢 Operator Accepted • ⏳ Payment Required");
+            badge.setStyle("-fx-background-color: #FEF3C7; -fx-text-fill: #B45309; -fx-font-family:'Poppins'; -fx-font-size:11px; -fx-font-weight:bold; -fx-padding: 3 8; -fx-background-radius: 6;");
+
+            Text taskTitle = new Text(task);
+            taskTitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:16px; -fx-font-weight:bold; -fx-fill:#1B4332;");
+
+            Text opText = new Text("👷 Assigned Operator: " + opName + "  |  📞 " + opPhone);
+            opText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12.5px; -fx-font-weight:600; -fx-fill:#374151;");
+
+            Text schedText = new Text("📅 Schedule: " + schedule + "  •  📍 Plot: " + location);
+            schedText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-fill:#4B5563;");
+
+            VBox infoBox = new VBox(4, badge, taskTitle, opText, schedText);
+            HBox.setHgrow(infoBox, Priority.ALWAYS);
+
+            // Right side: Amount & Pay Button
+            Text amtLabel = new Text("Wage Amount Due:");
+            amtLabel.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11px; -fx-fill:#6B7280;");
+
+            Text amtVal = new Text("₹" + String.format("%,d", amt));
+            amtVal.setStyle("-fx-font-family:'Poppins'; -fx-font-size:20px; -fx-font-weight:bold; -fx-fill:#B45309;");
+
+            Button payBtn = new Button("💳 Pay ₹" + String.format("%,d", amt) + " with Razorpay");
+            payBtn.setStyle(
+                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                "-fx-text-fill: white;" +
+                "-fx-font-family:'Poppins';" +
+                "-fx-font-size:13px;" +
+                "-fx-font-weight:bold;" +
+                "-fx-background-radius:8;" +
+                "-fx-cursor:hand;" +
+                "-fx-padding: 8 18;" +
+                "-fx-effect: dropshadow(gaussian, rgba(45,106,79,0.3), 6, 0, 0, 2);"
+            );
+            payBtn.setOnAction(e -> showRazorpayPaymentModal(r, amt));
+
+            VBox rightSide = new VBox(6, amtLabel, amtVal, payBtn);
+            rightSide.setAlignment(Pos.CENTER_RIGHT);
+
+            card.getChildren().addAll(iconBox, infoBox, rightSide);
+            cardsContainer.getChildren().add(card);
+        }
+
+        VBox section = new VBox(12, header, cardsContainer);
+        section.setPadding(new Insets(16, 20, 16, 20));
+        section.setStyle(
+            "-fx-background-color: rgba(254, 243, 199, 0.4);" +
+            "-fx-background-radius: 14px;" +
+            "-fx-border-color: #FCD34D;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-border-radius: 14px;"
+        );
+        return section;
+    }
+
+    private static void showRazorpayPaymentModal(RentalRequestModel r, int amount) {
+        StackPane root = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+        if (root == null) return;
+
+        StackPane overlay = new StackPane();
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.55);");
+
+        VBox modal = new VBox(12);
+        modal.setPrefWidth(470);
+        modal.setMaxWidth(470);
+        modal.setMaxHeight(Region.USE_PREF_SIZE);
+        modal.setMinHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(modal, Pos.CENTER);
+        modal.setPadding(new Insets(18, 22, 18, 22));
+        modal.setStyle(
+            "-fx-background-color: #FFFFFF;" +
+            "-fx-background-radius: 16;" +
+            "-fx-border-color: #D1E7DD;" +
+            "-fx-border-width: 1.2;" +
+            "-fx-border-radius: 16;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.2), 16, 0, 0, 6);"
+        );
+
+        // Header with Razorpay badge
+        HBox header = new HBox();
+        header.setAlignment(Pos.CENTER_LEFT);
+
+        VBox titleBox = new VBox(2);
+        Text title = new Text("Razorpay Secure Escrow Checkout");
+        title.setStyle("-fx-font-family:'Poppins'; -fx-font-size:17px; -fx-font-weight:bold; -fx-fill:#1B4332;");
+
+        HBox keyBox = new HBox(6);
+        keyBox.setAlignment(Pos.CENTER_LEFT);
+        Label keyBadge = new Label("🔑 Key: rzp_test_TXfhlJNL2ajvs6 (Active)");
+        keyBadge.setStyle("-fx-background-color: #EFF6FF; -fx-text-fill: #1D4ED8; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 2 6; -fx-background-radius: 4;");
+        Text sub = new Text("100% Protected Farmer Escrow");
+        sub.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11px; -fx-fill:#6B7280;");
+        keyBox.getChildren().addAll(keyBadge, sub);
+
+        titleBox.getChildren().addAll(title, keyBox);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button closeBtn = new Button("✕");
+        closeBtn.setStyle("-fx-background-color: transparent; -fx-font-size:15px; -fx-font-weight:bold; -fx-text-fill:#6B7280; -fx-cursor:hand;");
+        closeBtn.setOnAction(e -> root.getChildren().remove(overlay));
+
+        header.getChildren().addAll(titleBox, spacer, closeBtn);
+
+        // Order Summary Box
+        int dailyRate = r.getDailyRate() > 0 ? r.getDailyRate() : (amount / Math.max(1, r.getDays()));
+        VBox summaryBox = new VBox(6);
+        summaryBox.setPadding(new Insets(10, 14, 10, 14));
+        summaryBox.setStyle("-fx-background-color: #F8FAF9; -fx-background-radius: 10; -fx-border-color: #E2E8E4; -fx-border-radius: 10;");
+
+        summaryBox.getChildren().addAll(
+            createModalRow("Hired Operator:", r.getOperatorName() != null ? r.getOperatorName() : "Certified Operator"),
+            createModalRow("Operation / Machinery:", r.getMachineryName() != null ? r.getMachineryName() : "Tractor Operation"),
+            createModalRow("Schedule / Days:", (r.getStartDate() != null ? r.getStartDate() : "Tomorrow, 08:00 AM") + (r.getDays() > 0 ? " (" + r.getDays() + " Days)" : "")),
+            createModalRow("Operator Wage Rate:", "₹" + dailyRate + " / day"),
+            createModalRow("Total Payable (INR):", "₹" + String.format("%,d", amount))
+        );
+
+        // Security & Gate Info Note
+        VBox infoNote = new VBox(4);
+        infoNote.setPadding(new Insets(10, 12, 10, 12));
+        infoNote.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 8px; -fx-border-color: #BBF7D0; -fx-border-radius: 8px;");
+
+        Text noteHeader = new Text("🔒 Razorpay Gateway Verification Required");
+        noteHeader.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-font-weight:bold; -fx-fill:#166534;");
+
+        Text noteDesc = new Text("Click below to open the Razorpay Console in your browser. Complete your payment via UPI (GPay/PhonePe/Paytm), Cards, or NetBanking. Once verified by Razorpay, this system will automatically advance and unlock the operator.");
+        noteDesc.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11px; -fx-fill:#374151; -fx-line-spacing: 2px;");
+        noteDesc.setWrappingWidth(420);
+
+        infoNote.getChildren().addAll(noteHeader, noteDesc);
+
+        // Waiting Status Box
+        VBox statusBox = new VBox(4);
+        statusBox.setPadding(new Insets(10, 12, 10, 12));
+        statusBox.setStyle("-fx-background-color: #EFF6FF; -fx-background-radius: 8px; -fx-border-color: #BFDBFE; -fx-border-radius: 8px;");
+        statusBox.setVisible(false);
+        statusBox.setManaged(false);
+
+        Text statusTitle = new Text("🌐 Razorpay Console Active in Browser");
+        statusTitle.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-font-weight:bold; -fx-fill:#1D4ED8;");
+
+        Text statusText = new Text("Please complete the payment in your browser. FarmEquip is listening in real-time and will automatically verify and proceed once done.");
+        statusText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11px; -fx-fill:#374151;");
+        statusText.setWrappingWidth(420);
+
+        statusBox.getChildren().addAll(statusTitle, statusText);
+
+        // Action Button: Only Razorpay Console
+        Button openConsoleBtn = new Button("🌐 Pay ₹" + String.format("%,d", amount) + " on Razorpay Console");
+        openConsoleBtn.setPrefHeight(44);
+        openConsoleBtn.setMaxWidth(Double.MAX_VALUE);
+        openConsoleBtn.setStyle(
+            "-fx-background-color: linear-gradient(to right, #059669, #10b981);" +
+            "-fx-text-fill: white;" +
+            "-fx-font-family:'Poppins';" +
+            "-fx-font-size:14px;" +
+            "-fx-font-weight:bold;" +
+            "-fx-background-radius:8;" +
+            "-fx-cursor:hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(16,185,129,0.35), 8, 0, 0, 3);"
+        );
+
+        openConsoleBtn.setOnAction(e -> {
+            openConsoleBtn.setDisable(true);
+            openConsoleBtn.setText("⏳ Waiting for Razorpay Payment in Browser...");
+            infoNote.setVisible(false);
+            infoNote.setManaged(false);
+            statusBox.setVisible(true);
+            statusBox.setManaged(true);
+
+            com.desgin.service.RazorpayService.startRazorpayConsolePayment(
+                amount,
+                r.getRequestId(),
+                r.getMachineryName() != null ? r.getMachineryName() : "Operator Escrow Wage",
+                r.getFarmerName(),
+                r.getFarmerEmail(),
+                r.getFarmerPhone(),
+                new com.desgin.service.RazorpayService.RazorpayCallback() {
+                    @Override
+                    public void onPaymentSuccess(String paymentId, String orderId) {
+                        javafx.application.Platform.runLater(() -> {
+                            processSuccessfulPayment(r, amount, paymentId, "Razorpay Online Console", root, overlay);
+                        });
+                    }
+
+                    @Override
+                    public void onPaymentFailure(String errorMessage) {
+                        javafx.application.Platform.runLater(() -> {
+                            openConsoleBtn.setDisable(false);
+                            openConsoleBtn.setText("🌐 Pay ₹" + String.format("%,d", amount) + " on Razorpay Console");
+                            statusTitle.setText("⚠️ Payment Incomplete or Cancelled");
+                            statusText.setText("Razorpay did not confirm payment. Please click below to try again. (You cannot proceed without a valid payment).");
+                        });
+                    }
+                }
+            );
+        });
+
+        modal.getChildren().addAll(header, summaryBox, infoNote, statusBox, openConsoleBtn);
+        overlay.getChildren().add(modal);
+        overlay.setOnMouseClicked(e -> {
+            if (e.getTarget() == overlay) root.getChildren().remove(overlay);
+        });
+
+        root.getChildren().add(overlay);
+    }
+
+    private static void processSuccessfulPayment(RentalRequestModel r, int amount, String txnId, String pMode, StackPane root, StackPane overlay) {
+        new Thread(() -> {
+            try {
+                // 1. Update RentalRequest status & payment in Firestore
+                new RentalRequestDAO().updatePaymentStatus(r.getRequestId(), "PAID", txnId, pMode);
+
+                // 2. Record payment in payments collection
+                PaymentModel pm = new PaymentModel(
+                    "PAY_" + System.currentTimeMillis(),
+                    "order_TXfhl_" + (System.currentTimeMillis() % 100000),
+                    txnId,
+                    r.getRequestId(),
+                    r.getFarmerEmail(),
+                    r.getFarmerName(),
+                    r.getProviderEmail(),
+                    r.getProviderName(),
+                    r.getOperatorId(),
+                    amount
+                );
+                pm.setPaymentMethod(pMode);
+                new PaymentDAO().recordPayment(pm);
+
+                // 3. Update in-memory models
+                r.setPaymentStatus("PAID");
+                r.setStatus("CONFIRMED");
+
+                // 4. Send Notification to Operator
+                String opEmail = (r.getOperatorId() != null && !r.getOperatorId().trim().isEmpty()) ? r.getOperatorId().trim().toLowerCase() : "operator@farmequip.com";
+                com.desgin.model.NotificationModel opNotif = new com.desgin.model.NotificationModel(
+                    "NOTIF_" + System.currentTimeMillis(),
+                    opEmail,
+                    "💰 Payment Received: Job #" + r.getRequestId(),
+                    "Farmer " + (r.getFarmerName() != null ? r.getFarmerName() : "Farmer") + " has completed payment of ₹" + String.format("%,d", amount) + " via Razorpay. Shift is ready to start!",
+                    "PAYMENT",
+                    r.getRequestId()
+                );
+                new com.desgin.dao.NotificationDAO().sendNotification(opNotif);
+
+                javafx.application.Platform.runLater(() -> {
+                    if (root != null && overlay != null) root.getChildren().remove(overlay);
+                    showPaymentSuccessPopup(root, amount, txnId, pMode, r.getOperatorName());
+                });
+            } catch (Exception ex) {
+                javafx.application.Platform.runLater(() -> {
+                    if (root != null && overlay != null) root.getChildren().remove(overlay);
+                });
+            }
+        }).start();
+    }
+
+    private static void showPaymentSuccessPopup(StackPane root, int amount, String txnId, String pMode, String opName) {
+        if (root == null) return;
+
+        StackPane successOverlay = new StackPane();
+        successOverlay.setAlignment(Pos.CENTER);
+        successOverlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.6);");
+
+        VBox card = new VBox(12);
+        card.setPrefWidth(450);
+        card.setMaxWidth(450);
+        card.setMaxHeight(Region.USE_PREF_SIZE);
+        card.setMinHeight(Region.USE_PREF_SIZE);
+        card.setPadding(new Insets(22));
+        card.setAlignment(Pos.CENTER);
+        card.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 16;" +
+            "-fx-border-color: #A7F3D0;" +
+            "-fx-border-width: 1.5;" +
+            "-fx-border-radius: 16;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.25), 20, 0, 0, 8);"
+        );
+        StackPane.setAlignment(card, Pos.CENTER);
+
+        // Success Icon
+        Label iconLbl = new Label("🎉");
+        iconLbl.setStyle("-fx-font-size: 34px; -fx-background-color: #DCFCE7; -fx-padding: 10 14; -fx-background-radius: 50;");
+
+        Text title = new Text("Payment Verified & Escrow Secured!");
+        title.setStyle("-fx-font-family:'Poppins'; -fx-font-size:17px; -fx-font-weight:bold; -fx-fill:#1B4332;");
+
+        Text amtText = new Text("₹" + String.format("%,d", amount));
+        amtText.setStyle("-fx-font-family:'Poppins'; -fx-font-size:24px; -fx-font-weight:bold; -fx-fill:#15803D;");
+
+        VBox detailsBox = new VBox(6);
+        detailsBox.setPadding(new Insets(10, 14, 10, 14));
+        detailsBox.setStyle("-fx-background-color: #F8FAF9; -fx-background-radius: 10; -fx-border-color: #E2E8E4; -fx-border-radius: 10;");
+
+        detailsBox.getChildren().addAll(
+            createModalRow("Razorpay Txn ID:", txnId),
+            createModalRow("API Gateway Key:", "rzp_test_TXfhlJNL2ajvs6"),
+            createModalRow("Payment Method:", pMode),
+            createModalRow("Escrow Protection:", "100% Guaranteed"),
+            createModalRow("Assigned Operator:", opName != null ? opName : "Certified Operator")
+        );
+
+        Label notice = new Label("Operator has been notified and can now start the shift with live countdown tracking.");
+        notice.setStyle("-fx-font-family:'Poppins'; -fx-font-size:11.5px; -fx-text-fill:#4B5563; -fx-text-alignment:center;");
+        notice.setWrapText(true);
+
+        Button continueBtn = new Button("✓ Continue to Dashboard");
+        continueBtn.setPrefHeight(40);
+        continueBtn.setMaxWidth(Double.MAX_VALUE);
+        continueBtn.setStyle(
+            "-fx-background-color: linear-gradient(to right, #15803D, #22C55E);" +
+            "-fx-text-fill: white;" +
+            "-fx-font-family:'Poppins';" +
+            "-fx-font-size:13px;" +
+            "-fx-font-weight:bold;" +
+            "-fx-background-radius:8;" +
+            "-fx-cursor:hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(21,128,61,0.3), 6, 0, 0, 2);"
+        );
+
+        continueBtn.setOnAction(e -> {
+            root.getChildren().remove(successOverlay);
+            if (com.desgin.view.farmer.Swapnil.FarmerDashboard.borderPane != null) {
+                com.desgin.view.farmer.Swapnil.FarmerDashboard.borderPane.setCenter(Payment.getPaymentSection());
+            }
+        });
+
+        card.getChildren().addAll(iconLbl, title, amtText, detailsBox, notice, continueBtn);
+        successOverlay.getChildren().add(card);
+        root.getChildren().add(successOverlay);
+    }
+
+    private static HBox createModalRow(String label, String value) {
+        Text l = new Text(label);
+        l.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-fill:#6B7280;");
+        Text v = new Text(value);
+        v.setStyle("-fx-font-family:'Poppins'; -fx-font-size:12px; -fx-font-weight:bold; -fx-fill:#1B4332;");
+        Region sp = new Region();
+        HBox.setHgrow(sp, Priority.ALWAYS);
+        HBox row = new HBox(l, sp, v);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
     }
 
     private static VBox createPaymentCard(
@@ -837,98 +1413,65 @@ private static VBox createSummaryCard(
 }
 
 private static void showPaymentDialog(
-
         String equipmentName,
         String amount,
         Label statusLabel,
-        Button payNowButton){
+        Button payNowButton) {
 
-    Stage stage = new Stage();
+    StackPane rootPane = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+    if (rootPane == null) return;
 
-    stage.setTitle("Complete Payment");
+    StackPane overlay = new StackPane();
+    overlay.setAlignment(Pos.CENTER);
+    overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
 
     VBox root = new VBox(15);
-
     root.setPadding(new Insets(20));
-
     root.setAlignment(Pos.CENTER);
+    root.setMaxWidth(400);
+    root.setMaxHeight(Region.USE_PREF_SIZE);
+    root.setStyle("-fx-background-color: white; -fx-background-radius: 12;");
+    StackPane.setAlignment(root, Pos.CENTER);
 
     Text title = new Text("Payment");
+    title.setStyle("-fx-font-size:20; -fx-font-weight:bold; -fx-fill: #1B4332;");
 
-    title.setStyle(
-            "-fx-font-size:22;" +
-            "-fx-font-weight:bold;"
-    );
-
-    Label equipment = new Label(
-            "Equipment : " + equipmentName
-    );
-
-    Label price = new Label(
-            "Amount : " + amount
-    );
+    Label equipment = new Label("Equipment : " + equipmentName);
+    Label price = new Label("Amount : " + amount);
 
     ComboBox<String> paymentMethod = new ComboBox<>();
-
-    paymentMethod.getItems().addAll(
-
-            "UPI",
-            "Card",
-            "Net Banking"
-
-    );
-
+    paymentMethod.getItems().addAll("UPI", "Card", "Net Banking");
     paymentMethod.setPromptText("Select Payment Method");
 
     TextField details = new TextField();
-
-    details.setPromptText(
-            "Enter UPI ID / Card Number"
-    );
+    details.setPromptText("Enter UPI ID / Card Number");
 
     Button confirm = new Button("Confirm Payment");
+    confirm.setStyle("-fx-background-color:#2D6A4F; -fx-text-fill:white; -fx-font-weight:bold; -fx-background-radius:6; -fx-cursor:hand;");
 
-    confirm.setStyle(
-            "-fx-background-color:#6B8E23;" +
-            "-fx-text-fill:white;"
-    );
+    Button closeBtn = new Button("Cancel");
+    closeBtn.setStyle("-fx-background-color:#E5E7EB; -fx-text-fill:#374151; -fx-background-radius:6; -fx-cursor:hand;");
+    closeBtn.setOnAction(e -> rootPane.getChildren().remove(overlay));
 
-    confirm.setOnAction(event->{
-
-        if(paymentMethod.getValue()==null){
-
+    confirm.setOnAction(event -> {
+        if (paymentMethod.getValue() == null) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-
             alert.setHeaderText(null);
-
-            alert.setContentText(
-                    "Please select payment method."
-            );
-
+            alert.setContentText("Please select payment method.");
             alert.show();
-
             return;
         }
 
-        if(details.getText().isEmpty()){
-
+        if (details.getText().isEmpty()) {
             Alert alert = new Alert(Alert.AlertType.ERROR);
-
             alert.setHeaderText(null);
-
-            alert.setContentText(
-                    "Enter payment details."
-            );
-
+            alert.setContentText("Enter payment details.");
             alert.show();
-
             return;
         }
 
         statusLabel.setText("Paid");
-
         statusLabel.setStyle(
-
                 "-fx-background-color:#DFF5E1;" +
                 "-fx-background-radius:20;" +
                 "-fx-padding:6 18;" +
@@ -937,39 +1480,21 @@ private static void showPaymentDialog(
         );
 
         payNowButton.setVisible(false);
-
         payNowButton.setManaged(false);
 
-        Alert success = new Alert(Alert.AlertType.INFORMATION);
-
-        success.setHeaderText(null);
-
-        success.setContentText(
-                "Payment Successful!"
-        );
-
-        success.showAndWait();
-
-        stage.close();
-
+        rootPane.getChildren().remove(overlay);
     });
 
-    root.getChildren().addAll(
+    HBox btnRow = new HBox(10, closeBtn, confirm);
+    btnRow.setAlignment(Pos.CENTER);
 
-            title,
-            equipment,
-            price,
-            paymentMethod,
-            details,
-            confirm
+    root.getChildren().addAll(title, equipment, price, paymentMethod, details, btnRow);
+    overlay.getChildren().add(root);
+    overlay.setOnMouseClicked(e -> {
+        if (e.getTarget() == overlay) rootPane.getChildren().remove(overlay);
+    });
 
-    );
-
-    Scene scene = new Scene(root,350,300);
-
-    stage.setScene(scene);
-
-    stage.show();
+    rootPane.getChildren().add(overlay);
 }
 private static VBox createPaymentFilter(){
 

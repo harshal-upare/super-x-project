@@ -109,42 +109,24 @@ public class Dashboard {
                         String q = raw.toLowerCase();
 
                         if (q.contains("book") || q.contains("order") || q.contains("rent") || q.contains("hist")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                                MyBookings obj = new MyBookings();
-                                FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
+                                LeftSideBar.navigateToBookings();
                         } else if (q.contains("wish") || q.contains("save") || q.contains("fav") || q.contains("like")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.wishlistBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("My Saved Wishlist ❤️", "Saved machinery and certified operators for quick booking");
-                                FarmerDashboard.borderPane.setCenter(WishList.getWishList());
-                        } else if (q.contains("oper") || q.contains("driver") || q.contains("pilot") || q.contains("worker") || q.contains("hire") || q.contains("manpower") || q.contains("pay") || q.contains("bill")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.paymentBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Search Machinery Operators 👷", "Find and hire certified drivers and machine operators");
-                                FarmerDashboard.borderPane.setCenter(com.desgin.view.farmer.pratik.SearchOperator.getSearchOperatorSection(FarmerDashboard.root));
+                                LeftSideBar.navigateToWishlist();
+                        } else if (q.contains("oper") || q.contains("driver") || q.contains("pilot") || q.contains("worker") || q.contains("hire") || q.contains("manpower")) {
+                                LeftSideBar.navigateToSearchOperators();
+                        } else if (q.contains("pay") || q.contains("bill") || q.contains("spend") || q.contains("tx") || q.contains("receipt")) {
+                                LeftSideBar.navigateToPayments();
                         } else if (q.contains("review") || q.contains("rat") || q.contains("star") || q.contains("feed")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.reviewBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Reviews & Field Ratings ⭐", "Rate your completed rentals and machine operators");
-                                FarmerDashboard.borderPane.setCenter(ReviewRating.getReviewRatingPage(FarmerDashboard.root));
+                                LeftSideBar.navigateToReviews();
                         } else if (q.contains("sett") || q.contains("pref") || q.contains("pass") || q.contains("notif")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.settingsBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Settings & Preferences ⚙", "Manage your account credentials and security");
-                                FarmerDashboard.borderPane.setCenter(Settings.getSetting());
+                                LeftSideBar.navigateToSettings();
                         } else if (q.contains("help") || q.contains("supp") || q.contains("ai") || q.contains("faq") || q.contains("chat") || q.contains("bot") || q.contains("issue")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.supportBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "Get 24x7 farmer assistance and AI advisory");
-                                FarmerDashboard.borderPane.setCenter(Help.getHelp());
-                        } else if (q.contains("prof") || q.contains("user") || q.contains("acc") || q.contains("harshal")) {
-                                ProfileManagement obj = new ProfileManagement();
-                                FarmerDashboard.borderPane.setCenter(obj.getProfile(FarmerDashboard.root));
-                        } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("pune") || q.contains("clim")) {
-                                LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.updateHeaderGreeting();
-                                FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
+                                LeftSideBar.navigateToHelp();
+                        } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("clim")) {
+                                LeftSideBar.navigateToDashboard();
                         } else {
                                 // Equipment keyword, category, or general machinery search
-                                LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
-                                FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
+                                LeftSideBar.navigateToBrowseEquip();
                                 BrowseEquip.setSearchQuery(raw);
                         }
                 };
@@ -172,55 +154,28 @@ public class Dashboard {
                                 "Available Equipment",
                                 String.valueOf(EquipmentDataStore.getAvailableCount()));
 
-                equipmentCard.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(
-                                        LeftSideBar.equipmentBtn1,
-                                        LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
-                        FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
-                });
+                equipmentCard.setOnMouseClicked(e -> LeftSideBar.navigateToBrowseEquip());
 
                 VBox bookingCard = createDashboardCard(
                                 "📅",
                                 "My Bookings",
                                 String.valueOf(BookingDataStore.getTotalCount()));
 
-                bookingCard.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(
-                                        LeftSideBar.bookingBtn1,
-                                        LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                });
+                bookingCard.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 VBox activebookingCard = createDashboardCard(
                                 "🚜",
                                 "Active Booking",
                                 String.valueOf(BookingDataStore.getActiveCount()));
 
-                activebookingCard.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(
-                                        LeftSideBar.bookingBtn1,
-                                        LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                });
+                activebookingCard.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 VBox pendingbookingCard = createDashboardCard(
                                 "🕐",
                                 "Pending Booking",
                                 String.valueOf(BookingDataStore.getPendingCount()));
 
-                pendingbookingCard.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(
-                                        LeftSideBar.bookingBtn1,
-                                        LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                });
+                pendingbookingCard.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 HBox cards = new HBox(
                                 16,
@@ -247,6 +202,12 @@ public class Dashboard {
                 try {
                     List<com.desgin.model.MachineryModel> firestoreList = new com.desgin.dao.MachineryDAO().getAllMachinery();
                     EquipmentDataStore.syncFromFirestore(firestoreList);
+
+                    String fEmail = FarmerProfileStore.email;
+                    if (fEmail != null && !fEmail.isEmpty()) {
+                        List<com.desgin.model.RentalRequestModel> farmerReqs = new com.desgin.dao.RentalRequestDAO().getRequestsByFarmer(fEmail);
+                        BookingDataStore.syncFromFirestore(farmerReqs);
+                    }
                 } catch (Exception ignored) {}
 
                 List<EquipmentDataStore.EquipmentItem> recommendedList = EquipmentDataStore.getRandomRecommended(5);
@@ -299,11 +260,7 @@ public class Dashboard {
                                                         "-fx-font-weight: bold;" +
                                                         "-fx-cursor: hand;");
 
-                        viewMore.setOnMouseClicked(event -> {
-                                LeftSideBar.setActiveButton(LeftSideBar.equipmentBtn1, LeftSideBar.navigationButtons);
-                                ProfileManagement.setHeaderTitle("Browse Equipment ⚒", "Find and rent the right machinery for your farm");
-                                FarmerDashboard.borderPane.setCenter(BrowseEquip.getBrowseEquip());
-                        });
+                        viewMore.setOnMouseClicked(event -> LeftSideBar.navigateToBrowseEquip());
 
                         equipmentSection.getChildren().add(viewMore);
 
@@ -335,12 +292,7 @@ public class Dashboard {
                                                 "-fx-fill: #16A34A;" +
                                                 "-fx-cursor: hand;");
 
-                viewMore2.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                });
+                viewMore2.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 HBox activeBookingHeader = new HBox();
                 activeBookingHeader.setAlignment(Pos.CENTER_LEFT);
@@ -1106,12 +1058,7 @@ public class Dashboard {
                                                 "-fx-border-width: 1.2;" +
                                                 "-fx-border-radius: 10;");
 
-                row.setOnMouseClicked(e -> {
-                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                });
+                row.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 return row;
         }
@@ -1176,14 +1123,7 @@ public class Dashboard {
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-cursor: hand;"));
 
-                Runnable openBooking = () -> {
-                        LeftSideBar.setActiveButton(LeftSideBar.bookingBtn1, LeftSideBar.navigationButtons);
-                        ProfileManagement.setHeaderTitle("My Bookings 📅", "Track and manage your equipment rentals & schedules");
-                        MyBookings obj = new MyBookings();
-                        FarmerDashboard.borderPane.setCenter(obj.getBooking(FarmerDashboard.root));
-                };
-
-                viewButton.setOnAction(e -> openBooking.run());
+                viewButton.setOnAction(e -> LeftSideBar.navigateToBookings());
 
                 VBox card = new VBox(
                                 10,
@@ -1197,7 +1137,7 @@ public class Dashboard {
 
                 card.setPrefHeight(150);
                 card.setCursor(javafx.scene.Cursor.HAND);
-                card.setOnMouseClicked(e -> openBooking.run());
+                card.setOnMouseClicked(e -> LeftSideBar.navigateToBookings());
 
                 card.setStyle(
                                 "-fx-background-color: #FFFFFF;" +

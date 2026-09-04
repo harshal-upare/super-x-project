@@ -35,6 +35,23 @@ public class NotificationDAO {
         }
     }
 
+    public void sendNotification(String userId, String title, String message, String type) {
+        sendNotification(userId, title, message, type, null);
+    }
+
+    public void sendNotification(String userId, String title, String message, String type, String relatedId) {
+        if (userId == null || userId.trim().isEmpty()) return;
+        NotificationModel notif = new NotificationModel(
+                "NOTIF_" + System.currentTimeMillis(),
+                userId.trim().toLowerCase(),
+                title,
+                message,
+                type,
+                relatedId
+        );
+        sendNotification(notif);
+    }
+
     public List<NotificationModel> getNotificationsByUser(String userId) {
         List<NotificationModel> list = new ArrayList<>();
         if (userId == null || userId.trim().isEmpty()) return list;

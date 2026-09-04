@@ -696,9 +696,12 @@ public class EquipmentDetailPage {
     private void showImageLightbox(Image img, String title) {
         if (img == null) return;
         try {
-            Stage stage = new Stage();
-            stage.initModality(Modality.APPLICATION_MODAL);
-            stage.setTitle(title + " - Machinery Showcase");
+            StackPane rootPane = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+            if (rootPane == null) return;
+
+            StackPane overlay = new StackPane();
+            overlay.setAlignment(Pos.CENTER);
+            overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.85);");
 
             ImageView fullIv = new ImageView(img);
             fullIv.setPreserveRatio(true);
@@ -722,21 +725,26 @@ public class EquipmentDetailPage {
 
             Button closeBtn = new Button("✕ Close");
             closeBtn.setStyle("-fx-background-color: rgba(255,255,255,0.2); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-            closeBtn.setOnAction(e -> stage.close());
+            closeBtn.setOnAction(e -> rootPane.getChildren().remove(overlay));
 
             HBox topRow = new HBox(titleLbl, new Region(), closeBtn);
             HBox.setHgrow(topRow.getChildren().get(1), Priority.ALWAYS);
             topRow.setAlignment(Pos.CENTER_LEFT);
             topRow.setPadding(new Insets(0, 0, 12, 0));
 
-            VBox root = new VBox(10, topRow, new StackPane(fullIv));
-            root.setAlignment(Pos.CENTER);
-            root.setPadding(new Insets(20));
-            root.setStyle("-fx-background-color: #0D2B1D;");
+            VBox box = new VBox(10, topRow, new StackPane(fullIv));
+            box.setAlignment(Pos.CENTER);
+            box.setPadding(new Insets(20));
+            box.setStyle("-fx-background-color: #0D2B1D; -fx-background-radius: 12;");
+            box.setMaxWidth(820);
+            box.setMaxHeight(Region.USE_PREF_SIZE);
+            StackPane.setAlignment(box, Pos.CENTER);
 
-            Scene scene = new Scene(root, 840, 640);
-            stage.setScene(scene);
-            stage.show();
+            overlay.getChildren().add(box);
+            overlay.setOnMouseClicked(e -> {
+                if (e.getTarget() == overlay) rootPane.getChildren().remove(overlay);
+            });
+            rootPane.getChildren().add(overlay);
         } catch (Exception ignored) {}
     }
 
@@ -770,40 +778,47 @@ public class EquipmentDetailPage {
             String finalImgUrl,
             com.desgin.view.farmer.Swapnil.EquipmentDataStore.EquipmentItem foundItem) {
 
-        Stage stage = new Stage();
-        stage.initModality(Modality.APPLICATION_MODAL);
-        if (parentBtn.getScene() != null && parentBtn.getScene().getWindow() != null) {
-            stage.initOwner(parentBtn.getScene().getWindow());
+        StackPane rootPane = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+        if (rootPane == null && parentBtn.getScene() != null && parentBtn.getScene().getRoot() instanceof StackPane) {
+            rootPane = (StackPane) parentBtn.getScene().getRoot();
         }
-        stage.setTitle("Razorpay Secure Rental Checkout");
+        if (rootPane == null) return;
+        final StackPane finalRoot = rootPane;
 
-        VBox root = new VBox(16);
-        root.setPadding(new Insets(24));
+        StackPane overlay = new StackPane();
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setStyle("-fx-background-color: rgba(0, 0, 0, 0.55);");
+
+        VBox root = new VBox(14);
+        root.setPadding(new Insets(22));
         root.setStyle(
-                "-fx-background-color: #F8FAF8;" +
+                "-fx-background-color: #FFFFFF;" +
                 "-fx-border-color: #2D6A4F;" +
                 "-fx-border-width: 1.5px;" +
-                "-fx-border-radius: 12px;" +
-                "-fx-background-radius: 12px;"
+                "-fx-border-radius: 14px;" +
+                "-fx-background-radius: 14px;"
         );
         root.setPrefWidth(490);
+        root.setMaxWidth(490);
+        root.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(root, Pos.CENTER);
 
         // Header
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         Text title = new Text("💳 Razorpay Secure Payment Checkout");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 17px; -fx-font-weight: bold; -fx-fill: #1B4332;");
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
         Button closeBtn = new Button("✕");
         closeBtn.setStyle("-fx-background-color: #E5E7EB; -fx-text-fill: #374151; -fx-font-weight: bold; -fx-background-radius: 12; -fx-cursor: hand;");
-        closeBtn.setOnAction(ev -> stage.close());
+        closeBtn.setOnAction(ev -> finalRoot.getChildren().remove(overlay));
         header.getChildren().addAll(title, spacer, closeBtn);
 
         // Order Summary Card
         VBox summaryCard = new VBox(8);
         summaryCard.setPadding(new Insets(14));
-        summaryCard.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
+        summaryCard.setStyle("-fx-background-color: #F8FAF9; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
 
         Text machLine = new Text("🚜 Machinery: " + machName + " (" + machCategory + ") • ₹" + equipCost);
         machLine.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-fill: #1F2937;");
@@ -834,157 +849,125 @@ public class EquipmentDetailPage {
         settlementCard.getChildren().addAll(escTitle, escSub);
 
         // Status Feedback
-        Label statusLabel = new Label("Click 'Pay with Razorpay' to open secure gateway.");
+        Label statusLabel = new Label("Click below to pay via Razorpay Console.");
         statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #4B5563;");
 
-        // Action Buttons
-        Button payBtn = new Button("🚀  Pay ₹" + String.format("%,d", totalCost) + " via Razorpay");
+        // Action Button
+        Button payBtn = new Button("🌐 Pay ₹" + String.format("%,d", totalCost) + " on Razorpay Console");
         payBtn.setPrefHeight(42);
         payBtn.setMaxWidth(Double.MAX_VALUE);
-        payBtn.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
-
-        Button verifyBtn = new Button("✔  I Have Completed Payment / Confirm Booking");
-        verifyBtn.setPrefHeight(42);
-        verifyBtn.setMaxWidth(Double.MAX_VALUE);
-        verifyBtn.setStyle("-fx-background-color: #15803D; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+        payBtn.setStyle("-fx-background-color: linear-gradient(to right, #059669, #10b981); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
 
         payBtn.setOnAction(ev -> {
             payBtn.setDisable(true);
-            statusLabel.setText("Connecting to Razorpay Gateway...");
-            new Thread(() -> {
-                try {
-                    String bookingRefId = "ORD_" + System.currentTimeMillis();
-                    String fName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
-                    String fEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
-                    String fPhone = com.desgin.view.farmer.Swapnil.FarmerProfileStore.phone;
-
-                    String paymentUrl = com.desgin.service.RazorpayService.createPaymentLink(
-                            totalCost,
-                            bookingRefId,
-                            fName,
-                            fEmail,
-                            fPhone
-                    );
-
-                    com.desgin.service.RazorpayService.openPaymentInBrowser(paymentUrl);
-
-                    javafx.application.Platform.runLater(() -> {
-                        statusLabel.setText("✔ Payment Link opened in browser! Complete payment and click 'Confirm Booking' below.");
-                        statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2563EB;");
-                        payBtn.setDisable(false);
-                    });
-                } catch (Exception ex) {
-                    javafx.application.Platform.runLater(() -> {
-                        statusLabel.setText("Notice: " + ex.getMessage());
-                        statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #B91C1C;");
-                        payBtn.setDisable(false);
-                    });
-                }
-            }).start();
-        });
-
-        verifyBtn.setOnAction(ev -> {
-            String bookingId = "REQ_" + System.currentTimeMillis();
-            String pEmail = (foundItem != null && foundItem.providerEmail != null) ? foundItem.providerEmail : "provider@farmequip.com";
-            String pPhone = (foundItem != null && foundItem.providerPhone != null) ? foundItem.providerPhone : "+91 98765 00000";
-            String fEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+            statusLabel.setText("Connecting to Razorpay Gateway in browser...");
+            String bookingRefId = "ORD_" + System.currentTimeMillis();
             String fName = com.desgin.view.farmer.Swapnil.FarmerProfileStore.name;
+            String fEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
             String fPhone = com.desgin.view.farmer.Swapnil.FarmerProfileStore.phone;
-            String fTown = com.desgin.view.farmer.Swapnil.FarmerProfileStore.town;
 
-            com.desgin.model.RentalRequestModel reqModel = new com.desgin.model.RentalRequestModel(
-                    bookingId,
-                    machId,
-                    machName,
-                    machCategory,
-                    ratePerDay,
-                    rentalDays,
-                    totalCost,
-                    startDate,
-                    endDate,
-                    fEmail,
-                    fName,
-                    fPhone,
-                    fTown != null ? fTown : "Pune",
-                    pEmail,
-                    pName,
-                    pPhone,
-                    location != null ? location : "Pune",
-                    "Field Delivery / Pickup",
-                    finalImgUrl
-            );
-            reqModel.setFarmerProfilePic(com.desgin.view.farmer.Swapnil.FarmerProfileStore.profilePic);
-            reqModel.setStatus("CONFIRMED");
-            reqModel.setPaymentStatus("PAID");
-            reqModel.setPaymentMode("Razorpay");
-            reqModel.setAmountPaid(totalCost);
-            reqModel.setPaymentTransactionId("PAY_RZP_" + System.currentTimeMillis());
+            com.desgin.service.RazorpayService.startRazorpayConsolePayment(
+                totalCost,
+                bookingRefId,
+                machName,
+                fName,
+                fEmail,
+                fPhone,
+                new com.desgin.service.RazorpayService.RazorpayCallback() {
+                    @Override
+                    public void onPaymentSuccess(String paymentId, String orderId) {
+                        javafx.application.Platform.runLater(() -> {
+                            String bookingId = "REQ_" + System.currentTimeMillis();
+                            String pEmail = (foundItem != null && foundItem.providerEmail != null) ? foundItem.providerEmail : "provider@farmequip.com";
+                            String pPh = (foundItem != null && foundItem.providerPhone != null) ? foundItem.providerPhone : "+91 98765 00000";
+                            String fTown = com.desgin.view.farmer.Swapnil.FarmerProfileStore.town;
 
-            // Operator details
-            reqModel.setOperatorRequired(needOp);
-            reqModel.setOperatorId(opEmail);
-            reqModel.setOperatorName(opName);
-            reqModel.setOperatorPhone(opPhone);
-            reqModel.setOperatorStatus(needOp ? "PENDING" : null);
-            reqModel.setEquipmentAmount(equipCost);
-            reqModel.setOperatorAmount(opCost);
-            reqModel.setTotalAmount(totalCost);
+                            com.desgin.model.RentalRequestModel reqModel = new com.desgin.model.RentalRequestModel(
+                                    bookingId,
+                                    machId,
+                                    machName,
+                                    machCategory,
+                                    ratePerDay,
+                                    rentalDays,
+                                    totalCost,
+                                    startDate,
+                                    endDate,
+                                    fEmail,
+                                    fName,
+                                    fPhone,
+                                    fTown != null ? fTown : "Pune",
+                                    pEmail,
+                                    pName,
+                                    pPh,
+                                    location != null ? location : "Pune",
+                                    "Field Delivery / Pickup",
+                                    finalImgUrl
+                            );
+                            reqModel.setFarmerProfilePic(com.desgin.view.farmer.Swapnil.FarmerProfileStore.profilePic);
+                            reqModel.setStatus("CONFIRMED");
+                            reqModel.setPaymentStatus("PAID");
+                            reqModel.setPaymentMode("Razorpay Online");
+                            reqModel.setAmountPaid(totalCost);
+                            reqModel.setPaymentTransactionId(paymentId);
 
-            // Provider settlement bank details
-            reqModel.setProviderBankName(com.desgin.view.provider.ProviderProfileStore.bankName);
-            reqModel.setProviderAccountNumber(com.desgin.view.provider.ProviderProfileStore.accountNumber);
-            reqModel.setProviderIfsc(com.desgin.view.provider.ProviderProfileStore.ifsc);
-            reqModel.setProviderUpiId(com.desgin.view.provider.ProviderProfileStore.upiId);
+                            // Operator details
+                            reqModel.setOperatorRequired(needOp);
+                            reqModel.setOperatorId(opEmail);
+                            reqModel.setOperatorName(opName);
+                            reqModel.setOperatorPhone(opPhone);
+                            reqModel.setOperatorStatus(needOp ? "ACCEPTED" : null);
+                            reqModel.setEquipmentAmount(equipCost);
+                            reqModel.setOperatorAmount(opCost);
+                            reqModel.setTotalAmount(totalCost);
 
-            // Add to in-memory store
-            BookingDataStore.addBooking(new BookingDataStore.BookingItem(
-                    bookingId,
-                    machName,
-                    machCategory,
-                    startDate,
-                    endDate,
-                    "₹" + ratePerDay + " / day",
-                    "₹" + totalCost,
-                    "CONFIRMED",
-                    finalImgUrl
-            ));
+                            // Add to in-memory store
+                            BookingDataStore.addBooking(new BookingDataStore.BookingItem(
+                                    bookingId,
+                                    machName,
+                                    machCategory,
+                                    startDate,
+                                    endDate,
+                                    "₹" + ratePerDay + " / day",
+                                    "₹" + totalCost,
+                                    "CONFIRMED",
+                                    finalImgUrl
+                            ));
 
-            // Persist to Firestore and notify all participants
-            new Thread(() -> {
-                try {
-                    com.desgin.service.BookingService service = new com.desgin.service.BookingService();
-                    service.createBookingRequest(reqModel);
-                    service.confirmPayment(bookingId, reqModel.getPaymentTransactionId(), "ORD_" + System.currentTimeMillis(), "Razorpay");
-                } catch (Exception ex) {
-                    System.err.println("Notice: Booking create/payment error: " + ex.getMessage());
+                            // Persist to Firestore
+                            new Thread(() -> {
+                                try {
+                                    com.desgin.service.BookingService service = new com.desgin.service.BookingService();
+                                    service.createBookingRequest(reqModel);
+                                    service.confirmPayment(bookingId, paymentId, orderId, "Razorpay Online");
+                                } catch (Exception ex) {
+                                    System.err.println("Notice: Booking create/payment error: " + ex.getMessage());
+                                }
+                            }).start();
+
+                            finalRoot.getChildren().remove(overlay);
+
+                            com.desgin.view.farmer.LeftSideBar.navigateToBookings();
+                        });
+                    }
+
+                    @Override
+                    public void onPaymentFailure(String errorMessage) {
+                        javafx.application.Platform.runLater(() -> {
+                            payBtn.setDisable(false);
+                            statusLabel.setText("⚠️ " + errorMessage);
+                            statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #B91C1C;");
+                        });
+                    }
                 }
-            }).start();
-
-            stage.close();
-
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.setTitle("Payment Verified & Rental Confirmed");
-            alert.setHeaderText("Payment Successful & Booking Confirmed!");
-            alert.setContentText(
-                    "Your payment of ₹" + String.format("%,d", totalCost) + " has been verified and placed into Escrow.\n\n" +
-                    "• Equipment: " + machName + "\n" +
-                    "• Provider: " + pName + "\n" +
-                    (needOp ? ("• Operator: " + opName + "\n") : "") +
-                    "• Duration: " + rentalDays + " Days (" + startDate + " to " + endDate + ")\n" +
-                    "• Status: CONFIRMED (PAID)\n\n" +
-                    "Both the provider" + (needOp ? " and operator have" : " has") + " been notified."
             );
-            alert.showAndWait();
-
-            if (backAction != null) {
-                backAction.run();
-            }
         });
 
-        root.getChildren().addAll(header, summaryCard, settlementCard, statusLabel, payBtn, verifyBtn);
+        root.getChildren().addAll(header, summaryCard, settlementCard, statusLabel, payBtn);
+        overlay.getChildren().add(root);
+        overlay.setOnMouseClicked(ev -> {
+            if (ev.getTarget() == overlay) finalRoot.getChildren().remove(overlay);
+        });
 
-        Scene scene = new Scene(root);
-        stage.setScene(scene);
-        stage.show();
+        finalRoot.getChildren().add(overlay);
     }
 }

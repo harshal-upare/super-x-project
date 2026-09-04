@@ -97,39 +97,32 @@ public class RentalRequestDAO {
 
         try {
             Firestore db = getDb();
-            if (!targetEmail.isEmpty()) {
-                ApiFuture<QuerySnapshot> future = db.collection(COLLECTION_NAME)
-                        .whereEqualTo("farmerEmail", targetEmail)
-                        .get();
-                List<QueryDocumentSnapshot> docs = future.get().getDocuments();
-                for (QueryDocumentSnapshot doc : docs) {
-                    RentalRequestModel r = doc.toObject(RentalRequestModel.class);
-                    if (r != null) {
-                        if (r.getRequestId() == null) r.setRequestId(doc.getId());
-                        list.add(r);
-                    }
-                }
-            }
+            if (db == null) return list;
+            ApiFuture<QuerySnapshot> allFuture = db.collection(COLLECTION_NAME).get();
+            List<QueryDocumentSnapshot> allDocs = allFuture.get().getDocuments();
+            java.util.Set<String> seenIds = new java.util.HashSet<>();
 
-            // Fallback: Case-insensitive match or match by phone/name across all requests
-            if (list.isEmpty()) {
-                ApiFuture<QuerySnapshot> allFuture = db.collection(COLLECTION_NAME).get();
-                List<QueryDocumentSnapshot> allDocs = allFuture.get().getDocuments();
-                for (QueryDocumentSnapshot doc : allDocs) {
-                    RentalRequestModel r = doc.toObject(RentalRequestModel.class);
-                    if (r != null) {
-                        if (r.getRequestId() == null) r.setRequestId(doc.getId());
-                        boolean match = false;
-                        if (!targetEmail.isEmpty() && r.getFarmerEmail() != null && targetEmail.equalsIgnoreCase(r.getFarmerEmail().trim())) {
-                            match = true;
-                        } else if (farmerPhone != null && !farmerPhone.trim().isEmpty() && farmerPhone.trim().equals(r.getFarmerPhone())) {
-                            match = true;
-                        } else if (targetEmail.isEmpty() && farmerName != null && !farmerName.trim().isEmpty() && farmerName.equalsIgnoreCase(r.getFarmerName())) {
-                            match = true;
-                        }
-                        if (match) {
-                            list.add(r);
-                        }
+            for (QueryDocumentSnapshot doc : allDocs) {
+                RentalRequestModel r = doc.toObject(RentalRequestModel.class);
+                if (r != null) {
+                    if (r.getRequestId() == null) r.setRequestId(doc.getId());
+                    String rEmail = r.getFarmerEmail() != null ? r.getFarmerEmail().trim() : "";
+                    String rPhone = r.getFarmerPhone() != null ? r.getFarmerPhone().trim() : "";
+                    String rName = r.getFarmerName() != null ? r.getFarmerName().trim() : "";
+
+                    boolean match = false;
+                    if (!targetEmail.isEmpty() && targetEmail.equalsIgnoreCase(rEmail)) {
+                        match = true;
+                    } else if (farmerPhone != null && !farmerPhone.trim().isEmpty() && farmerPhone.trim().equals(rPhone)) {
+                        match = true;
+                    } else if (farmerName != null && !farmerName.trim().isEmpty() && farmerName.equalsIgnoreCase(rName)) {
+                        match = true;
+                    } else if (targetEmail.isEmpty()) {
+                        match = true;
+                    }
+
+                    if (match && seenIds.add(r.getRequestId())) {
+                        list.add(r);
                     }
                 }
             }
@@ -211,6 +204,36 @@ public class RentalRequestDAO {
             ).get();
         } catch (Exception e) {
             throw new DatabaseOperationException("Failed to cancel request: " + e.getMessage(), e);
+        }
+    }
+
+    public void startShift(String requestId, long shiftStartTime, long shiftDurationMillis) throws DatabaseOperationException {
+        if (requestId == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(requestId).update(
+                    "status", "IN_PROGRESS",
+                    "operatorStatus", "IN_PROGRESS",
+                    "shiftStartTime", shiftStartTime,
+                    "shiftDurationMillis", shiftDurationMillis,
+                    "updatedAt", java.time.LocalDateTime.now().toString()
+            ).get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to start shift: " + e.getMessage(), e);
+        }
+    }
+
+    public void completeShift(String requestId) throws DatabaseOperationException {
+        if (requestId == null) return;
+        try {
+            Firestore db = getDb();
+            db.collection(COLLECTION_NAME).document(requestId).update(
+                    "status", "COMPLETED",
+                    "operatorStatus", "COMPLETED",
+                    "updatedAt", java.time.LocalDateTime.now().toString()
+            ).get();
+        } catch (Exception e) {
+            throw new DatabaseOperationException("Failed to complete shift: " + e.getMessage(), e);
         }
     }
 

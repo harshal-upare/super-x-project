@@ -17,16 +17,31 @@ public class OperatorProfileStore {
     public static String equipmentProfession = "Tractors & Heavy Tillage";
     public static String licenseImage = "";
     public static boolean availableForShifts = true;
+    public static String currentPassword = "";
 
-    // Dynamic Operator KPI Metrics
-    public static String assignedMachinery = "4 Units";
-    public static String assignedMachinerySub = "2 Field Ready • 1 In Shift";
-    public static String activeJobs = "2 Assigned";
-    public static String activeJobsSub = "1 Running • 1 Scheduled";
-    public static String engineHours = "148.5 hrs";
-    public static String engineHoursSub = "+18.2 hrs this week ↑";
-    public static String wagesEarned = "₹28,400";
-    public static String wagesEarnedSub = "₹4,200 pending settlement";
+    // Dynamic Operator KPI Metrics (Strictly 0 defaults until populated from Firestore)
+    public static String assignedMachinery = "0 Units";
+    public static String assignedMachinerySub = "0 In Shift • 0 Standby";
+    public static String activeJobs = "0 Total Jobs";
+    public static String activeJobsSub = "0 Completed • 0 Active";
+    public static String engineHours = "0 hrs";
+    public static String engineHoursSub = "0 hrs this week";
+    public static String wagesEarned = "₹0";
+    public static String wagesEarnedSub = "₹0 Settled • ₹0 Escrow";
+
+    public static final java.util.Set<String> readNotificationIds = new java.util.HashSet<>();
+
+    public static boolean isNotificationRead(String id) {
+        return id != null && readNotificationIds.contains(id);
+    }
+
+    public static void markNotificationRead(String id) {
+        if (id != null) readNotificationIds.add(id);
+    }
+
+    public static void markAllNotificationsRead(java.util.Collection<String> ids) {
+        if (ids != null) readNotificationIds.addAll(ids);
+    }
 
     private static final List<Runnable> profileListeners = new ArrayList<>();
 
@@ -97,5 +112,27 @@ public class OperatorProfileStore {
         if (r != null) {
             profileListeners.remove(r);
         }
+    }
+
+    public static synchronized void setAvailability(boolean available) {
+        availableForShifts = available;
+        status = available ? "Available for Field Shifts" : "Not Available / Off-duty";
+        notifyListeners();
+
+        new Thread(() -> {
+            try {
+                com.google.cloud.firestore.Firestore db = com.desgin.config.FirestoreConfig.getFirestore();
+                if (db != null && email != null && !email.trim().isEmpty()) {
+                    java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
+                    updateMap.put("available", available);
+                    updateMap.put("status", available ? "AVAILABLE" : "NOT AVAILABLE");
+                    db.collection("Operator").document(email).set(updateMap, com.google.cloud.firestore.SetOptions.merge());
+                }
+            } catch (Exception ignored) {}
+        }).start();
+    }
+
+    public static synchronized void toggleAvailability() {
+        setAvailability(!availableForShifts);
     }
 }

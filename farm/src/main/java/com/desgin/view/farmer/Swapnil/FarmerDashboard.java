@@ -53,7 +53,7 @@ public class FarmerDashboard {
                 ProfileManagement objProfileManagement = new ProfileManagement();
                 borderPane.setTop(objProfileManagement.getProfile(root));
                 
-                Dashboard.getPage();
+                borderPane.setCenter(Dashboard.getPage());
                 
                 root.setStyle("-fx-background-color: #F4F9F4;");
 

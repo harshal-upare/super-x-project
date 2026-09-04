@@ -212,35 +212,39 @@ public class MyBookings {
         return card;
     }
 
-    private HBox opCard(BookingItem item, StackPane root) {
-        String status = item.status;
-        String opName = (item.operatorName!=null&&!item.operatorName.isEmpty())?item.operatorName:"Assigned Operator";
-        String baseStyle = "-fx-background-color:#FFFEF8;-fx-background-radius:10px;-fx-border-color:rgba(180,83,9,0.18);-fx-border-width:1px;-fx-border-radius:10px;-fx-effect:dropshadow(gaussian,rgba(0,0,0,0.03),4,0,0,1);";
-        HBox card = new HBox(18); card.setPadding(new Insets(14,18,14,18)); card.setAlignment(Pos.CENTER_LEFT); card.setStyle(baseStyle);
+    private void renderBookings(List<BookingItem> list, String emptyMessage) {
+        bookingList.getChildren().clear();
+        if (list.isEmpty()) {
+            VBox emptyBox = new VBox(10);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPadding(new Insets(50));
+            emptyBox.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                    "-fx-background-radius: 14px;" +
+                    "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                    "-fx-border-width: 1.2px;" +
+                    "-fx-border-radius: 14px;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+            );
+            Label icon = new Label("📅");
+            icon.setStyle("-fx-font-size: 36px;");
+            Label emptyLabel = new Label(emptyMessage);
+            emptyLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+            Label sub = new Label("Browse the machinery catalog and rent farm equipment to see your bookings here.");
+            sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #4B5563;");
 
-        Label av = new Label("👷"); av.setStyle("-fx-font-size:28px;");
-        VBox avBox = new VBox(av); avBox.setPrefWidth(70); avBox.setPrefHeight(70); avBox.setMinSize(70,70); avBox.setMaxSize(70,70); avBox.setAlignment(Pos.CENTER);
-        avBox.setStyle("-fx-background-color:#FFF8E1;-fx-background-radius:10px;-fx-border-color:rgba(180,83,9,0.2);-fx-border-radius:10px;");
+            Button browseBtn = new Button("⚒  Browse Equipment Catalog ➔");
+            browseBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 8 16;");
+            browseBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToBrowseEquip());
 
-        VBox info = new VBox(4);
-        Label nm = new Label("👷 "+opName); nm.setStyle("-fx-font-family:'Poppins';-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:#92400E;");
-        Label eq = new Label("🚜  "+item.equipmentName+"   •   ID: "+item.bookingId); eq.setStyle("-fx-font-family:'Poppins';-fx-font-size:11.5px;-fx-text-fill:#6B7280;");
-        Label dt = new Label("📅  "+item.startDate+"  →  "+item.endDate); dt.setStyle("-fx-font-family:'Poppins';-fx-font-size:12px;-fx-font-weight:bold;-fx-text-fill:#B45309;");
-        String wage = item.operatorAmount>0?"₹"+item.operatorAmount:"—";
-        Label wg = new Label("💰  Operator Wage: "+wage); wg.setStyle("-fx-font-family:'Poppins';-fx-font-size:11px;-fx-text-fill:#6B7280;");
-        info.getChildren().addAll(nm,eq,dt,wg);
-
-        Region sp = new Region(); HBox.setHgrow(sp, Priority.ALWAYS);
-        Label tpLbl = new Label("Operator Hire"); tpLbl.setStyle("-fx-font-family:'Poppins';-fx-font-size:11px;-fx-text-fill:#9CA3AF;");
-        Label wgLbl = new Label(wage); wgLbl.setStyle("-fx-font-family:'Poppins';-fx-font-size:14px;-fx-font-weight:bold;-fx-text-fill:#92400E;");
-        VBox priceBox = new VBox(2,tpLbl,wgLbl); priceBox.setAlignment(Pos.CENTER_RIGHT);
-
-        Label stLbl = statusBadge(status,true);
-        HBox btns = new HBox(8,stLbl); btns.setAlignment(Pos.CENTER_RIGHT);
-        if (!"CANCELLED".equalsIgnoreCase(status)&&!"COMPLETED".equalsIgnoreCase(status)&&!"REJECTED".equalsIgnoreCase(status)) {
-            Button canBtn = new Button("✖ Cancel"); canBtn.setPrefHeight(32);
-            canBtn.setStyle("-fx-background-color:#FEE2E2;-fx-text-fill:#B91C1C;-fx-font-family:'Poppins';-fx-font-size:11px;-fx-font-weight:bold;-fx-background-radius:8px;-fx-cursor:hand;-fx-padding:0 10;");
-            canBtn.setOnAction(e -> doCancel(item)); btns.getChildren().add(canBtn);
+            emptyBox.getChildren().addAll(icon, emptyLabel, sub, browseBtn);
+            bookingList.getChildren().add(emptyBox);
+        } else {
+            for (BookingItem item : list) {
+                bookingList.getChildren().add(
+                        createBookingCard(item, innerRoot)
+                );
+            }
         }
         VBox right = new VBox(6,priceBox,btns); right.setAlignment(Pos.CENTER_RIGHT);
         card.getChildren().addAll(avBox,info,sp,right);
@@ -329,6 +333,354 @@ public class MyBookings {
         Button cl = new Button("Close"); cl.setStyle("-fx-background-color:#E5E7EB;-fx-text-fill:#374151;-fx-font-family:'Poppins';-fx-background-radius:6;-fx-cursor:hand;"); cl.setOnAction(e->st.close());
         HBox bot = new HBox(8,cl); bot.setAlignment(Pos.CENTER_RIGHT);
         box.getChildren().addAll(tl,inf,sl,pb,cb,bot); st.setScene(new Scene(box)); st.show();
+    private HBox createBookingCard(BookingItem item, StackPane root) {
+        String equipmentName = item.equipmentName;
+        String equipmentType = item.category;
+        String bookingId = item.bookingId;
+        String startDate = item.startDate;
+        String endDate = item.endDate;
+        String pricePerDay = item.dailyRate;
+        String totalPrice = item.totalAmount;
+        String status = item.status;
+        String imagePath = item.imagePath;
+
+        HBox card = new HBox(20);
+        card.setPadding(new Insets(16, 20, 16, 20));
+        card.setAlignment(Pos.CENTER_LEFT);
+        card.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+        );
+
+        // Machinery Icon Box
+        String iconChar = equipmentType.contains("Harvester") ? "🌾" :
+                (equipmentType.contains("Drone") ? "🚁" :
+                (equipmentType.contains("Rotavator") ? "⚙️" :
+                (equipmentType.contains("Cultivator") ? "🌱" : "🚜")));
+
+        VBox imageBox = new VBox();
+        imageBox.setPrefWidth(95);
+        imageBox.setPrefHeight(90);
+        imageBox.setAlignment(Pos.CENTER);
+        imageBox.setStyle(
+                "-fx-background-color: #E8F5E9;" +
+                "-fx-background-radius: 12px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.2);" +
+                "-fx-border-radius: 12px;"
+        );
+
+        if (imagePath != null && !imagePath.isEmpty()) {
+            try {
+                javafx.scene.image.ImageView iv = new javafx.scene.image.ImageView();
+                iv.setFitWidth(85);
+                iv.setFitHeight(75);
+                iv.setPreserveRatio(true);
+                iv.setImage(new javafx.scene.image.Image(imagePath, true));
+                imageBox.getChildren().add(iv);
+            } catch (Exception ex) {
+                Label iconLabel = new Label(iconChar);
+                iconLabel.setStyle("-fx-font-size: 38px;");
+                imageBox.getChildren().add(iconLabel);
+            }
+        } else {
+            Label iconLabel = new Label(iconChar);
+            iconLabel.setStyle("-fx-font-size: 38px;");
+            imageBox.getChildren().add(iconLabel);
+        }
+
+        // Information Column
+        VBox infoBox = new VBox(5);
+        Label nameLabel = new Label(equipmentName);
+        nameLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        Label typeLabel = new Label("🏷  " + equipmentType + "  •  ID: " + bookingId);
+        typeLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #4B5563;");
+
+        Label dateLabel = new Label("📅  " + startDate + "  →  " + endDate);
+        dateLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #2D6A4F;");
+
+        infoBox.getChildren().addAll(nameLabel, typeLabel, dateLabel);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Price Column
+        VBox priceBox = new VBox(2);
+        priceBox.setAlignment(Pos.CENTER_RIGHT);
+
+        Label rateLabel = new Label(pricePerDay + " / day");
+        rateLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #5C6B5F;");
+
+        Label totalLabel = new Label("Total: " + totalPrice);
+        totalLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1B4332;");
+
+        priceBox.getChildren().addAll(rateLabel, totalLabel);
+
+        // Status Badge
+        Label statusLabel = new Label(status);
+        String stBg = "#E8F5E9";
+        String stColor = "#15803D";
+        if ("PENDING".equalsIgnoreCase(status)) {
+            stBg = "#FFF3E0";
+            stColor = "#E65100";
+        } else if ("CANCELLED".equalsIgnoreCase(status)) {
+            stBg = "#FEE2E2";
+            stColor = "#B91C1C";
+        }
+        statusLabel.setStyle(
+                "-fx-background-color: " + stBg + ";" +
+                "-fx-text-fill: " + stColor + ";" +
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 11px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-padding: 4px 12px;" +
+                "-fx-background-radius: 12px;"
+        );
+
+        // Action Buttons
+        Button viewButton = new Button("View Details");
+        viewButton.setPrefHeight(34);
+        viewButton.setStyle(
+                "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                "-fx-text-fill: white;" +
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 12px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-background-radius: 8px;" +
+                "-fx-cursor: hand;" +
+                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.2), 6, 0, 0, 2);"
+        );
+        viewButton.setOnMouseEntered(e -> viewButton.setStyle("-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;"));
+        viewButton.setOnMouseExited(e -> viewButton.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand;"));
+
+        viewButton.setOnAction(e -> {
+            StackPane overlay = new StackPane();
+            overlay.setStyle("-fx-background-color: rgba(0,0,0,0.45);");
+
+            BookingDetails details = new BookingDetails();
+            VBox detailsBox = details.getBookingDetails(
+                    bookingId,
+                    equipmentName,
+                    equipmentType,
+                    startDate,
+                    endDate,
+                    pricePerDay,
+                    totalPrice,
+                    status,
+                    imagePath,
+                    () -> root.getChildren().remove(overlay),
+                    () -> {
+                        root.getChildren().remove(overlay);
+                        showAllBookings();
+                    }
+            );
+
+            detailsBox.setMaxWidth(600);
+            detailsBox.setMaxHeight(650);
+            overlay.getChildren().add(detailsBox);
+            StackPane.setAlignment(detailsBox, Pos.CENTER);
+            root.getChildren().add(overlay);
+        });
+
+        HBox btnRow = new HBox(8, statusLabel, viewButton);
+        btnRow.setAlignment(Pos.CENTER_RIGHT);
+
+        if (!"PAID".equalsIgnoreCase(item.paymentStatus) && !"CANCELLED".equalsIgnoreCase(status) && !"REJECTED".equalsIgnoreCase(status)) {
+            Button payBtn = new Button("💳 Pay with Razorpay");
+            payBtn.setPrefHeight(34);
+            payBtn.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 0 12;");
+            payBtn.setOnAction(e -> openPayModal(item));
+            btnRow.getChildren().add(payBtn);
+        }
+
+        if (!"CANCELLED".equalsIgnoreCase(status) && !"COMPLETED".equalsIgnoreCase(status) && !"REJECTED".equalsIgnoreCase(status)) {
+            Button cancelBtn = new Button("✖ Cancel Booking");
+            cancelBtn.setPrefHeight(34);
+            cancelBtn.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-cursor: hand; -fx-padding: 0 12;");
+            cancelBtn.setOnAction(e -> promptCancelBooking(item));
+            btnRow.getChildren().add(cancelBtn);
+        }
+
+        if ("COMPLETED".equalsIgnoreCase(status)) {
+            Button rateReviewBtn = new Button("⭐ Rate & Review");
+            rateReviewBtn.setPrefHeight(34);
+            rateReviewBtn.setStyle(
+                    "-fx-background-color: #E8F5E9;" +
+                    "-fx-text-fill: #2D6A4F;" +
+                    "-fx-font-family: 'Poppins';" +
+                    "-fx-font-weight: bold;" +
+                    "-fx-font-size: 12px;" +
+                    "-fx-background-radius: 8px;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-border-color: rgba(45, 106, 79, 0.3);" +
+                    "-fx-border-radius: 8px;"
+            );
+            rateReviewBtn.setOnAction(e -> com.desgin.view.farmer.LeftSideBar.navigateToReviews());
+            btnRow.getChildren().add(rateReviewBtn);
+        }
+
+        VBox rightBox = new VBox(8, priceBox, btnRow);
+        rightBox.setAlignment(Pos.CENTER_RIGHT);
+
+        card.getChildren().addAll(imageBox, infoBox, spacer, rightBox);
+
+        card.setOnMouseEntered(e -> {
+            card.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                    "-fx-background-radius: 14px;" +
+                    "-fx-border-color: #2D6A4F;" +
+                    "-fx-border-width: 1.5px;" +
+                    "-fx-border-radius: 14px;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.18), 12, 0, 0, 3);"
+            );
+            card.setTranslateY(-1.5);
+        });
+
+        card.setOnMouseExited(e -> {
+            card.setStyle(
+                    "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                    "-fx-background-radius: 14px;" +
+                    "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                    "-fx-border-width: 1.2px;" +
+                    "-fx-border-radius: 14px;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+            );
+            card.setTranslateY(0);
+        });
+
+        return card;
+    }
+
+    private void openPayModal(BookingItem item) {
+        // Pre-payment validation
+        String loggedInEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+        if (loggedInEmail != null && item.farmerEmail != null && !item.farmerEmail.trim().isEmpty() 
+                && !loggedInEmail.trim().equalsIgnoreCase(item.farmerEmail.trim())) {
+            showErrorAlert("Unauthorized", "This booking belongs to another account (" + item.farmerEmail + ").");
+            return;
+        }
+        if ("PAID".equalsIgnoreCase(item.paymentStatus)) {
+            showErrorAlert("Already Paid", "This booking has already been paid. No further action needed.");
+            return;
+        }
+        if ("CANCELLED".equalsIgnoreCase(item.status) || "REJECTED".equalsIgnoreCase(item.status)) {
+            showErrorAlert("Booking Cancelled", "This booking has been cancelled. Payment is not allowed.");
+            return;
+        }
+
+        StackPane rootPane = com.desgin.view.farmer.Swapnil.FarmerDashboard.root;
+        if (rootPane == null) return;
+
+        StackPane overlay = new StackPane();
+        overlay.setAlignment(Pos.CENTER);
+        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
+
+        VBox rootBox = new VBox(14);
+        rootBox.setPadding(new Insets(24));
+        rootBox.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-background-radius: 14; -fx-border-radius: 14;");
+        rootBox.setPrefWidth(460);
+        rootBox.setMaxWidth(460);
+        rootBox.setMaxHeight(Region.USE_PREF_SIZE);
+        StackPane.setAlignment(rootBox, Pos.CENTER);
+
+        Text title = new Text("💳 Razorpay Payment Checkout");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text info = new Text("• Equipment: " + item.equipmentName + "\n• Scheduled: " + item.startDate + " to " + item.endDate + "\n• Total Due: " + item.totalAmount);
+        info.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #374151;");
+
+        Label statusLbl = new Label("Click below to open the Razorpay payment gateway.");
+        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #6B7280;");
+        statusLbl.setWrapText(true);
+
+        int amt = 1000;
+        try {
+            amt = Integer.parseInt(item.totalAmount.replaceAll("[^0-9]", ""));
+        } catch (Exception ignored) {}
+        final int finalAmt = amt;
+
+        Button payBtn = new Button("🚀 Launch Razorpay (" + item.totalAmount + ")");
+        payBtn.setMaxWidth(Double.MAX_VALUE);
+        payBtn.setPrefHeight(42);
+        payBtn.setStyle("-fx-background-color: #2563EB; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        Button confirmBtn = new Button("✔ Confirm Payment & Secure Booking");
+        confirmBtn.setMaxWidth(Double.MAX_VALUE);
+        confirmBtn.setPrefHeight(42);
+        confirmBtn.setStyle("-fx-background-color: #15803D; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        payBtn.setOnAction(e -> {
+            payBtn.setDisable(true);
+            statusLbl.setText("Connecting to Razorpay gateway...");
+            new Thread(() -> {
+                try {
+                    String url = com.desgin.service.RazorpayService.createPaymentLink(
+                            finalAmt,
+                            item.bookingId,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.name,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.email,
+                            com.desgin.view.farmer.Swapnil.FarmerProfileStore.phone
+                    );
+                    com.desgin.service.RazorpayService.openPaymentInBrowser(url);
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Payment link launched in browser! Complete payment and click Confirm.");
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #2563EB;");
+                        payBtn.setDisable(false);
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Notice: " + ex.getMessage());
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #B91C1C;");
+                        payBtn.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        confirmBtn.setOnAction(e -> {
+            confirmBtn.setDisable(true);
+            statusLbl.setText("Verifying and confirming payment...");
+            statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #2563EB;");
+            new Thread(() -> {
+                try {
+                    new com.desgin.service.BookingService().confirmPayment(
+                            item.bookingId,
+                            "PAY_RZP_" + System.currentTimeMillis(),
+                            "ORD_" + System.currentTimeMillis(),
+                            "Razorpay Online"
+                    );
+                    javafx.application.Platform.runLater(() -> {
+                        rootPane.getChildren().remove(overlay);
+                        syncBookingsFromFirestore();
+                    });
+                } catch (Exception ex) {
+                    javafx.application.Platform.runLater(() -> {
+                        statusLbl.setText("Payment confirmation failed: " + ex.getMessage());
+                        statusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #B91C1C;");
+                        confirmBtn.setDisable(false);
+                    });
+                }
+            }).start();
+        });
+
+        Button cancelModalBtn = new Button("Close");
+        cancelModalBtn.setStyle("-fx-background-color: #E5E7EB; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-background-radius: 6; -fx-cursor: hand;");
+        cancelModalBtn.setOnAction(e -> rootPane.getChildren().remove(overlay));
+
+        HBox bottomRow = new HBox(8, cancelModalBtn);
+        bottomRow.setAlignment(Pos.CENTER_RIGHT);
+
+        rootBox.getChildren().addAll(title, info, statusLbl, payBtn, confirmBtn, bottomRow);
+        overlay.getChildren().add(rootBox);
+        overlay.setOnMouseClicked(e -> {
+            if (e.getTarget() == overlay) rootPane.getChildren().remove(overlay);
+        });
+
+        rootPane.getChildren().add(overlay);
     }
 
     private void alert(String title, String msg) {

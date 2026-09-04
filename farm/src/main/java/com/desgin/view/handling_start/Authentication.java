@@ -328,10 +328,11 @@ public class Authentication {
             }
 
             if (!pwdValid) {
-                passwordErrorLabel.setText("Incorrect password. Please enter your valid updated password.");
+                passwordErrorLabel.setText("Wrong password. Please enter the correct password.");
                 passwordErrorLabel.setVisible(true);
                 passwordErrorLabel.setManaged(true);
-                passwordTextField.setStyle(INPUT_ERROR_STYLE);
+                passwordTextField.getHiddenField().setStyle(PWD_ERROR_STYLE);
+                passwordTextField.getShownField().setStyle(PWD_ERROR_STYLE);
                 passwordTextField.clear();
                 return;
             }
@@ -356,6 +357,7 @@ public class Authentication {
             } else if ("Operator".equalsIgnoreCase(selectedRole)) {
                 com.desgin.view.operator.OperatorProfileStore.setProfile(userDoc.getName(), userDoc.getNum(), null, null);
                 com.desgin.view.operator.OperatorProfileStore.email = (userDoc.getMail() != null && !userDoc.getMail().isEmpty()) ? userDoc.getMail() : inputUser;
+                com.desgin.view.operator.OperatorProfileStore.currentPassword = inputPassword;
                 if (userDoc.getProfilePic() != null && !userDoc.getProfilePic().isEmpty()) {
                     com.desgin.view.operator.OperatorProfileStore.profilePic = userDoc.getProfilePic();
                 }
@@ -1136,16 +1138,9 @@ public class Authentication {
             }
         }
 
-        // Validate Password (8 chars, 1 uppercase, 1 digit, 1 symbol)
+        // Validate Password
         if (inputPassword.isEmpty()) {
             passwordErrorLabel.setText("Password is required.");
-            passwordErrorLabel.setVisible(true);
-            passwordErrorLabel.setManaged(true);
-            passwordTextField.getHiddenField().setStyle(PWD_ERROR_STYLE);
-            passwordTextField.getShownField().setStyle(PWD_ERROR_STYLE);
-            isValid = false;
-        } else if (!inputPassword.matches("^(?=.*[A-Z])(?=.*\\d)(?=.*[^a-zA-Z0-9]).{8,}$")) {
-            passwordErrorLabel.setText("Password must be at least 8 characters, with 1 uppercase, 1 digit & 1 symbol.");
             passwordErrorLabel.setVisible(true);
             passwordErrorLabel.setManaged(true);
             passwordTextField.getHiddenField().setStyle(PWD_ERROR_STYLE);

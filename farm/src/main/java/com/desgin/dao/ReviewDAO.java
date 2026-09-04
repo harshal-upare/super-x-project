@@ -36,15 +36,23 @@ public class ReviewDAO {
         List<ReviewModel> list = new ArrayList<>();
         if (db == null) return list;
         try {
-            QuerySnapshot snapshot = db.collection("Reviews")
-                  .orderBy("timestamp", Query.Direction.DESCENDING)
-                  .get()
-                  .get();
+            QuerySnapshot snapshot;
+            try {
+                snapshot = db.collection("Reviews")
+                      .orderBy("timestamp", Query.Direction.DESCENDING)
+                      .get()
+                      .get();
+            } catch (Exception ex) {
+                snapshot = db.collection("Reviews").get().get();
+            }
 
             for (DocumentSnapshot doc : snapshot.getDocuments()) {
                 if (doc.exists()) {
                     ReviewModel m = doc.toObject(ReviewModel.class);
-                    if (m != null) list.add(m);
+                    if (m != null) {
+                        if (m.getReviewId() == null) m.setReviewId(doc.getId());
+                        list.add(m);
+                    }
                 }
             }
         } catch (Exception e) {

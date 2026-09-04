@@ -25,6 +25,10 @@ public class AdminLeftSideBar {
     public static Button usersBtn;
     public static Button paymentsBtn;
     public static Button profileSettingsBtn;
+    public static Button escrowBtn;
+    public static Button disputesBtn;
+    public static Button queriesBtn;
+    public static Button settingsBtn;
 
     public static StackPane root;
 
@@ -116,7 +120,13 @@ public class AdminLeftSideBar {
         profileSettingsBtn = new Button("⚙️   Master Setting");
         styleMenuButton(profileSettingsBtn);
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, approvalsBtn, usersBtn, paymentsBtn);
+
+        queriesBtn = new Button("💬   User Queries");
+        styleMenuButton(queriesBtn);
+
+
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, approvalsBtn, usersBtn, paymentsBtn, queriesBtn);
+
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -151,8 +161,10 @@ public class AdminLeftSideBar {
         navigationButtons.add(dashboardBtn);
         navigationButtons.add(approvalsBtn);
         navigationButtons.add(usersBtn);
+
         navigationButtons.add(paymentsBtn);
         navigationButtons.add(profileSettingsBtn);
+        navigationButtons.add(queriesBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
 
@@ -180,7 +192,15 @@ public class AdminLeftSideBar {
 
         profileSettingsBtn.setOnAction(event -> {
             navigateToProfileSettings();
+
+        
+
+        queriesBtn.setOnAction(event -> {
+            setActiveButton(queriesBtn, navigationButtons);
+            AdminProfileManagement.setHeaderTitle("User Queries & Live Support 💬", "Real-time WhatsApp-style helpdesk for operator and farmer queries");
+            AdminDashboard.borderPane.setCenter(UserQueries.getPage(root));
         });
+
 
         return leftVB;
     }
