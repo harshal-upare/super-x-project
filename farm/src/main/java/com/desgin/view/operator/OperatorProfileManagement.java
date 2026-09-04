@@ -33,14 +33,16 @@ public class OperatorProfileManagement {
     private static VBox profilePopupRef;
     private static Text profilePillNameText;
     private static StackPane profilePillIconContainer;
-    private static TextField modalNameField;
-    private static TextField modalContactField;
-    private static TextField modalLocationField;
-    private static TextField modalLicenseField;
-    private static ComboBox<String> modalExpCombo;
-    private static ComboBox<String> modalProfCombo;
-    private static String modalUploadedPhoto = "";
-    private static String modalUploadedDl = "";
+    private static Label modalNameLabel;
+    private static Label modalContactLabel;
+    private static Label modalLocationLabel;
+    private static Label modalLicenseLabel;
+    private static Label modalExpLabel;
+    private static Label modalProfLabel;
+    private static ImageView modalPhotoView;
+    private static ImageView modalDlView;
+    private static Label modalDlStatusLabel;
+    private static Text modalHeaderName;
 
     public static String getFormattedFirstName() {
         String raw = OperatorProfileStore.name;
@@ -100,23 +102,36 @@ public class OperatorProfileManagement {
         if (profilePillIconContainer != null) {
             updateProfilePillAvatar(profilePillIconContainer, "👷");
         }
-        if (modalNameField != null && !modalNameField.isFocused()) {
-            modalNameField.setText(OperatorProfileStore.name != null ? OperatorProfileStore.name : "");
+        if (modalHeaderName != null) {
+            modalHeaderName.setText(OperatorProfileStore.name != null ? OperatorProfileStore.name : "Operator");
         }
-        if (modalContactField != null && !modalContactField.isFocused()) {
-            modalContactField.setText(OperatorProfileStore.phone != null ? OperatorProfileStore.phone : "");
+        if (modalNameLabel != null) {
+            modalNameLabel.setText(OperatorProfileStore.name != null && !OperatorProfileStore.name.isEmpty() ? OperatorProfileStore.name : "-");
         }
-        if (modalLocationField != null && !modalLocationField.isFocused()) {
-            modalLocationField.setText(OperatorProfileStore.zone != null ? OperatorProfileStore.zone : "");
+        if (modalContactLabel != null) {
+            modalContactLabel.setText(OperatorProfileStore.phone != null && !OperatorProfileStore.phone.isEmpty() ? OperatorProfileStore.phone : "-");
         }
-        if (modalLicenseField != null && !modalLicenseField.isFocused()) {
-            modalLicenseField.setText(OperatorProfileStore.licenseNo != null ? OperatorProfileStore.licenseNo : "");
+        if (modalLocationLabel != null) {
+            modalLocationLabel.setText(OperatorProfileStore.zone != null && !OperatorProfileStore.zone.isEmpty() ? OperatorProfileStore.zone : "-");
         }
-        if (modalExpCombo != null && OperatorProfileStore.drivingExperience != null) {
-            modalExpCombo.setValue(OperatorProfileStore.drivingExperience);
+        if (modalLicenseLabel != null) {
+            modalLicenseLabel.setText(OperatorProfileStore.licenseNo != null && !OperatorProfileStore.licenseNo.isEmpty() ? OperatorProfileStore.licenseNo : "-");
         }
-        if (modalProfCombo != null && OperatorProfileStore.equipmentProfession != null) {
-            modalProfCombo.setValue(OperatorProfileStore.equipmentProfession);
+        if (modalExpLabel != null) {
+            modalExpLabel.setText(OperatorProfileStore.drivingExperience != null && !OperatorProfileStore.drivingExperience.isEmpty() ? OperatorProfileStore.drivingExperience : "-");
+        }
+        if (modalProfLabel != null) {
+            modalProfLabel.setText(OperatorProfileStore.equipmentProfession != null && !OperatorProfileStore.equipmentProfession.isEmpty() ? OperatorProfileStore.equipmentProfession : "-");
+        }
+        if (modalPhotoView != null && OperatorProfileStore.profilePic != null && !OperatorProfileStore.profilePic.isEmpty()) {
+            try { modalPhotoView.setImage(new Image(OperatorProfileStore.profilePic, true)); } catch (Exception ignored) {}
+        }
+        if (modalDlView != null && OperatorProfileStore.licenseImage != null && !OperatorProfileStore.licenseImage.isEmpty()) {
+            try { modalDlView.setImage(new Image(OperatorProfileStore.licenseImage, true)); } catch (Exception ignored) {}
+            if (modalDlStatusLabel != null) {
+                modalDlStatusLabel.setText("✓ Verified DL Attached");
+                modalDlStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-text-fill: #15803D; -fx-font-weight: bold;");
+            }
         }
     }
 
@@ -570,164 +585,72 @@ public class OperatorProfileManagement {
         topBar.setPadding(new Insets(0, 0, 12, 0));
         topBar.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
 
-        // Photo Upload Row
-        ImageView photoView = new ImageView();
-        photoView.setFitWidth(50);
-        photoView.setFitHeight(50);
-        Circle photoClip = new Circle(25, 25, 25);
-        photoView.setClip(photoClip);
+        // Photo & Header Row (Display Only)
+        modalPhotoView = new ImageView();
+        modalPhotoView.setFitWidth(52);
+        modalPhotoView.setFitHeight(52);
+        Circle photoClip = new Circle(26, 26, 26);
+        modalPhotoView.setClip(photoClip);
         if (OperatorProfileStore.profilePic != null && !OperatorProfileStore.profilePic.isEmpty()) {
-            try { photoView.setImage(new Image(OperatorProfileStore.profilePic, true)); } catch (Exception ignored) {}
+            try { modalPhotoView.setImage(new Image(OperatorProfileStore.profilePic, true)); } catch (Exception ignored) {}
         }
 
         Text pIcon = new Text("👨‍🌾");
-        pIcon.setStyle("-fx-font-size: 22px;");
-        StackPane photoAvatarBox = new StackPane(pIcon, photoView);
-        photoAvatarBox.setPrefSize(50, 50);
-        photoAvatarBox.setMaxSize(50, 50);
-        photoAvatarBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 25; -fx-border-color: #A5D6A7; -fx-border-width: 1.5; -fx-border-radius: 25;");
+        pIcon.setStyle("-fx-font-size: 24px;");
+        StackPane photoAvatarBox = new StackPane(pIcon, modalPhotoView);
+        photoAvatarBox.setPrefSize(52, 52);
+        photoAvatarBox.setMaxSize(52, 52);
+        photoAvatarBox.setStyle("-fx-background-color: #E8F5E9; -fx-background-radius: 26; -fx-border-color: #A5D6A7; -fx-border-width: 1.5; -fx-border-radius: 26;");
 
-        Button uploadPhotoBtn = new Button("📷 Change Photo");
-        uploadPhotoBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 5 10;");
+        modalHeaderName = new Text(OperatorProfileStore.name != null && !OperatorProfileStore.name.isEmpty() ? OperatorProfileStore.name : "Operator");
+        modalHeaderName.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Label photoStatusLbl = new Label("");
-        photoStatusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-text-fill: #15803D;");
+        Label badgeLbl = new Label("🛡️ Certified Heavy Machinery Operator");
+        badgeLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-text-fill: #15803D; -fx-padding: 3 8; -fx-background-radius: 6;");
 
-        uploadPhotoBtn.setOnAction(e -> {
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Choose Operator Photo");
-            chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp"));
-            Window win = modal.getScene() != null ? modal.getScene().getWindow() : null;
-            File file = chooser.showOpenDialog(win);
-            if (file != null) {
-                photoStatusLbl.setText("Uploading photo...");
-                uploadPhotoBtn.setDisable(true);
-                Task<String> task = new Task<>() {
-                    @Override
-                    protected String call() {
-                        return CloudinaryConfig.uploadImage(file);
-                    }
-                };
-                task.setOnSucceeded(ev -> {
-                    uploadPhotoBtn.setDisable(false);
-                    String url = task.getValue();
-                    if (url != null && !url.isEmpty()) {
-                        modalUploadedPhoto = url;
-                        OperatorProfileStore.setProfilePic(url);
-                        try { photoView.setImage(new Image(url, true)); } catch (Exception ignored) {}
-                        photoStatusLbl.setText("✓ Photo updated");
-                        new Thread(() -> new AuthDAO().updateOperatorBusinessInfo(OperatorProfileStore.email, null, null, url, null, null, null)).start();
-                    } else {
-                        photoStatusLbl.setText("Upload failed");
-                    }
-                });
-                task.setOnFailed(ev -> {
-                    uploadPhotoBtn.setDisable(false);
-                    photoStatusLbl.setText("Upload error");
-                });
-                new Thread(task).start();
-            }
-        });
+        VBox nameAndBadge = new VBox(3, modalHeaderName, badgeLbl);
+        nameAndBadge.setAlignment(Pos.CENTER_LEFT);
 
-        VBox photoBtnBox = new VBox(3, uploadPhotoBtn, photoStatusLbl);
-        photoBtnBox.setAlignment(Pos.CENTER_LEFT);
-        HBox photoRow = new HBox(12, photoAvatarBox, photoBtnBox);
+        HBox photoRow = new HBox(12, photoAvatarBox, nameAndBadge);
         photoRow.setAlignment(Pos.CENTER_LEFT);
+        photoRow.setPadding(new Insets(2, 0, 6, 0));
 
-        // Form content
+        // Form content (Read Only Display)
         VBox content = new VBox(14);
         content.setPadding(new Insets(0, 6, 0, 0));
 
-        modalNameField = new TextField(OperatorProfileStore.name);
-        modalContactField = new TextField(OperatorProfileStore.phone);
-        modalLocationField = new TextField(OperatorProfileStore.zone);
-        modalLicenseField = new TextField(OperatorProfileStore.licenseNo);
+        modalNameLabel = new Label(OperatorProfileStore.name != null && !OperatorProfileStore.name.isEmpty() ? OperatorProfileStore.name : "-");
+        modalContactLabel = new Label(OperatorProfileStore.phone != null && !OperatorProfileStore.phone.isEmpty() ? OperatorProfileStore.phone : "-");
+        modalLocationLabel = new Label(OperatorProfileStore.zone != null && !OperatorProfileStore.zone.isEmpty() ? OperatorProfileStore.zone : "-");
+        modalLicenseLabel = new Label(OperatorProfileStore.licenseNo != null && !OperatorProfileStore.licenseNo.isEmpty() ? OperatorProfileStore.licenseNo : "-");
+        modalExpLabel = new Label(OperatorProfileStore.drivingExperience != null && !OperatorProfileStore.drivingExperience.isEmpty() ? OperatorProfileStore.drivingExperience : "-");
+        modalProfLabel = new Label(OperatorProfileStore.equipmentProfession != null && !OperatorProfileStore.equipmentProfession.isEmpty() ? OperatorProfileStore.equipmentProfession : "-");
 
-        styleField(modalNameField);
-        styleField(modalContactField);
-        styleField(modalLocationField);
-        styleField(modalLicenseField);
-
-        modalExpCombo = new ComboBox<>();
-        modalExpCombo.getItems().addAll(
-            "1-2 Years (Junior Machinery Operator)",
-            "3-5 Years (Certified Heavy Machinery Operator)",
-            "5-8 Years (Senior Field Specialist)",
-            "8+ Years (Master Agro-Equipment Expert)"
-        );
-        modalExpCombo.setValue(OperatorProfileStore.drivingExperience != null ? OperatorProfileStore.drivingExperience : "3-5 Years (Certified Heavy Machinery Operator)");
-        modalExpCombo.setPrefWidth(200);
-        modalExpCombo.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D1E7DD; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-font-family: 'Poppins'; -fx-font-size: 11px;");
-
-        modalProfCombo = new ComboBox<>();
-        modalProfCombo.getItems().addAll(
-            "Tractors & Heavy Tillage",
-            "Combined Harvesters & Threshers",
-            "Rotavators, Cultivators & Seeders",
-            "High-Capacity Sprayers & Agri Drones",
-            "Multi-Machinery Operator (All Types)"
-        );
-        modalProfCombo.setValue(OperatorProfileStore.equipmentProfession != null ? OperatorProfileStore.equipmentProfession : "Tractors & Heavy Tillage");
-        modalProfCombo.setPrefWidth(200);
-        modalProfCombo.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #D1E7DD; -fx-border-radius: 8px; -fx-background-radius: 8px; -fx-font-family: 'Poppins'; -fx-font-size: 11px;");
-
-        // DL Image Upload Section
-        ImageView dlThumbView = new ImageView();
-        dlThumbView.setFitWidth(55);
-        dlThumbView.setFitHeight(36);
-        dlThumbView.setPreserveRatio(true);
+        // DL Preview Box (Display Only)
+        modalDlView = new ImageView();
+        modalDlView.setFitWidth(50);
+        modalDlView.setFitHeight(34);
+        modalDlView.setPreserveRatio(true);
         if (OperatorProfileStore.licenseImage != null && !OperatorProfileStore.licenseImage.isEmpty()) {
-            try { dlThumbView.setImage(new Image(OperatorProfileStore.licenseImage, true)); } catch (Exception ignored) {}
+            try { modalDlView.setImage(new Image(OperatorProfileStore.licenseImage, true)); } catch (Exception ignored) {}
         }
         Text dlThumbIcon = new Text("📄");
         dlThumbIcon.setStyle("-fx-font-size: 16px;");
-        StackPane dlThumbBox = new StackPane(dlThumbIcon, dlThumbView);
-        dlThumbBox.setPrefSize(55, 36);
+        StackPane dlThumbBox = new StackPane(dlThumbIcon, modalDlView);
+        dlThumbBox.setPrefSize(50, 34);
         dlThumbBox.setStyle("-fx-background-color: #F4F9F4; -fx-background-radius: 6; -fx-border-color: #C2E0CE; -fx-border-radius: 6; -fx-border-width: 1;");
 
-        Button uploadDlBtn = new Button("📄 Upload DL");
-        uploadDlBtn.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 4 8;");
-        Label dlStatusLbl = new Label("");
-        dlStatusLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-text-fill: #15803D;");
+        modalDlStatusLabel = new Label(
+            (OperatorProfileStore.licenseImage != null && !OperatorProfileStore.licenseImage.isEmpty()) 
+            ? "✓ Official Driving License on File" 
+            : "No DL document uploaded yet"
+        );
+        modalDlStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: 600; -fx-text-fill: #15803D;");
 
-        uploadDlBtn.setOnAction(e -> {
-            FileChooser chooser = new FileChooser();
-            chooser.setTitle("Choose Driving License Image");
-            chooser.getExtensionFilters().addAll(new FileChooser.ExtensionFilter("Image Files", "*.png", "*.jpg", "*.jpeg", "*.webp", "*.bmp"));
-            Window win = modal.getScene() != null ? modal.getScene().getWindow() : null;
-            File file = chooser.showOpenDialog(win);
-            if (file != null) {
-                dlStatusLbl.setText("Uploading...");
-                uploadDlBtn.setDisable(true);
-                Task<String> task = new Task<>() {
-                    @Override
-                    protected String call() {
-                        return CloudinaryConfig.uploadImage(file);
-                    }
-                };
-                task.setOnSucceeded(ev -> {
-                    uploadDlBtn.setDisable(false);
-                    String url = task.getValue();
-                    if (url != null && !url.isEmpty()) {
-                        modalUploadedDl = url;
-                        OperatorProfileStore.licenseImage = url;
-                        try { dlThumbView.setImage(new Image(url, true)); } catch (Exception ignored) {}
-                        dlStatusLbl.setText("✓ DL attached");
-                        new Thread(() -> new AuthDAO().updateOperatorBusinessInfo(OperatorProfileStore.email, null, null, null, null, null, url)).start();
-                    } else {
-                        dlStatusLbl.setText("Upload failed");
-                    }
-                });
-                task.setOnFailed(ev -> {
-                    uploadDlBtn.setDisable(false);
-                    dlStatusLbl.setText("Upload error");
-                });
-                new Thread(task).start();
-            }
-        });
-
-        HBox dlUploadRow = new HBox(8, dlThumbBox, new VBox(2, uploadDlBtn, dlStatusLbl));
-        dlUploadRow.setAlignment(Pos.CENTER_LEFT);
+        HBox dlDisplayRow = new HBox(12, dlThumbBox, modalDlStatusLabel);
+        dlDisplayRow.setAlignment(Pos.CENTER_LEFT);
+        dlDisplayRow.setPadding(new Insets(6, 12, 6, 12));
+        dlDisplayRow.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 8px; -fx-background-radius: 8px;");
 
         VBox card = new VBox(12);
         card.setPadding(new Insets(14));
@@ -736,51 +659,38 @@ public class OperatorProfileManagement {
         GridPane grid = new GridPane();
         grid.setHgap(12);
         grid.setVgap(10);
-        grid.add(createFieldGroup("Full Name", modalNameField), 0, 0);
-        grid.add(createFieldGroup("Contact Mobile", modalContactField), 1, 0);
-        grid.add(createFieldGroup("Operational Zone", modalLocationField), 0, 1);
-        grid.add(createFieldGroup("Operator License No.", modalLicenseField), 1, 1);
-        grid.add(createCustomFieldGroup("Driving Experience", modalExpCombo), 0, 2);
-        grid.add(createCustomFieldGroup("Equipment Profession", modalProfCombo), 1, 2);
-        grid.add(createCustomFieldGroup("Driving License (DL Image)", dlUploadRow), 0, 3, 2, 1);
+        grid.add(createDisplayField("Full Name", modalNameLabel), 0, 0);
+        grid.add(createDisplayField("Contact Mobile", modalContactLabel), 1, 0);
+        grid.add(createDisplayField("Operational Zone", modalLocationLabel), 0, 1);
+        grid.add(createDisplayField("Operator License No.", modalLicenseLabel), 1, 1);
+        grid.add(createDisplayField("Driving Experience", modalExpLabel), 0, 2);
+        grid.add(createDisplayField("Equipment Profession", modalProfLabel), 1, 2);
+        grid.add(createCustomFieldGroup("Driving License (DL Document)", dlDisplayRow), 0, 3, 2, 1);
 
-        Label msg = new Label();
-        msg.setVisible(false);
-        msg.setManaged(false);
-
-        Button saveBtn = new Button("Save Profile Changes");
-        saveBtn.setStyle("-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C); -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 20px; -fx-cursor: hand;");
-        saveBtn.setOnAction(e -> {
-            String n = modalNameField.getText();
-            String c = modalContactField.getText();
-            String l = modalLocationField.getText();
-            String lic = modalLicenseField.getText();
-            String exp = modalExpCombo.getValue();
-            String prof = modalProfCombo.getValue();
-
-            OperatorProfileStore.setProfile(n, c, l, lic);
-            if (exp != null) OperatorProfileStore.drivingExperience = exp;
-            if (prof != null) OperatorProfileStore.equipmentProfession = prof;
-
-            new Thread(() -> {
-                new AuthDAO().updateOperatorBusinessInfo(OperatorProfileStore.email, n, c, modalUploadedPhoto, exp, prof, modalUploadedDl);
-            }).start();
-
-            msg.setText("✓ Operator profile saved successfully!");
-            msg.setStyle("-fx-text-fill: #15803D; -fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-background-color: #DCFCE7; -fx-padding: 6px 10px; -fx-background-radius: 6px;");
-            msg.setVisible(true);
-            msg.setManaged(true);
-        });
-
-        Button settingsBtn = new Button("⚙ Operator Settings");
-        settingsBtn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8px; -fx-padding: 7px 14px; -fx-cursor: hand; -fx-border-color: #E5E7EB; -fx-border-radius: 8px;");
-        settingsBtn.setOnAction(e -> {
+        // Bottom Action Button: Redirects to Settings
+        Button editBtn = new Button("✏  Edit Profile Details in Settings");
+        editBtn.setMaxWidth(Double.MAX_VALUE);
+        editBtn.setPrefHeight(40);
+        editBtn.setStyle(
+            "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+            "-fx-text-fill: white;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 13px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 8px;" +
+            "-fx-padding: 8 20;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 6, 0, 0, 2);"
+        );
+        HBox.setHgrow(editBtn, Priority.ALWAYS);
+        editBtn.setOnAction(e -> {
             modal.setVisible(false);
             OperatorLeftSideBar.navigateToSettings();
         });
 
-        HBox act = new HBox(10, saveBtn, settingsBtn, msg);
-        act.setAlignment(Pos.CENTER_LEFT);
+        HBox act = new HBox(editBtn);
+        act.setAlignment(Pos.CENTER);
+        act.setPadding(new Insets(6, 0, 0, 0));
 
         card.getChildren().addAll(photoRow, grid, act);
         content.getChildren().add(card);
@@ -788,6 +698,8 @@ public class OperatorProfileManagement {
         ScrollPane sp = new ScrollPane(content);
         sp.setFitToWidth(true);
         sp.setPrefHeight(450);
+        sp.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        sp.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
         sp.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         modal.getChildren().addAll(topBar, sp);
@@ -797,6 +709,23 @@ public class OperatorProfileManagement {
         modal.setVisible(false);
 
         return modal;
+    }
+
+    private static VBox createDisplayField(String title, Label valLbl) {
+        Text t = new Text(title);
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563; -fx-font-weight: 600;");
+
+        valLbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #1B4332; -fx-font-weight: 600;");
+        valLbl.setWrapText(true);
+
+        HBox valBox = new HBox(valLbl);
+        valBox.setAlignment(Pos.CENTER_LEFT);
+        valBox.setPadding(new Insets(8, 12, 8, 12));
+        valBox.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 8px; -fx-background-radius: 8px;");
+        valBox.setPrefWidth(205);
+        valBox.setMinWidth(180);
+
+        return new VBox(4, t, valBox);
     }
 
     private VBox createNotificationModal() {

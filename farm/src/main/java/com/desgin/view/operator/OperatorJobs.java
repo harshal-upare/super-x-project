@@ -282,6 +282,12 @@ public class OperatorJobs {
                             if (remaining == 0 && !Boolean.TRUE.equals(j.unlockedRef)) {
                                 j.unlockedRef = true;
                                 unlockNeeded = true;
+                                OperatorProfileStore.setAvailability(true);
+                                new Thread(() -> {
+                                    try {
+                                        new com.desgin.dao.AuthDAO().setOperatorAvailability(OperatorProfileStore.email, true);
+                                    } catch (Exception ignored) {}
+                                }).start();
                             }
                         }
                     }
@@ -411,8 +417,10 @@ public class OperatorJobs {
                 if (j.shiftDurationMillis <= 0) {
                     j.shiftDurationMillis = 3 * 3600 * 1000L;
                 }
+                OperatorProfileStore.setAvailability(false);
                 new Thread(() -> {
                     try {
+                        new com.desgin.dao.AuthDAO().setOperatorAvailability(OperatorProfileStore.email, false);
                         new RentalRequestDAO().startShift(j.id, j.shiftStartTime, j.shiftDurationMillis);
                         new com.desgin.dao.NotificationDAO().sendNotification(
                             j.farmerEmail,

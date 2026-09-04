@@ -66,6 +66,15 @@ public class OperatorHome {
                             OperatorProfileStore.availableForShifts = avail;
                             OperatorProfileStore.status = avail ? "Available for Field Shifts" : "Not Available / Off-duty";
                         }
+                    } else {
+                        var qMail = db.collection("Operator").whereEqualTo("mail", opEmail).get().get();
+                        if (!qMail.isEmpty()) {
+                            Boolean avail = qMail.getDocuments().get(0).getBoolean("available");
+                            if (avail != null) {
+                                OperatorProfileStore.availableForShifts = avail;
+                                OperatorProfileStore.status = avail ? "Available for Field Shifts" : "Not Available / Off-duty";
+                            }
+                        }
                     }
                 }
 

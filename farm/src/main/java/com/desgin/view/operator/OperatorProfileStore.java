@@ -123,12 +123,15 @@ public class OperatorProfileStore {
 
         new Thread(() -> {
             try {
-                com.google.cloud.firestore.Firestore db = com.desgin.config.FirestoreConfig.getFirestore();
-                if (db != null && email != null && !email.trim().isEmpty()) {
-                    java.util.Map<String, Object> updateMap = new java.util.HashMap<>();
-                    updateMap.put("available", available);
-                    updateMap.put("status", available ? "AVAILABLE" : "NOT AVAILABLE");
-                    db.collection("Operator").document(email).set(updateMap, com.google.cloud.firestore.SetOptions.merge());
+                com.desgin.dao.AuthDAO dao = new com.desgin.dao.AuthDAO();
+                if (email != null && !email.trim().isEmpty()) {
+                    dao.setOperatorAvailability(email, available);
+                }
+                if (phone != null && !phone.trim().isEmpty()) {
+                    dao.setOperatorAvailability(phone, available);
+                }
+                if (name != null && !name.trim().isEmpty()) {
+                    dao.setOperatorAvailability(name, available);
                 }
             } catch (Exception ignored) {}
         }).start();

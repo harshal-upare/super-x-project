@@ -492,8 +492,10 @@ public class OperatorJobRequests {
                     if (req.shiftDurationMillis <= 0) {
                         req.shiftDurationMillis = 3 * 3600 * 1000L;
                     }
+                    OperatorProfileStore.setAvailability(false);
                     new Thread(() -> {
                         try {
+                            new com.desgin.dao.AuthDAO().setOperatorAvailability(OperatorProfileStore.email, false);
                             new RentalRequestDAO().startShift(req.id, req.shiftStartTime, req.shiftDurationMillis);
                             new NotificationDAO().sendNotification(
                                 req.farmerEmail,

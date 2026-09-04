@@ -420,6 +420,13 @@ private VBox paymentCards;
                 new Thread(() -> {
                     try {
                         new RentalRequestDAO().completeShift(r.getRequestId());
+                        com.desgin.dao.AuthDAO authDAO = new com.desgin.dao.AuthDAO();
+                        if (r.getOperatorId() != null && !r.getOperatorId().isEmpty()) {
+                            authDAO.setOperatorAvailability(r.getOperatorId(), true);
+                        }
+                        if (r.getOperatorName() != null && !r.getOperatorName().isEmpty()) {
+                            authDAO.setOperatorAvailability(r.getOperatorName(), true);
+                        }
                         new com.desgin.dao.NotificationDAO().sendNotification(
                             r.getOperatorId(),
                             "✔ Work Done Confirmed by Farmer",
@@ -429,6 +436,14 @@ private VBox paymentCards;
                         );
                     } catch (Exception ignored) {}
                 }).start();
+
+                try {
+                    if (com.desgin.view.operator.OperatorProfileStore.email != null &&
+                        (com.desgin.view.operator.OperatorProfileStore.email.equalsIgnoreCase(r.getOperatorId()) ||
+                         com.desgin.view.operator.OperatorProfileStore.name.equalsIgnoreCase(r.getOperatorName()))) {
+                        com.desgin.view.operator.OperatorProfileStore.setAvailability(true);
+                    }
+                } catch (Exception ignored) {}
 
                 markShiftCompleted(r.getRequestId());
 
@@ -483,6 +498,33 @@ private VBox paymentCards;
                         long st = r.getShiftStartTime() > 0 ? r.getShiftStartTime() : System.currentTimeMillis();
                         long dur = r.getShiftDurationMillis() > 0 ? r.getShiftDurationMillis() : (3 * 3600 * 1000L);
                         lbl.setText(formatCountdown(st, dur));
+
+                        long elapsed = System.currentTimeMillis() - st;
+                        long remaining = Math.max(0, dur - elapsed);
+                        if (remaining == 0 && !"COMPLETED".equalsIgnoreCase(r.getStatus())) {
+                            r.setStatus("COMPLETED");
+                            r.setOperatorStatus("COMPLETED");
+                            new Thread(() -> {
+                                try {
+                                    new RentalRequestDAO().completeShift(r.getRequestId());
+                                    com.desgin.dao.AuthDAO authDAO = new com.desgin.dao.AuthDAO();
+                                    if (r.getOperatorId() != null && !r.getOperatorId().isEmpty()) {
+                                        authDAO.setOperatorAvailability(r.getOperatorId(), true);
+                                    }
+                                    if (r.getOperatorName() != null && !r.getOperatorName().isEmpty()) {
+                                        authDAO.setOperatorAvailability(r.getOperatorName(), true);
+                                    }
+                                } catch (Exception ignored) {}
+                            }).start();
+
+                            try {
+                                if (com.desgin.view.operator.OperatorProfileStore.email != null &&
+                                    (com.desgin.view.operator.OperatorProfileStore.email.equalsIgnoreCase(r.getOperatorId()) ||
+                                     com.desgin.view.operator.OperatorProfileStore.name.equalsIgnoreCase(r.getOperatorName()))) {
+                                    com.desgin.view.operator.OperatorProfileStore.setAvailability(true);
+                                }
+                            } catch (Exception ignored) {}
+                        }
                     }
                 }
             })

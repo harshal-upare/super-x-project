@@ -382,12 +382,69 @@ public class AuthDAO {
         }
     }
 
+    public boolean setOperatorAvailability(String identifier, boolean available) {
+        if (identifier == null || identifier.trim().isEmpty() || db == null) return false;
+        try {
+            String key = identifier.trim();
+            java.util.Map<String, Object> update = new java.util.HashMap<>();
+            update.put("available", available);
+            update.put("status", available ? "AVAILABLE" : "BUSY");
+
+            DocumentSnapshot doc = db.collection("Operator").document(key).get().get();
+            if (doc.exists()) {
+                db.collection("Operator").document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                return true;
+            }
+
+            var qMail = db.collection("Operator").whereEqualTo("mail", key).get().get();
+            if (!qMail.isEmpty()) {
+                for (var d : qMail.getDocuments()) {
+                    db.collection("Operator").document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                }
+                return true;
+            }
+
+            var qNum = db.collection("Operator").whereEqualTo("num", key).get().get();
+            if (!qNum.isEmpty()) {
+                for (var d : qNum.getDocuments()) {
+                    db.collection("Operator").document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                }
+                return true;
+            }
+
+            var qName = db.collection("Operator").whereEqualTo("name", key).get().get();
+            if (!qName.isEmpty()) {
+                for (var d : qName.getDocuments()) {
+                    db.collection("Operator").document(d.getId()).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+                }
+                return true;
+            }
+
+            db.collection("Operator").document(key).set(update, com.google.cloud.firestore.SetOptions.merge()).get();
+            return true;
+        } catch (Exception e) {
+            System.err.println("Notice: Failed to update operator availability in Firestore: " + e.getMessage());
+            return false;
+        }
+    }
+
     public java.util.List<AuthenticateModel> getAvailableOperators() {
         java.util.List<AuthenticateModel> operators = new java.util.ArrayList<>();
         if (db == null) return operators;
         try {
             var docs = db.collection("Operator").get().get().getDocuments();
             for (var d : docs) {
+                Boolean isAvail = d.getBoolean("available");
+                if (Boolean.FALSE.equals(isAvail)) continue;
+
+                String status = d.getString("status");
+                if (status != null) {
+                    String st = status.trim().toUpperCase();
+                    if (st.contains("BUSY") || st.contains("UNAVAILABLE") || st.contains("NOT AVAILABLE") || st.contains("OFFLINE") || st.contains("OFF_DUTY") || st.contains("OFF-DUTY")) {
+                        continue;
+                    }
+                }
+
                 AuthenticateModel m = d.toObject(AuthenticateModel.class);
                 if (m != null) {
                     m.setRole("Operator");

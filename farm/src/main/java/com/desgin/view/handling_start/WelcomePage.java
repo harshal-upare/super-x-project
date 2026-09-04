@@ -18,8 +18,21 @@ import javafx.stage.Stage;
 
 public class WelcomePage extends Application {
 
-    private Scene welcomePageScene;
+    public static Scene welcomePageScene;
     public static Stage welcomePageStage;
+
+    public static void navigateToWelcomePage() {
+        if (welcomePageStage != null) {
+            if (welcomePageScene == null) {
+                try {
+                    new WelcomePage().start(welcomePageStage);
+                    return;
+                } catch (Exception ignored) {}
+            }
+            welcomePageStage.setScene(welcomePageScene);
+            welcomePageStage.setTitle("Agriculture Equipment Rental Platform (FarmEquip) ");
+        }
+    }
 
     @Override
     public void start(Stage primaryStage) throws Exception {
@@ -95,7 +108,56 @@ public class WelcomePage extends Application {
             welcomePageStage.setScene(obj.getAuthenticationScene());
         });
 
-        VBox leftVBox = new VBox(18,welcomeText,farmEquipText,subtitleText,descriptionText,getStarted);
+        // About Us Button in Proper Format
+        Button aboutUsBtn = new Button("ℹ  About Us ➔");
+        aboutUsBtn.setPrefWidth(220);
+        aboutUsBtn.setPrefHeight(48);
+        aboutUsBtn.setStyle(
+            "-fx-background-color: #FFFFFF;" +
+            "-fx-text-fill: #087F3F;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-border-color: #087F3F;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 12px;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);"
+        );
+        aboutUsBtn.setOnMouseEntered(e -> aboutUsBtn.setStyle(
+            "-fx-background-color: #087F3F;" +
+            "-fx-text-fill: #FFFFFF;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-border-color: #087F3F;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 12px;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(8,127,63,0.35), 10, 0, 0, 3);"
+        ));
+        aboutUsBtn.setOnMouseExited(e -> aboutUsBtn.setStyle(
+            "-fx-background-color: #FFFFFF;" +
+            "-fx-text-fill: #087F3F;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 16px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-border-color: #087F3F;" +
+            "-fx-border-width: 2px;" +
+            "-fx-border-radius: 12px;" +
+            "-fx-background-radius: 12px;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.08), 8, 0, 0, 2);"
+        ));
+        aboutUsBtn.setOnAction(event -> {
+            AboutUsPage aboutPage = new AboutUsPage();
+            welcomePageStage.setScene(aboutPage.getAboutUsScene());
+            welcomePageStage.setTitle("FarmEquip – About Us • Core2Web Project");
+        });
+
+        VBox leftVBox = new VBox(14, welcomeText, farmEquipText, subtitleText, descriptionText, getStarted, aboutUsBtn);
         leftVBox.setAlignment(Pos.CENTER_LEFT);
 
         /*
@@ -105,7 +167,7 @@ public class WelcomePage extends Application {
 
         StackPane contentCard = new StackPane();
         contentCard.setMaxWidth(560);
-        contentCard.setMaxHeight(440);
+        contentCard.setMaxHeight(510);
         contentCard.setPadding(new Insets(35,40,35,40));
         contentCard.setStyle("-fx-background-color: rgba(255,255,255,0.58);" +"-fx-background-radius: 22;");
         contentCard.getChildren().add(leftVBox);

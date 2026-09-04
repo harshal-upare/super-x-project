@@ -75,8 +75,60 @@ public class Authentication {
         backgroundImageView.setSmooth(true);
         backgroundImageView.setMouseTransparent(true);
 
+        // ------------------ TOP-LEFT BACK TO HOMEPAGE BUTTON ------------------
+        Button backToHomeBtn = new Button("← Back to Home");
+        backToHomeBtn.setStyle(
+            "-fx-background-color: rgba(255, 255, 255, 0.92);" +
+            "-fx-text-fill: #16723A;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 13.5px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 22px;" +
+            "-fx-border-color: #16723A;" +
+            "-fx-border-radius: 22px;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-padding: 8 18;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);"
+        );
+        backToHomeBtn.setOnMouseEntered(e -> backToHomeBtn.setStyle(
+            "-fx-background-color: #16723A;" +
+            "-fx-text-fill: white;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 13.5px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 22px;" +
+            "-fx-border-color: #16723A;" +
+            "-fx-border-radius: 22px;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-padding: 8 18;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(22,114,58,0.4), 10, 0, 0, 3);"
+        ));
+        backToHomeBtn.setOnMouseExited(e -> backToHomeBtn.setStyle(
+            "-fx-background-color: rgba(255, 255, 255, 0.92);" +
+            "-fx-text-fill: #16723A;" +
+            "-fx-font-family: 'Poppins';" +
+            "-fx-font-size: 13.5px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-background-radius: 22px;" +
+            "-fx-border-color: #16723A;" +
+            "-fx-border-radius: 22px;" +
+            "-fx-border-width: 1.5px;" +
+            "-fx-padding: 8 18;" +
+            "-fx-cursor: hand;" +
+            "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);"
+        ));
+        backToHomeBtn.setOnAction(e -> WelcomePage.navigateToWelcomePage());
+
+        HBox backBox = new HBox(backToHomeBtn);
+        backBox.setAlignment(Pos.TOP_LEFT);
+        backBox.setPadding(new Insets(24, 0, 0, 28));
+        backBox.setPickOnBounds(false);
+        StackPane.setAlignment(backBox, Pos.TOP_LEFT);
+
         rootStackPane = new StackPane();
-        rootStackPane.getChildren().addAll(backgroundImageView, borderPane);
+        rootStackPane.getChildren().addAll(backgroundImageView, borderPane, backBox);
 
         backgroundImageView.fitWidthProperty().bind(rootStackPane.widthProperty());
         backgroundImageView.fitHeightProperty().bind(rootStackPane.heightProperty());

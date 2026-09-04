@@ -89,11 +89,14 @@ public class SearchOperator {
 
                         Boolean isAvailable = doc.getBoolean("available");
                         String docStatus = doc.getString("status");
-                        if (isAvailable != null && !isAvailable) {
+                        if (Boolean.FALSE.equals(isAvailable)) {
                             continue;
                         }
-                        if (docStatus != null && ("NOT AVAILABLE".equalsIgnoreCase(docStatus.trim()) || "OFFLINE".equalsIgnoreCase(docStatus.trim()) || "UNAVAILABLE".equalsIgnoreCase(docStatus.trim()) || "BUSY".equalsIgnoreCase(docStatus.trim()))) {
-                            continue;
+                        if (docStatus != null) {
+                            String st = docStatus.trim().toUpperCase();
+                            if (st.contains("BUSY") || st.contains("UNAVAILABLE") || st.contains("NOT AVAILABLE") || st.contains("OFFLINE") || st.contains("OFF_DUTY") || st.contains("OFF-DUTY")) {
+                                continue;
+                            }
                         }
 
                         String email = doc.getId();
