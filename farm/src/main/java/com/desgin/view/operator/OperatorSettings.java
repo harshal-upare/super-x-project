@@ -65,7 +65,36 @@ public class OperatorSettings {
         r1.setToggleGroup(tg);
         r2.setToggleGroup(tg);
         r3.setToggleGroup(tg);
-        r1.setSelected(true);
+        r1.setSelected(OperatorProfileStore.availableForShifts);
+        if (!OperatorProfileStore.availableForShifts) r3.setSelected(true);
+
+        r1.setOnAction(e -> {
+            OperatorProfileStore.availableForShifts = true;
+            OperatorProfileStore.status = "Available for Field Shifts";
+            new Thread(() -> {
+                try {
+                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "ACTIVE");
+                } catch (Exception ignored) {}
+            }).start();
+        });
+        r2.setOnAction(e -> {
+            OperatorProfileStore.availableForShifts = false;
+            OperatorProfileStore.status = "Busy on Active Shift";
+            new Thread(() -> {
+                try {
+                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "BUSY");
+                } catch (Exception ignored) {}
+            }).start();
+        });
+        r3.setOnAction(e -> {
+            OperatorProfileStore.availableForShifts = false;
+            OperatorProfileStore.status = "On Leave / Off-Duty";
+            new Thread(() -> {
+                try {
+                    new com.desgin.dao.AuthDAO().updateUserStatus(OperatorProfileStore.email, "Operator", "OFF_DUTY");
+                } catch (Exception ignored) {}
+            }).start();
+        });
 
         String rbStyle = "-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #1B4332;";
         r1.setStyle(rbStyle);

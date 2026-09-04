@@ -64,84 +64,48 @@ public class SearchOperator {
 
     public static final List<OperatorItem> operatorsList = new ArrayList<>();
 
-    static {
-        initDefaultOperators();
-    }
-
-    private static void initDefaultOperators() {
-        if (!operatorsList.isEmpty()) return;
-
-        List<String> s1 = List.of("55HP+ Tractor", "Laser Leveler", "Deep Tillage", "Monsoon Puddling");
-        operatorsList.add(new OperatorItem(
-                "OP-101",
-                "Dilip Shinde",
-                "+91 98901 44552",
-                "🚜 55HP+ Heavy 4WD Tractor & Laser Land Leveler Specialist",
-                "Tractor",
-                "8 Years Exp • 142 Jobs",
-                "Pune",
-                "Pune (Baramati Hub)",
-                "₹600 / day",
-                4.9,
-                142,
-                "AVAILABLE",
-                "Namaste! I am Dilip Shinde. I have 8 years of professional tractor driving experience. Certified in precision laser land leveling, monsoon puddling, 4WD operations, and high-speed tillage across sugarcane, wheat, and cotton farms. I handle minor breakdowns on-field.",
-                s1
-        ));
-
-        List<String> s2 = List.of("Combine Harvester", "Multi-Crop Thresher", "Zero Grain Loss", "Night Operation");
-        operatorsList.add(new OperatorItem(
-                "OP-102",
-                "Ramesh Jadhav",
-                "+91 98224 81920",
-                "🌾 Combine Harvester & Multi-Crop Threshing Master",
-                "Harvester",
-                "10 Years Exp • 210 Jobs",
-                "Pune",
-                "Pune (Saswad Region)",
-                "₹850 / day",
-                4.8,
-                210,
-                "AVAILABLE",
-                "Hello farmers, I am Ramesh Jadhav. 10 years experience operating Claas, Preet, and John Deere combine harvesters. Specialized in zero-loss grain harvesting for wheat, soybean, paddy, and gram. Night operation certified with full field safety protocols.",
-                s2
-        ));
-
-        List<String> s3 = List.of("DGCA Certified Pilot", "16L Drone Sprayer", "Thermal Crop Mapping", "90% Water Saving");
-        operatorsList.add(new OperatorItem(
-                "OP-103",
-                "Aniket Thorat",
-                "+91 97631 55209",
-                "🚁 DGCA Certified Agricultural Drone Sprayer & Mapping Pilot",
-                "Drone",
-                "4 Years Exp • 98 Jobs",
-                "Pune",
-                "Pune (Haveli Taluka)",
-                "₹750 / day",
-                5.0,
-                98,
-                "AVAILABLE",
-                "Namaste! I am Aniket Thorat. DGCA certified precision drone pilot with 4 years specialized experience in automated 16L pesticide/fertilizer spraying, multi-spectral thermal crop health imaging, and ultra-low volume foliar spray saving 90% water.",
-                s3
-        ));
-
-        List<String> s4 = List.of("7ft Rotavator", "Seedbed Preparation", "Reversible MB Plough", "Fuel Efficient");
-        operatorsList.add(new OperatorItem(
-                "OP-104",
-                "Santosh Gaikwad",
-                "+91 94220 33182",
-                "⚙ Rotary Tiller & Fine Seedbed Specialist",
-                "Rotavator",
-                "6 Years Exp • 115 Jobs",
-                "Pune",
-                "Pune (Indapur Area)",
-                "₹550 / day",
-                4.7,
-                115,
-                "ON ASSIGNMENT",
-                "Hello, I am Santosh Gaikwad. Expert in fine soil preparation using Shaktiman and Fieldking rotavators, reversible MB ploughs, and raised bed seeders. Delivers clod-free soil bed with optimal moisture retention for maximum seed germination.",
-                s4
-        ));
+    public static void syncOperatorsFromFirestore(StackPane root) {
+        Thread t = new Thread(() -> {
+            try {
+                com.google.cloud.firestore.Firestore db = com.desgin.config.FirestoreConfig.getFirestore();
+                if (db != null) {
+                    var snapshot = db.collection("Operator").get().get();
+                    List<OperatorItem> list = new ArrayList<>();
+                    for (var doc : snapshot.getDocuments()) {
+                        String name = doc.getString("name");
+                        if (name == null || name.trim().isEmpty()) continue;
+                        String phone = doc.getString("num");
+                        String town = doc.getString("town");
+                        String district = doc.getString("district");
+                        String loc = (town != null && !town.isEmpty()) ? (town + (district != null ? ", " + district : "")) : "Maharashtra";
+                        list.add(new OperatorItem(
+                            doc.getId(),
+                            name,
+                            phone != null ? phone : "Contact via Hire Request",
+                            "🚜 Certified Machinery Operator",
+                            "Tractor",
+                            "Verified Operator",
+                            town != null ? town : "Pune",
+                            loc,
+                            "₹600 / day",
+                            5.0,
+                            0,
+                            "AVAILABLE",
+                            "Registered agricultural machinery operator available for on-field contract hire.",
+                            List.of("Tractor Driving", "Tillage Operations", "Safety Certified")
+                        ));
+                    }
+                    javafx.application.Platform.runLater(() -> {
+                        operatorsList.clear();
+                        operatorsList.addAll(list);
+                        updateKpis();
+                        filterOperators(root);
+                    });
+                }
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     private static VBox operatorsContainer;
@@ -149,6 +113,18 @@ public class SearchOperator {
     private static ComboBox<String> categoryFilter;
     private static ComboBox<String> statusFilter;
     private static Label feedbackBanner;
+    private static Label totalOpsLabel = new Label("0");
+    private static Label availOpsLabel = new Label("0");
+    private static Label assignedOpsLabel = new Label("0");
+
+    private static void updateKpis() {
+        long totalOps = operatorsList.size();
+        long availOps = operatorsList.stream().filter(o -> "AVAILABLE".equalsIgnoreCase(o.status)).count();
+        long assignedOps = operatorsList.stream().filter(o -> "ON ASSIGNMENT".equalsIgnoreCase(o.status)).count();
+        if (totalOpsLabel != null) totalOpsLabel.setText(String.valueOf(totalOps));
+        if (availOpsLabel != null) availOpsLabel.setText(String.valueOf(availOps));
+        if (assignedOpsLabel != null) assignedOpsLabel.setText(String.valueOf(assignedOps));
+    }
 
     public static ScrollPane getSearchOperatorSection(StackPane root) {
 
@@ -157,14 +133,12 @@ public class SearchOperator {
         feedbackBanner.setVisible(false);
         feedbackBanner.setManaged(false);
 
-        // ================= 3 KPI SUMMARY CARDS (USER REQUESTED ONLY 3) =================
-        long totalOps = operatorsList.size();
-        long availOps = operatorsList.stream().filter(o -> "AVAILABLE".equalsIgnoreCase(o.status)).count();
-        long assignedOps = operatorsList.stream().filter(o -> "ON ASSIGNMENT".equalsIgnoreCase(o.status)).count();
+        // ================= 3 KPI SUMMARY CARDS =================
+        updateKpis();
 
-        VBox c1 = createStatCard("👷 Total Operators", String.valueOf(totalOps), "Registered in your region", "#1B4332");
-        VBox c2 = createStatCard("🟢 Available to Hire", String.valueOf(availOps), "Ready for field dispatch", "#2D6A4F");
-        VBox c3 = createStatCard("🟠 Rented Out / Assigned", String.valueOf(assignedOps), "Currently on active fields", "#B45309");
+        VBox c1 = createStatCardWithLabel("👷 Total Operators", totalOpsLabel, "Registered in your region", "#1B4332");
+        VBox c2 = createStatCardWithLabel("🟢 Available to Hire", availOpsLabel, "Ready for field dispatch", "#2D6A4F");
+        VBox c3 = createStatCardWithLabel("🟠 Rented Out / Assigned", assignedOpsLabel, "Currently on active fields", "#B45309");
 
         HBox summaryCards = new HBox(16, c1, c2, c3);
         summaryCards.setAlignment(Pos.CENTER_LEFT);
@@ -242,6 +216,9 @@ public class SearchOperator {
         mainContainer.setMaxWidth(Double.MAX_VALUE);
         mainContainer.setStyle("-fx-background-color: transparent;");
 
+        // Initial render & sync from database
+        syncOperatorsFromFirestore(root);
+
         ScrollPane scrollPane = new ScrollPane(mainContainer);
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
@@ -249,6 +226,28 @@ public class SearchOperator {
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
 
         return scrollPane;
+    }
+
+    private static VBox createStatCardWithLabel(String label, Label valNode, String subText, String valColor) {
+        Text lbl = new Text(label);
+        lbl.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        valNode.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 22px; -fx-font-weight: bold; -fx-text-fill: " + valColor + ";");
+
+        Text sub = new Text(subText);
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #5C6B5F;");
+
+        VBox card = new VBox(4, lbl, valNode, sub);
+        card.setPadding(new Insets(14, 18, 14, 18));
+        card.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.95);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-border-color: rgba(45, 106, 79, 0.25);" +
+                "-fx-border-width: 1.2px;" +
+                "-fx-border-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
+        );
+        return card;
     }
 
     private static VBox createStatCard(String label, String value, String subText, String valColor) {
@@ -338,13 +337,15 @@ public class SearchOperator {
                     "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 8, 0, 0, 2);"
             );
 
-            Text icon = new Text("👷");
+            Text icon = new Text("🚜");
             icon.setStyle("-fx-font-size: 38px;");
 
-            Text title = new Text("No Operators Match Your Filter");
+            Text title = new Text(operatorsList.isEmpty() ? "No Registered Operators Available" : "No Operators Match Your Filter");
             title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-            Text sub = new Text("Try selecting 'All Specializations' or resetting filters to see verified machinery operators.");
+            Text sub = new Text(operatorsList.isEmpty() ?
+                    "Machine operators registered on the platform will automatically appear here once they join." :
+                    "Try selecting 'All Specializations' or resetting filters to see verified machinery operators.");
             sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
             emptyBox.getChildren().addAll(icon, title, sub);

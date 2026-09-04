@@ -43,6 +43,11 @@ public class ProviderDashboard {
         subroot.prefHeightProperty().bind(root.heightProperty());
         providerDashboardScene = new Scene(root);
 
+        // Start watching user status in case admin suspends account live
+        if (ProviderProfileStore.email != null && !ProviderProfileStore.email.isEmpty()) {
+            com.desgin.service.UserStatusWatcher.startWatching(ProviderProfileStore.email, "Provider", ref);
+        }
+
         return providerDashboardScene;
     }
 }

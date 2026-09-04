@@ -52,12 +52,32 @@ public class OperatorJobs {
     }
 
     private static void initJobs() {
-        if (!jobList.isEmpty()) return;
-        jobList.add(new JobOrder("JOB-7821", "Deep Tillage & Soil Preparation (14.0 Acres)", "Balasaheb Shirole", "+91 98231 44552", "Plot B, Sector 4, Baramati, Pune", "John Deere 5310 4WD + 7ft Rotavator", "Today, 08:00 AM - 04:30 PM", "₹400 / Acre", "₹5,600", "IN_PROGRESS"));
-        jobList.add(new JobOrder("JOB-7830", "Wheat Harvesting & Grain Threshing (18.0 Acres)", "Vikas More", "+91 98502 11234", "Gat No. 112, Daund Road, Pune", "Preet 987 Multicrop Harvester", "Tomorrow, 07:00 AM - 05:00 PM", "₹450 / Acre", "₹8,100", "CONFIRMED"));
-        jobList.add(new JobOrder("JOB-7842", "Laser Land Leveling & Grading (8.0 Acres)", "Kiran Bhosale", "+91 94220 89761", "Shiraswadi Farm, Baramati", "Mahindra 575 DI + Laser Unit", "16 Aug 2026, 08:30 AM", "₹700 / Hour (~6 hrs)", "₹4,200", "SCHEDULED"));
-        jobList.add(new JobOrder("JOB-7855", "Micronutrient Spraying for Sugarcane (12.0 Acres)", "Ganesh Jadhav", "+91 97631 55670", "Hol Village, Baramati Sub-District", "Hexacopter Agri Spray Drone", "17 Aug 2026, 06:00 AM", "₹350 / Acre", "₹4,200", "SCHEDULED"));
-        jobList.add(new JobOrder("JOB-7790", "Paddy Nursery Bed Preparation (6.5 Acres)", "Pravin Jagtap", "+91 98904 33211", "Bhigwan Basin Road, Pune", "Mahindra 575 DI + Cultivator", "12 Aug 2026 (Completed)", "₹380 / Acre", "₹2,470", "COMPLETED"));
+        jobList.clear();
+        try {
+            String opEmail = OperatorProfileStore.email;
+            if (opEmail == null || opEmail.trim().isEmpty()) return;
+            java.util.List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(opEmail);
+            for (com.desgin.model.RentalRequestModel r : list) {
+                int opWage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
+                String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "SCHEDULED";
+                if ("ACTIVE".equalsIgnoreCase(st)) st = "IN_PROGRESS";
+                else if ("ACCEPTED".equalsIgnoreCase(st) || "PENDING".equalsIgnoreCase(st) || "CONFIRMED".equalsIgnoreCase(st)) st = "SCHEDULED";
+                else if ("COMPLETED".equalsIgnoreCase(st)) st = "COMPLETED";
+
+                jobList.add(new JobOrder(
+                        r.getRequestId(),
+                        "Field Operation: " + (r.getMachineryName() != null ? r.getMachineryName() : "Machinery Task"),
+                        r.getFarmerName() != null ? r.getFarmerName() : "Client Farmer",
+                        r.getFarmerPhone() != null ? r.getFarmerPhone() : "+91 98000 00000",
+                        r.getFarmerLocation() != null ? r.getFarmerLocation() : "Field Sector",
+                        r.getMachineryName() != null ? r.getMachineryName() : "Machinery Unit",
+                        (r.getStartDate() != null ? r.getStartDate() : "Start") + " to " + (r.getEndDate() != null ? r.getEndDate() : "End"),
+                        "₹500 / Day",
+                        "₹" + String.format("%,d", opWage),
+                        st
+                ));
+            }
+        } catch (Exception ignored) {}
     }
 
     public static ScrollPane getJobsSection(StackPane root) {
@@ -184,7 +204,6 @@ public class OperatorJobs {
         VBox wageBox = new VBox(4, wageRateText, estWageText, statusLabel);
         wageBox.setAlignment(Pos.CENTER_RIGHT);
 
-        // Buttons
         Button updateBtn = new Button("🔄 Update Status");
         updateBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         updateBtn.setOnAction(e -> showStatusModal(j, root));
@@ -193,11 +212,7 @@ public class OperatorJobs {
         routeBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
         routeBtn.setOnAction(e -> showRouteModal(j, root));
 
-        Button callBtn = new Button("📞 Call");
-        callBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12 6 12;");
-        callBtn.setOnAction(e -> showCallModal(j, root));
-
-        HBox btnRow = new HBox(8, routeBtn, callBtn, updateBtn);
+        HBox btnRow = new HBox(8, routeBtn, updateBtn);
         btnRow.setAlignment(Pos.CENTER_RIGHT);
 
         VBox rightSide = new VBox(12, wageBox, btnRow);
@@ -257,21 +272,92 @@ public class OperatorJobs {
         Text task = new Text(j.taskTitle + "\nClient: " + j.farmerName);
         task.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #374151;");
 
-        Button s1 = new Button("▶  Start Job (In-Progress)");
-        s1.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        s1.setMaxWidth(Double.MAX_VALUE);
-        s1.setOnAction(e -> { j.status = "IN_PROGRESS"; renderJobs("ALL", root); root.getChildren().remove(overlay); });
+        modal.getChildren().add(title);
+        modal.getChildren().add(task);
 
-        Button s2 = new Button("✓  Complete Job & Trigger Wage Settlement");
-        s2.setStyle("-fx-background-color: #0284C7; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        s2.setMaxWidth(Double.MAX_VALUE);
-        s2.setOnAction(e -> { j.status = "COMPLETED"; renderJobs("ALL", root); root.getChildren().remove(overlay); });
+        if (j.status.equals("SCHEDULED")) {
+            Label assignmentInfo = new Label("📋 New job assignment pending your response. Once accepted, the farmer will be notified.");
+            assignmentInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-text-fill: #374151; -fx-wrap-text: true;");
+
+            Button acceptBtn = new Button("✔  Accept Assignment");
+            acceptBtn.setMaxWidth(Double.MAX_VALUE);
+            acceptBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+            acceptBtn.setOnAction(e -> {
+                j.status = "IN_PROGRESS";
+                renderJobs("ALL", root);
+                root.getChildren().remove(overlay);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.service.BookingService().operatorAccept(j.id);
+                    } catch (Exception ex) {
+                        javafx.application.Platform.runLater(() -> {
+                            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                            alert.setTitle("Accept Error");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Could not accept: " + ex.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                }).start();
+            });
+
+            Button declineBtn = new Button("✕  Decline Assignment");
+            declineBtn.setMaxWidth(Double.MAX_VALUE);
+            declineBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+            declineBtn.setOnAction(e -> {
+                j.status = "COMPLETED"; // hide from active list
+                renderJobs("ALL", root);
+                root.getChildren().remove(overlay);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.service.BookingService().operatorDecline(j.id, "Operator unavailable for this schedule.");
+                    } catch (Exception ex) {
+                        javafx.application.Platform.runLater(() -> {
+                            javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.ERROR);
+                            alert.setTitle("Decline Error");
+                            alert.setHeaderText(null);
+                            alert.setContentText("Could not decline: " + ex.getMessage());
+                            alert.showAndWait();
+                        });
+                    }
+                }).start();
+            });
+
+            modal.getChildren().addAll(assignmentInfo, acceptBtn, declineBtn);
+        } else if (j.status.equals("IN_PROGRESS")) {
+            Button s2 = new Button("✓  Complete Job & Trigger Wage Settlement");
+            s2.setStyle("-fx-background-color: #0284C7; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+            s2.setMaxWidth(Double.MAX_VALUE);
+            s2.setOnAction(e -> {
+                j.status = "COMPLETED";
+                renderJobs("ALL", root);
+                root.getChildren().remove(overlay);
+                new Thread(() -> { try { new com.desgin.service.BookingService().completeBooking(j.id); } catch (Exception ignored) {} }).start();
+            });
+            modal.getChildren().add(s2);
+        } else {
+            Button s1 = new Button("▶  Start Job (In-Progress)");
+            s1.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
+            s1.setMaxWidth(Double.MAX_VALUE);
+            s1.setOnAction(e -> {
+                j.status = "IN_PROGRESS";
+                renderJobs("ALL", root);
+                root.getChildren().remove(overlay);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.dao.RentalRequestDAO().updateRequestStatus(j.id, "ACTIVE");
+                    } catch (Exception ignored) {}
+                }).start();
+            });
+            modal.getChildren().add(s1);
+        }
 
         Button cancel = new Button("Close");
+        cancel.setMaxWidth(Double.MAX_VALUE);
         cancel.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
         cancel.setOnAction(e -> root.getChildren().remove(overlay));
+        modal.getChildren().add(cancel);
 
-        modal.getChildren().addAll(title, task, s1, s2, cancel);
         overlay.getChildren().add(modal);
         root.getChildren().add(overlay);
     }
@@ -297,37 +383,6 @@ public class OperatorJobs {
         close.setOnAction(e -> root.getChildren().remove(overlay));
 
         modal.getChildren().addAll(title, desc, close);
-        overlay.getChildren().add(modal);
-        root.getChildren().add(overlay);
-    }
-
-    private static void showCallModal(JobOrder j, StackPane root) {
-        StackPane overlay = new StackPane();
-        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.5);");
-
-        VBox modal = new VBox(14);
-        modal.setPrefWidth(420);
-        modal.setMaxWidth(420);
-        modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-
-        Text title = new Text("📞 Contact Client Farmer");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text farmerInfo = new Text("Farmer Name: " + j.farmerName + "\nMobile Phone: " + j.phone + "\nFarm: " + j.location);
-        farmerInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #374151; -fx-line-spacing: 4px;");
-
-        Button callBtn = new Button("Dial " + j.phone);
-        callBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-
-        Button close = new Button("Close");
-        close.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        close.setOnAction(e -> root.getChildren().remove(overlay));
-
-        HBox btns = new HBox(10, callBtn, close);
-        btns.setAlignment(Pos.CENTER_RIGHT);
-
-        modal.getChildren().addAll(title, farmerInfo, btns);
         overlay.getChildren().add(modal);
         root.getChildren().add(overlay);
     }

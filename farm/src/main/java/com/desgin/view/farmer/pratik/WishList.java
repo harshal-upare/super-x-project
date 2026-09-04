@@ -79,22 +79,6 @@ public class WishList {
     private static final ObservableList<OperatorWishlistItem> operatorWishlist =
             FXCollections.observableArrayList();
 
-    static {
-        // Initial sample saved operator in wishlist for demonstration
-        if (operatorWishlist.isEmpty()) {
-            operatorWishlist.add(new OperatorWishlistItem(
-                    "OP-101",
-                    "Dilip Shinde",
-                    "🚜 55HP+ Heavy 4WD Tractor Driver",
-                    "8 Years Exp • 142 Jobs",
-                    "Pune (Baramati Hub)",
-                    "₹600 / day",
-                    4.9,
-                    "+91 98901 44552"
-            ));
-        }
-    }
-
     public static void addToWishlist(
             String equipmentName,
             String category,
@@ -117,10 +101,64 @@ public class WishList {
         );
 
         wishlistItems.add(item);
+
+        // Persist to database asynchronously
+        Thread t = new Thread(() -> {
+            try {
+                String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                new com.desgin.dao.WishlistDAO().addEquipmentToWishlist(
+                        farmerEmail,
+                        equipmentName,
+                        category,
+                        price,
+                        rating,
+                        location,
+                        imagePath
+                );
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     public static void removeFromWishlist(String equipmentName) {
         wishlistItems.removeIf(item -> item.getEquipmentName().equals(equipmentName));
+
+        // Delete from database asynchronously
+        Thread t = new Thread(() -> {
+            try {
+                String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                new com.desgin.dao.WishlistDAO().removeEquipmentFromWishlist(farmerEmail, equipmentName);
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
+    }
+
+    public static void syncWishlistFromFirestore(Runnable onDone) {
+        Thread t = new Thread(() -> {
+            try {
+                String farmerEmail = com.desgin.view.farmer.Swapnil.FarmerProfileStore.email;
+                var list = new com.desgin.dao.WishlistDAO().getWishlistByFarmer(farmerEmail);
+                javafx.application.Platform.runLater(() -> {
+                    wishlistItems.clear();
+                    for (var map : list) {
+                        String name = (String) map.get("equipmentName");
+                        String cat = (String) map.get("category");
+                        String pr = (String) map.get("price");
+                        String rt = (String) map.get("rating");
+                        String loc = (String) map.get("location");
+                        String img = (String) map.get("imagePath");
+                        if (name != null) {
+                            wishlistItems.add(new WishlistItem(name, cat, pr, rt, loc, img));
+                        }
+                    }
+                    if (onDone != null) onDone.run();
+                });
+            } catch (Exception ignored) {}
+        });
+        t.setDaemon(true);
+        t.start();
     }
 
     public static boolean isInWishlist(String equipmentName) {
@@ -282,6 +320,7 @@ public class WishList {
         });
 
         refreshView.run();
+        syncWishlistFromFirestore(refreshView);
 
         // --------------------------------------------------------
         // MAIN CONTENT
@@ -544,13 +583,23 @@ public class WishList {
     }
 
     private Image loadImage(String imagePath) {
+        if (imagePath == null || imagePath.trim().isEmpty()) {
+            return new Image("file:farm/src/main/resources/assets/Images/tractor.png");
+        }
+        if (imagePath.startsWith("http://") || imagePath.startsWith("https://")) {
+            try {
+                return new Image(imagePath, true);
+            } catch (Exception e) {
+                return new Image("file:farm/src/main/resources/assets/Images/tractor.png");
+            }
+        }
         try {
             return new Image(getClass().getResourceAsStream(imagePath));
         } catch (Exception e) {
             try {
                 return new Image(imagePath, true);
             } catch (Exception ex) {
-                return null;
+                return new Image("file:farm/src/main/resources/assets/Images/tractor.png");
             }
         }
     }

@@ -58,26 +58,34 @@ public class MachineryApprovals {
     }
 
     private static void initData() {
-        if (!approvalsList.isEmpty()) return;
-        approvalsList.add(new ApprovalItem("APP-102", "Swaraj 855 FE Heavy Tractor", "Tractors", "Rajesh Patil (Agro Services)", "+91 98220 12345", "MH-12-EQ-8842", 1400, "52 HP • 4WD • Dual Clutch • 2024 Model", "file:farm/src/main/resources/assets/Images/tractor.png", "PENDING", "Today, 10:30 AM"));
-        approvalsList.add(new ApprovalItem("APP-105", "Kubota DC-68G Rice Combine Harvester", "Harvesters", "Vikas More (Indapur Fleet)", "+91 98502 11234", "MH-42-H-5021", 3800, "68 HP • Rubber Track • Clean Grain Thresher", "file:farm/src/main/resources/assets/Images/tractor.png", "PENDING", "Yesterday, 04:15 PM"));
-        approvalsList.add(new ApprovalItem("APP-108", "Garuda 20L Agricultural Drone Sprayer", "Sprayers & Drones", "Kiran Bhosale (AgriTech Baramati)", "+91 94220 89761", "DGCA-UIN-99824", 2000, "20 Liters Tank • Obstacle Radar • RTK Precision", "file:farm/src/main/resources/assets/Images/tractor.png", "PENDING", "14 Aug 2026"));
-        approvalsList.add(new ApprovalItem("APP-112", "Lemken 3-Bottom Hydraulic Reversible Plough", "Cultivators", "Ganesh Jadhav", "+91 97631 55670", "MH-12-PL-3310", 900, "Heavy Boron Steel • 12-14 Inch Depth", "file:farm/src/main/resources/assets/Images/tractor.png", "PENDING", "13 Aug 2026"));
-
-        // Already Approved
-        approvalsList.add(new ApprovalItem("APP-094", "John Deere 5310 PowerTech", "Tractors", "Rajesh Patil", "+91 98220 12345", "MH-12-JD-5310", 1500, "55 HP • Turbocharged • 4WD", "file:farm/src/main/resources/assets/Images/tractor.png", "APPROVED", "10 Aug 2026"));
-        approvalsList.add(new ApprovalItem("APP-088", "Kartar 4000 Multi-Crop Harvester", "Harvesters", "Balasaheb Shirole", "+91 98229 11029", "MH-42-K-4000", 3500, "76 HP • 14ft Cutter Bar", "file:farm/src/main/resources/assets/Images/tractor.png", "APPROVED", "05 Aug 2026"));
+        approvalsList.clear();
+        try {
+            java.util.List<com.desgin.model.MachineryModel> machs = new com.desgin.dao.MachineryDAO().getAllMachinery();
+            for (com.desgin.model.MachineryModel m : machs) {
+                String st = m.getStatus() != null ? m.getStatus().toUpperCase() : "APPROVED";
+                String appStatus = "PENDING".equals(st) ? "PENDING" : ("REJECTED".equals(st) ? "REJECTED" : "APPROVED");
+                String img = (m.getImagePath() != null && !m.getImagePath().isEmpty()) ? m.getImagePath() : "file:farm/src/main/resources/assets/Images/tractor.png";
+                approvalsList.add(new ApprovalItem(
+                        m.getId() != null ? m.getId() : "MAC-" + System.currentTimeMillis(),
+                        m.getName() != null ? m.getName() : "Machinery",
+                        m.getCategory() != null ? m.getCategory() : "Equipment",
+                        m.getProviderName() != null ? m.getProviderName() : "Fleet Provider",
+                        m.getProviderPhone() != null ? m.getProviderPhone() : "+91 98000 00000",
+                        m.getRegistrationNumber() != null ? m.getRegistrationNumber() : "MH-12-REG",
+                        m.getPricePerDay(),
+                        m.getSpecifications() != null ? m.getSpecifications() : (m.getModel() != null ? m.getModel() : "Farm Ready"),
+                        img,
+                        appStatus,
+                        "Registered"
+                ));
+            }
+        } catch (Exception ignored) {}
+        if (approvalsList.isEmpty()) {
+            approvalsList.add(new ApprovalItem("APP-094", "John Deere 5310 PowerTech", "Tractors", "Rajesh Patil", "+91 98220 12345", "MH-12-JD-5310", 1500, "55 HP • Turbocharged • 4WD", "file:farm/src/main/resources/assets/Images/tractor.png", "APPROVED", "Active"));
+        }
     }
 
     public static ScrollPane getPage(StackPane root) {
-        Text title = new Text("Machinery Listing Verification & Quality Moderation");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subtitle = new Text("Review newly registered machinery submitted by fleet providers, inspect RTO registration, and approve listings for public rental.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
-
-        VBox titleBox = new VBox(3, title, subtitle);
-
         // Search Field
         TextField searchField = new TextField();
         searchField.setPromptText("Search by Application ID, Machine Model, Provider or RTO No...");
@@ -96,7 +104,7 @@ public class MachineryApprovals {
         listContainer.setMinWidth(0);
         renderList(root);
 
-        VBox content = new VBox(18, titleBox, searchField, tabBox, listContainer);
+        VBox content = new VBox(18, searchField, tabBox, listContainer);
         content.setPadding(new Insets(20, 25, 35, 25));
         content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);
@@ -223,6 +231,11 @@ public class MachineryApprovals {
             approveBtn.setOnAction(e -> {
                 item.status = "APPROVED";
                 renderList(root);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.dao.MachineryDAO().updateMachineryStatus(item.id, "AVAILABLE");
+                    } catch (Exception ignored) {}
+                }).start();
             });
 
             Button rejectBtn = new Button("✖ Reject");
@@ -230,6 +243,11 @@ public class MachineryApprovals {
             rejectBtn.setOnAction(e -> {
                 item.status = "REJECTED";
                 renderList(root);
+                new Thread(() -> {
+                    try {
+                        new com.desgin.dao.MachineryDAO().updateMachineryStatus(item.id, "REJECTED");
+                    } catch (Exception ignored) {}
+                }).start();
             });
 
             actions.getChildren().addAll(rejectBtn, approveBtn);

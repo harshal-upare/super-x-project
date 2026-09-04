@@ -1,56 +1,228 @@
 package com.desgin.view.provider;
 
+import com.desgin.dao.AuthDAO;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
-import javafx.scene.control.CheckBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 public class ProviderSettings {
 
     public static ScrollPane getSettingsSection() {
-        Text headerTitle = new Text("Provider Account & Operational Settings");
+        Text headerTitle = new Text("Provider Account & Profile Settings");
         headerTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text headerSubtitle = new Text("Manage your agricultural agency details, verified payout bank accounts, rental policies, and notification alerts.");
+        Text headerSubtitle = new Text("Update your contact details, service area, and regional location for matching nearby farmers.");
         headerSubtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-fill: #4B5563;");
 
         VBox titleBox = new VBox(4, headerTitle, headerSubtitle);
 
-        // Section 1: Business & Agency Profile
-        VBox businessCard = createBusinessCard();
+        // Required Profile & Location Fields Card
+        VBox profileCard = new VBox(14);
+        profileCard.setPadding(new Insets(22));
+        profileCard.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
 
-        // Section 2: Bank Payout Account
-        VBox bankCard = createBankCard();
+        Text cardTitle = new Text("Account Profile & Operating Hub");
+        cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        // Section 3: Rental Terms & Security Policy
-        VBox policyCard = createPolicyCard();
+        GridPane form = new GridPane();
+        form.setHgap(15);
+        form.setVgap(14);
 
-        // Section 4: Notification Alerts
-        VBox notifCard = createNotifCard();
+        TextField nameField = createTextField(ProviderProfileStore.name != null ? ProviderProfileStore.name : "");
+        nameField.setPromptText("Enter your full name");
 
-        // Save Button & Status Label
+        TextField phoneField = createTextField(ProviderProfileStore.phone != null ? ProviderProfileStore.phone : "");
+        phoneField.setPromptText("Enter 10-digit mobile number");
+
+        TextField emailField = createTextField(ProviderProfileStore.email != null ? ProviderProfileStore.email : "");
+        emailField.setEditable(false);
+        emailField.setStyle("-fx-background-color: #F3F4F6; -fx-border-color: #E5E7EB; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #6B7280;");
+
+        TextField townField = createTextField(ProviderProfileStore.town != null ? ProviderProfileStore.town : "Pune");
+        townField.setPromptText("Operating town/city");
+
+        TextField districtField = createTextField(ProviderProfileStore.district != null ? ProviderProfileStore.district : "Pune");
+        districtField.setPromptText("District");
+
+        TextField stateField = createTextField(ProviderProfileStore.state != null ? ProviderProfileStore.state : "Maharashtra");
+        stateField.setPromptText("State");
+
+        TextField pincodeField = createTextField(ProviderProfileStore.pincode != null ? ProviderProfileStore.pincode : "411001");
+        pincodeField.setPromptText("Postal PIN Code");
+
+        form.add(createLabel("Full Name / Provider Name:"), 0, 0);
+        form.add(nameField, 1, 0);
+
+        form.add(createLabel("Phone / WhatsApp:"), 0, 1);
+        form.add(phoneField, 1, 1);
+
+        form.add(createLabel("Registered Email:"), 0, 2);
+        form.add(emailField, 1, 2);
+
+        form.add(createLabel("Operating Town / City:"), 0, 3);
+        form.add(townField, 1, 3);
+
+        form.add(createLabel("District:"), 0, 4);
+        form.add(districtField, 1, 4);
+
+        form.add(createLabel("State:"), 0, 5);
+        form.add(stateField, 1, 5);
+
+        form.add(createLabel("PIN Code:"), 0, 6);
+        form.add(pincodeField, 1, 6);
+
         Label statusLabel = new Label("");
-        statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;");
+        statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;");
 
-        Button saveAllBtn = new Button("💾  Save All Settings & Preferences");
-        saveAllBtn.setPrefHeight(44);
-        saveAllBtn.setPrefWidth(300);
-        saveAllBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13.5px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+        Button saveBtn = new Button("💾  Save Changes");
+        saveBtn.setPrefHeight(40);
+        saveBtn.setPrefWidth(200);
+        saveBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
 
-        saveAllBtn.setOnAction(e -> {
-            statusLabel.setText("✔ All provider business profile & payout settings updated successfully!");
+        saveBtn.setOnAction(e -> {
+            String newName = nameField.getText() != null ? nameField.getText().trim() : "";
+            String newPhone = phoneField.getText() != null ? phoneField.getText().trim() : "";
+            String newTown = townField.getText() != null ? townField.getText().trim() : "";
+            String newDistrict = districtField.getText() != null ? districtField.getText().trim() : "";
+            String newState = stateField.getText() != null ? stateField.getText().trim() : "";
+            String newPincode = pincodeField.getText() != null ? pincodeField.getText().trim() : "";
+
+            if (newName.isEmpty() || newTown.isEmpty()) {
+                statusLabel.setText("⚠ Please fill in your name and operating town.");
+                statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #DC2626;");
+                return;
+            }
+
+            // 1. Instant local store update (0 delay)
+            ProviderProfileStore.name = newName;
+            ProviderProfileStore.phone = newPhone;
+            ProviderProfileStore.town = newTown;
+            ProviderProfileStore.district = newDistrict;
+            ProviderProfileStore.state = newState;
+            ProviderProfileStore.pincode = newPincode;
+            ProviderProfileStore.notifyListeners();
+
+            statusLabel.setText("✔ Changes saved successfully!");
+            statusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #15803D;");
+
+            // 2. Asynchronous background write to database
+            Thread bg = new Thread(() -> {
+                try {
+                    AuthDAO dao = new AuthDAO();
+                    String mail = ProviderProfileStore.email;
+                    dao.updateProfile(mail, "Provider", newName, newPhone);
+                    dao.updateLocation(mail, "Provider", newTown, newDistrict, newState, newPincode);
+                } catch (Exception ignored) {}
+            });
+            bg.setDaemon(true);
+            bg.start();
         });
 
-        VBox botBox = new VBox(10, saveAllBtn, statusLabel);
-        botBox.setAlignment(Pos.CENTER_LEFT);
+        HBox btnRow = new HBox(15, saveBtn, statusLabel);
+        btnRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox content = new VBox(22, titleBox, businessCard, bankCard, policyCard, notifCard, botBox);
+        profileCard.getChildren().addAll(cardTitle, form, btnRow);
+
+        // --------------------------------------------------------
+        // BANK ACCOUNT & SETTLEMENT PAYOUTS CARD
+        // --------------------------------------------------------
+        VBox bankCard = new VBox(14);
+        bankCard.setPadding(new Insets(22));
+        bankCard.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
+
+        Text bankTitle = new Text("🏦 Bank Account & Payout Settlement Details");
+        bankTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text bankSub = new Text("Linked bank account and UPI details where rental escrow payments from farmers will be transferred.");
+        bankSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #6B7280;");
+
+        GridPane bankForm = new GridPane();
+        bankForm.setHgap(15);
+        bankForm.setVgap(14);
+
+        TextField holderField = createTextField(ProviderProfileStore.accountHolder != null ? ProviderProfileStore.accountHolder : "");
+        holderField.setPromptText("Account Holder Name (as in bank passbook)");
+
+        TextField bankNameField = createTextField(ProviderProfileStore.bankName != null ? ProviderProfileStore.bankName : "");
+        bankNameField.setPromptText("e.g. State Bank of India, HDFC Bank");
+
+        TextField accNumField = createTextField(ProviderProfileStore.accountNumber != null ? ProviderProfileStore.accountNumber : "");
+        accNumField.setPromptText("e.g. 11-16 digit bank account number");
+
+        TextField ifscField = createTextField(ProviderProfileStore.ifsc != null ? ProviderProfileStore.ifsc : "");
+        ifscField.setPromptText("e.g. SBIN0001234");
+
+        TextField upiField = createTextField(ProviderProfileStore.upiId != null ? ProviderProfileStore.upiId : "");
+        upiField.setPromptText("e.g. provider@okhdfcbank");
+
+        bankForm.add(createLabel("Account Holder Name:"), 0, 0);
+        bankForm.add(holderField, 1, 0);
+
+        bankForm.add(createLabel("Bank Name:"), 0, 1);
+        bankForm.add(bankNameField, 1, 1);
+
+        bankForm.add(createLabel("Bank Account Number:"), 0, 2);
+        bankForm.add(accNumField, 1, 2);
+
+        bankForm.add(createLabel("Bank IFSC Code:"), 0, 3);
+        bankForm.add(ifscField, 1, 3);
+
+        bankForm.add(createLabel("UPI ID (Optional):"), 0, 4);
+        bankForm.add(upiField, 1, 4);
+
+        Label bankStatusLabel = new Label("");
+        bankStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #2E7D32;");
+
+        Button saveBankBtn = new Button("💳  Save Bank & Settlement Details");
+        saveBankBtn.setPrefHeight(40);
+        saveBankBtn.setPrefWidth(270);
+        saveBankBtn.setStyle("-fx-background-color: #1B4332; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand;");
+
+        saveBankBtn.setOnAction(e -> {
+            String newHolder = holderField.getText() != null ? holderField.getText().trim() : "";
+            String newBName = bankNameField.getText() != null ? bankNameField.getText().trim() : "";
+            String newAcc = accNumField.getText() != null ? accNumField.getText().trim() : "";
+            String newIfsc = ifscField.getText() != null ? ifscField.getText().trim() : "";
+            String newUpi = upiField.getText() != null ? upiField.getText().trim() : "";
+
+            if (newHolder.isEmpty() || newAcc.isEmpty() || newIfsc.isEmpty()) {
+                bankStatusLabel.setText("⚠ Please fill Account Holder, Account Number, and IFSC.");
+                bankStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #DC2626;");
+                return;
+            }
+
+            // 1. Instant local store update
+            ProviderProfileStore.setBankDetails(newHolder, newBName, newAcc, newIfsc, newUpi);
+
+            bankStatusLabel.setText("✔ Bank details saved to database!");
+            bankStatusLabel.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #15803D;");
+
+            // 2. Background Firestore update
+            Thread bg = new Thread(() -> {
+                try {
+                    AuthDAO dao = new AuthDAO();
+                    String mail = ProviderProfileStore.email;
+                    dao.updateBankDetails(mail, "Provider", newHolder, newBName, newAcc, newIfsc, newUpi);
+                } catch (Exception ignored) {}
+            });
+            bg.setDaemon(true);
+            bg.start();
+        });
+
+        HBox bankBtnRow = new HBox(15, saveBankBtn, bankStatusLabel);
+        bankBtnRow.setAlignment(Pos.CENTER_LEFT);
+
+        bankCard.getChildren().addAll(bankTitle, bankSub, bankForm, bankBtnRow);
+
+        VBox content = new VBox(22, titleBox, profileCard, bankCard);
         content.setPadding(new Insets(25, 30, 35, 30));
 
         ScrollPane scrollPane = new ScrollPane(content);
@@ -62,126 +234,18 @@ public class ProviderSettings {
         return scrollPane;
     }
 
-    private static VBox createBusinessCard() {
-        Text title = new Text("1. Agricultural Agency & Provider Information");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        GridPane form = new GridPane();
-        form.setHgap(15);
-        form.setVgap(12);
-
-        form.add(createLabel("Agency / Trade Name:"), 0, 0);
-        form.add(createTextField("Rajesh Agro Services & Farm Rentals"), 1, 0);
-
-        form.add(createLabel("Owner / Contact Person:"), 0, 1);
-        form.add(createTextField("Rajesh Patil"), 1, 1);
-
-        form.add(createLabel("Phone / WhatsApp:"), 0, 2);
-        form.add(createTextField("+91 98220 12345"), 1, 2);
-
-        form.add(createLabel("Registered Email:"), 0, 3);
-        form.add(createTextField("rajesh.agro@farmmail.com"), 1, 3);
-
-        form.add(createLabel("GSTIN / Trade License:"), 0, 4);
-        form.add(createTextField("27AAACR1234F1Z5 (Verified ✓)"), 1, 4);
-
-        form.add(createLabel("Primary Service Hub:"), 0, 5);
-        form.add(createTextField("Baramati & Pune Rural Agro Complex"), 1, 5);
-
-        VBox card = new VBox(12, title, form);
-        card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createBankCard() {
-        Text title = new Text("2. Verified Payout Bank Account Details");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        GridPane form = new GridPane();
-        form.setHgap(15);
-        form.setVgap(12);
-
-        form.add(createLabel("Account Holder Name:"), 0, 0);
-        form.add(createTextField("Rajesh V. Patil"), 1, 0);
-
-        form.add(createLabel("Bank Name:"), 0, 1);
-        form.add(createTextField("HDFC Bank Ltd."), 1, 1);
-
-        form.add(createLabel("Account Number:"), 0, 2);
-        form.add(createTextField("50100293848842"), 1, 2);
-
-        form.add(createLabel("IFSC Code:"), 0, 3);
-        form.add(createTextField("HDFC0001024"), 1, 3);
-
-        form.add(createLabel("UPI ID for Instant Settlement:"), 0, 4);
-        form.add(createTextField("rajesh.agro@okhdfcbank"), 1, 4);
-
-        VBox card = new VBox(12, title, form);
-        card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createPolicyCard() {
-        Text title = new Text("3. Rental Terms, Radius & Security Deposit Policy");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        GridPane form = new GridPane();
-        form.setHgap(15);
-        form.setVgap(12);
-
-        form.add(createLabel("Maximum Operating Radius (km):"), 0, 0);
-        form.add(createTextField("50 km from Base Hub"), 1, 0);
-
-        form.add(createLabel("Default Security Deposit (₹):"), 0, 1);
-        form.add(createTextField("₹2,000 (Refunded upon inspection)"), 1, 1);
-
-        form.add(createLabel("Standard Driver Daily Wage (₹):"), 0, 2);
-        form.add(createTextField("₹500 / day"), 1, 2);
-
-        form.add(createLabel("Cancellation Policy:"), 0, 3);
-        form.add(createTextField("Full refund if cancelled 24h prior to start"), 1, 3);
-
-        VBox card = new VBox(12, title, form);
-        card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createNotifCard() {
-        Text title = new Text("4. Booking Alerts & Notification Channels");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        CheckBox cb1 = new CheckBox("Send Instant WhatsApp notification when farmer books equipment");
-        cb1.setSelected(true);
-        cb1.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
-
-        CheckBox cb2 = new CheckBox("Send SMS alerts for urgent booking requests due in < 24 hours");
-        cb2.setSelected(true);
-        cb2.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
-
-        CheckBox cb3 = new CheckBox("Email monthly earnings statement & tax invoice summary");
-        cb3.setSelected(true);
-        cb3.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
-
-        VBox card = new VBox(10, title, cb1, cb2, cb3);
-        card.setPadding(new Insets(18));
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
     private static Label createLabel(String text) {
         Label l = new Label(text);
         l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-text-fill: #374151;");
+        l.setPrefWidth(190);
         return l;
     }
 
-    private static TextField createTextField(String text) {
-        TextField tf = new TextField(text);
+    private static TextField createTextField(String val) {
+        TextField tf = new TextField(val != null ? val : "");
         tf.setPrefHeight(36);
         tf.setPrefWidth(320);
-        tf.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1B4332;");
+        tf.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-text-fill: #1F2937;");
         return tf;
     }
 }

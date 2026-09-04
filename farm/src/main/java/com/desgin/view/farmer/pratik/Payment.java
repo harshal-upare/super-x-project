@@ -7,10 +7,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.desgin.view.farmer.Swapnil.BookingDataStore;
+import com.desgin.view.farmer.Swapnil.FarmerProfileStore;
+import com.desgin.dao.PaymentDAO;
+import com.desgin.dao.RentalRequestDAO;
+import com.desgin.model.PaymentModel;
+import com.desgin.model.RentalRequestModel;
 
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.CheckBox;
@@ -123,120 +135,119 @@ private static CheckBox net;
     );
 
     //---------------------------------------------------------
-    // Dynamic Summary Cards from BookingDataStore
+    // Dynamic Spending & Payment Data from Firestore
     //---------------------------------------------------------
-    List<BookingDataStore.BookingItem> allBookings = BookingDataStore.getAllBookings();
+    String farmerEmail = FarmerProfileStore.email != null ? FarmerProfileStore.email.trim().toLowerCase() : "";
+    List<PaymentModel> farmerPayments = new PaymentDAO().getPaymentsByFarmer(farmerEmail);
+    List<RentalRequestModel> farmerRequests = new RentalRequestDAO().getRequestsByFarmer(farmerEmail);
+
     paymentCardList.clear();
     paymentSearchData.clear();
     paymentStatusList.clear();
     paymentMethodList.clear();
 
-    int totalTxn = allBookings.size();
-    int paidCount = 0;
-    int pendingCount = 0;
-    int failedCount = 0;
     int totalPaidAmt = 0;
-    int totalPendingAmt = 0;
+    int thisMonthAmt = 0;
+    int pendingAmt = 0;
+    int completedCount = 0;
+    int refundAmt = 0;
 
-    for (BookingDataStore.BookingItem b : allBookings) {
-        String amtStr = b.totalAmount != null ? b.totalAmount.replaceAll("[^0-9]", "") : "0";
-        int amt = 0;
-        try { amt = Integer.parseInt(amtStr); } catch (Exception ignored) {}
+    String currentMonthName = java.time.LocalDate.now().getMonth().name().substring(0, 3); // e.g. "SEP"
 
-        if ("COMPLETED".equalsIgnoreCase(b.status) || "ACTIVE".equalsIgnoreCase(b.status)) {
-            paidCount++;
-            totalPaidAmt += amt;
-        } else if ("PENDING".equalsIgnoreCase(b.status)) {
-            pendingCount++;
-            totalPendingAmt += amt;
-        } else if ("CANCELLED".equalsIgnoreCase(b.status)) {
-            failedCount++;
+    for (PaymentModel p : farmerPayments) {
+        if ("PAID".equalsIgnoreCase(p.getPaymentStatus())) {
+            totalPaidAmt += p.getAmount();
+            completedCount++;
+            if (p.getCreatedAt() != null && p.getCreatedAt().toUpperCase().contains(currentMonthName)) {
+                thisMonthAmt += p.getAmount();
+            }
+        } else if ("REFUNDED".equalsIgnoreCase(p.getPaymentStatus())) {
+            refundAmt += p.getAmount();
         }
     }
 
-    HBox summaryCards = new HBox(18);
+    for (RentalRequestModel r : farmerRequests) {
+        int rAmt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+        if ("PAID".equalsIgnoreCase(r.getPaymentStatus()) || "COMPLETED".equalsIgnoreCase(r.getStatus())) {
+            if (farmerPayments.isEmpty()) {
+                totalPaidAmt += rAmt;
+                completedCount++;
+                thisMonthAmt += rAmt;
+            }
+        } else if ("ACCEPTED".equalsIgnoreCase(r.getStatus()) || "PENDING".equalsIgnoreCase(r.getStatus())) {
+            pendingAmt += rAmt;
+        }
+    }
+
+    // 5 Financial Cards (Requirement 4)
+    HBox summaryCards = new HBox(14);
     summaryCards.getChildren().addAll(
-            createSummaryCard(
-                    "Total Payments",
-                    String.valueOf(totalTxn),
-                    "💳",
-                    "#4A2C20"
-            ),
-            createSummaryCard(
-                    "Paid",
-                    "₹" + String.format("%,d", totalPaidAmt),
-                    "🟢",
-                    "#4CAF50"
-            ),
-            createSummaryCard(
-                    "Pending",
-                    "₹" + String.format("%,d", totalPendingAmt),
-                    "🟠",
-                    "#FF9800"
-            ),
-            createSummaryCard(
-                    "Failed",
-                    String.valueOf(failedCount),
-                    "🔴",
-                    "#D32F2F"
-            )
+            createSummaryCard("Total Spent", "₹" + String.format("%,d", totalPaidAmt), "💰", "#1B4332"),
+            createSummaryCard("This Month", "₹" + String.format("%,d", thisMonthAmt), "📅", "#2D6A4F"),
+            createSummaryCard("Pending Payment", "₹" + String.format("%,d", pendingAmt), "⏳", "#E65100"),
+            createSummaryCard("Completed", completedCount + " Paid", "✔", "#2E7D32"),
+            createSummaryCard("Refunds", "₹" + String.format("%,d", refundAmt), "↩", "#37474F")
     );
+
+    // Dynamic Graphs Section (Requirement 5)
+    HBox chartsRow = createFarmerSpendingCharts(farmerPayments, farmerRequests, totalPaidAmt, pendingAmt, refundAmt);
 
     VBox filterSection = createPaymentFilter();
 
-    Text historyTitle = new Text("Payment History");
+    Text historyTitle = new Text("Payment & Invoice Ledger");
     historyTitle.setStyle(
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:20px;" +
             "-fx-font-weight:bold;" +
-            "-fx-fill:#4A2C20;"
+            "-fx-fill:#1B4332;"
     );
 
-    Text historySubtitle = new Text("View all your completed and pending payments");
+    Text historySubtitle = new Text("Verified transaction receipts and invoices connected directly to Firestore");
     historySubtitle.setStyle(
             "-fx-font-family:'Poppins';" +
             "-fx-font-size:13px;" +
-            "-fx-fill:#7A6658;"
+            "-fx-fill:#4B5563;"
     );
 
     VBox historyHeading = new VBox(4, historyTitle, historySubtitle);
     VBox paymentCards = new VBox(18);
 
-    if (allBookings.isEmpty()) {
-        VBox emptyBox = new VBox(8);
+    if (farmerRequests.isEmpty() && farmerPayments.isEmpty()) {
+        VBox emptyBox = new VBox(12);
         emptyBox.setAlignment(Pos.CENTER);
-        emptyBox.setPadding(new Insets(30));
-        emptyBox.setStyle("-fx-background-color:#F5EFE6;-fx-background-radius:12;-fx-border-color:#D8C7B5;-fx-border-radius:12;-fx-border-width:1;");
+        emptyBox.setPadding(new Insets(40));
+        emptyBox.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-radius: 14; -fx-border-width: 1;");
 
         Text emptyIcon = new Text("💳");
-        emptyIcon.setStyle("-fx-font-size:32px;");
+        emptyIcon.setStyle("-fx-font-size: 38px;");
 
-        Text emptyTitle = new Text("No Payment Invoices Yet");
-        emptyTitle.setStyle("-fx-font-family:'Poppins';-fx-font-size:15px;-fx-font-weight:bold;-fx-fill:#4A2C20;");
+        Text emptyTitle = new Text("No payment history yet.");
+        emptyTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
-        Text emptySub = new Text("When you rent equipment, payment transaction receipts and invoices will appear here.");
-        emptySub.setStyle("-fx-font-family:'Poppins';-fx-font-size:12px;-fx-fill:#806A5B;");
+        Text emptySub = new Text("When you rent equipment and complete payment via Razorpay, transaction receipts and invoices will appear here.");
+        emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-text-fill: #6B7280;");
 
         emptyBox.getChildren().addAll(emptyIcon, emptyTitle, emptySub);
         paymentCards.getChildren().add(emptyBox);
     } else {
-        for (BookingDataStore.BookingItem b : allBookings) {
-            String pStatus = "COMPLETED".equalsIgnoreCase(b.status) || "ACTIVE".equalsIgnoreCase(b.status) ? "Paid" : ("CANCELLED".equalsIgnoreCase(b.status) ? "Failed" : "Pending");
-            String pMethod = "UPI / Escrow";
-            String imgPath = b.imagePath != null && !b.imagePath.isEmpty() ? b.imagePath : "file:farm/src/main/resources/assets/Images/tractor.png";
+        for (RentalRequestModel r : farmerRequests) {
+            String pStatus = ("PAID".equalsIgnoreCase(r.getPaymentStatus()) || "COMPLETED".equalsIgnoreCase(r.getStatus())) ? "Paid" : ("CANCELLED".equalsIgnoreCase(r.getStatus()) ? "Failed" : "Pending");
+            String pMethod = r.getPaymentMode() != null ? r.getPaymentMode() : "Razorpay Online";
+            String imgPath = r.getImagePath() != null && !r.getImagePath().isEmpty() ? r.getImagePath() : "file:farm/src/main/resources/assets/Images/tractor.png";
+            int amt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
 
             VBox card = createPaymentCard(
-                    b.equipmentName,
-                    b.bookingId,
-                    b.totalAmount,
+                    r.getMachineryName() != null ? r.getMachineryName() : "Machinery",
+                    r.getRequestId() != null ? r.getRequestId() : "TXN-" + System.currentTimeMillis(),
+                    "₹" + String.format("%,d", amt),
                     pMethod,
-                    b.startDate,
+                    r.getStartDate() != null ? r.getStartDate() : "Recent",
                     pStatus,
                     imgPath
             );
 
             paymentCardList.add(card);
-            paymentSearchData.add((b.equipmentName + " " + b.bookingId).toLowerCase());
+            paymentSearchData.add(((r.getMachineryName() != null ? r.getMachineryName() : "") + " " + (r.getRequestId() != null ? r.getRequestId() : "")).toLowerCase());
             paymentStatusList.add(pStatus);
             paymentMethodList.add(pMethod);
             paymentCards.getChildren().add(card);
@@ -265,6 +276,7 @@ private static CheckBox net;
                 heading,
                 searchBox,
                 summaryCards,
+                chartsRow,
                 mainContent
         );
 
@@ -598,6 +610,181 @@ invoiceButton.setOnAction(e -> {
 
     return card;
 }
+
+    // =========================================================
+    // Dynamic Farmer Spending Graphs (Requirement 5)
+    // =========================================================
+    private static HBox createFarmerSpendingCharts(List<PaymentModel> payments, List<RentalRequestModel> requests,
+                                                   int totalPaid, int pendingAmt, int refundAmt) {
+        VBox monthlyChart = createMonthlySpendingChart(payments, requests);
+        VBox categoryChart = createCategorySpendingChart(requests);
+        VBox statusChart = createPaymentStatusChart(totalPaid, pendingAmt, refundAmt);
+
+        monthlyChart.setMinWidth(0);
+        categoryChart.setMinWidth(0);
+        statusChart.setMinWidth(0);
+
+        HBox.setHgrow(monthlyChart, Priority.ALWAYS);
+        HBox.setHgrow(categoryChart, Priority.ALWAYS);
+        HBox.setHgrow(statusChart, Priority.ALWAYS);
+
+        HBox row = new HBox(16, monthlyChart, categoryChart, statusChart);
+        row.setAlignment(Pos.CENTER_LEFT);
+        return row;
+    }
+
+    private static VBox createMonthlySpendingChart(List<PaymentModel> payments, List<RentalRequestModel> requests) {
+        Text title = new Text("📈 Monthly Spending Curve");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Rental expenditures across 2026 calendar months");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Month");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Spent (₹)");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setAnimated(false);
+        barChart.setLegendVisible(false);
+        barChart.setPrefHeight(240);
+        barChart.setMinHeight(240);
+
+        String[] months = {"Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+        java.util.Map<String, Integer> monthTotals = new java.util.LinkedHashMap<>();
+        for (String m : months) {
+            monthTotals.put(m, 0);
+        }
+
+        for (PaymentModel p : payments) {
+            if ("PAID".equalsIgnoreCase(p.getPaymentStatus()) && p.getCreatedAt() != null) {
+                for (String m : months) {
+                    if (p.getCreatedAt().toLowerCase().contains(m.toLowerCase())) {
+                        monthTotals.put(m, monthTotals.get(m) + p.getAmount());
+                        break;
+                    }
+                }
+            }
+        }
+
+        for (RentalRequestModel r : requests) {
+            if (("PAID".equalsIgnoreCase(r.getPaymentStatus()) || "COMPLETED".equalsIgnoreCase(r.getStatus())) && r.getStartDate() != null) {
+                int amt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+                for (String m : months) {
+                    if (r.getStartDate().toLowerCase().contains(m.toLowerCase())) {
+                        if (payments.isEmpty()) {
+                            monthTotals.put(m, monthTotals.get(m) + amt);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        for (String m : months) {
+            series.getData().add(new XYChart.Data<>(m, monthTotals.get(m)));
+        }
+        barChart.getData().add(series);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), barChart);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+        return card;
+    }
+
+    private static VBox createCategorySpendingChart(List<RentalRequestModel> requests) {
+        Text title = new Text("🥧 Spending by Equipment");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Rental share by machinery type");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
+
+        java.util.Map<String, Integer> catMap = new java.util.HashMap<>();
+        for (RentalRequestModel r : requests) {
+            String name = r.getMachineryName() != null ? r.getMachineryName() : "Machinery";
+            int amt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+            catMap.put(name, catMap.getOrDefault(name, 0) + amt);
+        }
+
+        if (catMap.isEmpty()) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(240);
+            Text emptyIco = new Text("🚜");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text emptyTxt = new Text("No Category Spending Yet");
+            emptyTxt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Rental spend by machine type will populate here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, emptyTxt, emptySub);
+
+            VBox card = new VBox(8, new VBox(2, title, sub), emptyBox);
+            card.setPadding(new Insets(16));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            return card;
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        for (java.util.Map.Entry<String, Integer> entry : catMap.entrySet()) {
+            pieData.add(new PieChart.Data(entry.getKey(), entry.getValue()));
+        }
+
+        PieChart pieChart = new PieChart(pieData);
+        pieChart.setAnimated(false);
+        pieChart.setLegendVisible(true);
+        pieChart.setPrefHeight(240);
+        pieChart.setMinHeight(240);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), pieChart);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+        return card;
+    }
+
+    private static VBox createPaymentStatusChart(int paidAmt, int pendingAmt, int refundAmt) {
+        Text title = new Text("📊 Payment Status Breakdown");
+        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+
+        Text sub = new Text("Real-time settlement proportions");
+        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
+
+        if (paidAmt == 0 && pendingAmt == 0 && refundAmt == 0) {
+            VBox emptyBox = new VBox(8);
+            emptyBox.setAlignment(Pos.CENTER);
+            emptyBox.setPrefHeight(240);
+            Text emptyIco = new Text("💳");
+            emptyIco.setStyle("-fx-font-size: 32px;");
+            Text emptyTxt = new Text("No Payments Recorded");
+            emptyTxt.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 13px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+            Text emptySub = new Text("Paid and pending status breakdown will appear here.");
+            emptySub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #6B7280;");
+            emptyBox.getChildren().addAll(emptyIco, emptyTxt, emptySub);
+
+            VBox card = new VBox(8, new VBox(2, title, sub), emptyBox);
+            card.setPadding(new Insets(16));
+            card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+            return card;
+        }
+
+        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList();
+        if (paidAmt > 0) pieData.add(new PieChart.Data("Paid (₹" + paidAmt + ")", paidAmt));
+        if (pendingAmt > 0) pieData.add(new PieChart.Data("Pending (₹" + pendingAmt + ")", pendingAmt));
+        if (refundAmt > 0) pieData.add(new PieChart.Data("Refunded (₹" + refundAmt + ")", refundAmt));
+
+        PieChart pieChart = new PieChart(pieData);
+        pieChart.setAnimated(false);
+        pieChart.setLegendVisible(true);
+        pieChart.setPrefHeight(240);
+        pieChart.setMinHeight(240);
+
+        VBox card = new VBox(8, new VBox(2, title, sub), pieChart);
+        card.setPadding(new Insets(16));
+        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12;");
+        return card;
+    }
 
 //---------------------------------------------------------
 // Summary Card

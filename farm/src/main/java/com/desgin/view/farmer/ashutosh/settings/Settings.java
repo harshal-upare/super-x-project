@@ -41,17 +41,17 @@ public class Settings {
         VBox accountCard = createCard();
         Text accountTitle = createSectionTitle("👤  Farmer Account Credentials");
 
-        usernameField = new TextField(FarmerProfileStore.name);
+        usernameField = new TextField(FarmerProfileStore.name != null ? FarmerProfileStore.name : "");
         usernameField.setPromptText("Enter your username");
         usernameField.setPrefHeight(42);
         styleTextField(usernameField);
 
-        emailField = new TextField(FarmerProfileStore.email);
+        emailField = new TextField(FarmerProfileStore.email != null ? FarmerProfileStore.email : "");
         emailField.setPromptText("Enter email address");
         emailField.setPrefHeight(42);
         styleTextField(emailField);
 
-        phoneField = new TextField(FarmerProfileStore.phone);
+        phoneField = new TextField(FarmerProfileStore.phone != null ? FarmerProfileStore.phone : "");
         phoneField.setPromptText("Enter registered mobile number");
         phoneField.setPrefHeight(42);
         styleTextField(phoneField);
@@ -224,18 +224,22 @@ public class Settings {
     }
 
     private static void saveSettings() {
-        if (usernameField != null && !usernameField.getText().trim().isEmpty()) {
-            FarmerProfileStore.name = usernameField.getText().trim();
-        }
-        if (emailField != null && !emailField.getText().trim().isEmpty()) {
-            FarmerProfileStore.email = emailField.getText().trim();
-        }
-        if (phoneField != null && !phoneField.getText().trim().isEmpty()) {
-            FarmerProfileStore.phone = phoneField.getText().trim();
-        }
+        String u = usernameField != null ? usernameField.getText().trim() : "";
+        String e = emailField != null ? emailField.getText().trim() : "";
+        String p = phoneField != null ? phoneField.getText().trim() : "";
+
+        FarmerProfileStore.setCredentials(u, e, p);
+
+        // Asynchronously persist profile updates to Firebase / Firestore
+        new Thread(() -> {
+            String farmerEmail = FarmerProfileStore.email;
+            if (farmerEmail != null && !farmerEmail.trim().isEmpty()) {
+                new com.desgin.controller.AuthenticateController().updateProfile(farmerEmail, "Farmer", u, p);
+            }
+        }).start();
 
         if (feedbackLabel != null) {
-            feedbackLabel.setText("✓ Settings and credentials saved successfully!");
+            feedbackLabel.setText("✓ Settings and credentials saved to Firebase successfully!");
             feedbackLabel.setStyle(
                     "-fx-background-color: #DCFCE7;" +
                     "-fx-text-fill: #15803D;" +

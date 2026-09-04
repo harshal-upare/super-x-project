@@ -116,11 +116,36 @@ public class BrowseEquip {
         String currentTown = com.desgin.view.farmer.Swapnil.FarmerProfileStore.town != null 
                 ? com.desgin.view.farmer.Swapnil.FarmerProfileStore.town.trim().toLowerCase() : "";
 
-        for (EquipmentDataStore.EquipmentItem item : EquipmentDataStore.getAllEquipment()) {
-            boolean matchesLocation = currentTown.isEmpty() || 
+        try {
+            List<com.desgin.model.MachineryModel> firestoreList = new com.desgin.dao.MachineryDAO().getAllMachinery();
+            EquipmentDataStore.syncFromFirestore(firestoreList);
+        } catch (Exception ignored) {}
+
+        List<EquipmentDataStore.EquipmentItem> all = EquipmentDataStore.getAllEquipment();
+        java.util.Set<String> addedIds = new java.util.HashSet<>();
+
+        // First add items matching the farmer's location
+        for (EquipmentDataStore.EquipmentItem item : all) {
+            boolean matchesLocation = !currentTown.isEmpty() && 
                     (item.location != null && item.location.toLowerCase().contains(currentTown));
 
-            if (matchesLocation) {
+            if (matchesLocation && addedIds.add(item.id != null ? item.id : item.name)) {
+                allEquipment.add(
+                        new Equipment(
+                                item.name,
+                                item.category,
+                                item.pricePerDay,
+                                item.rating,
+                                item.location,
+                                item.imagePath
+                        )
+                );
+            }
+        }
+
+        // Then add all remaining machinery
+        for (EquipmentDataStore.EquipmentItem item : all) {
+            if (addedIds.add(item.id != null ? item.id : item.name)) {
                 allEquipment.add(
                         new Equipment(
                                 item.name,
@@ -816,28 +841,21 @@ public class BrowseEquip {
          */
 
         Image image;
-
         try {
-
-            image =
-                    new Image(
-                            equipment.imagePath,
-                            true
-                    );
-
+            if (equipment.imagePath != null && !equipment.imagePath.isEmpty()) {
+                image = new Image(equipment.imagePath, true);
+            } else {
+                image = new Image("file:farm/src/main/resources/assets/Images/tractor.png");
+            }
         } catch (Exception e) {
-
-            image = null;
+            image = new Image("file:farm/src/main/resources/assets/Images/tractor.png");
         }
 
-
-        ImageView imageView =
-                new ImageView();
-
-
+        ImageView imageView = new ImageView();
         if (image != null) {
-
             imageView.setImage(image);
+        } else {
+            imageView.setImage(new Image("file:farm/src/main/resources/assets/Images/tractor.png"));
         }
 
 

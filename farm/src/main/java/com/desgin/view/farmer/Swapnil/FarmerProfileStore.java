@@ -12,6 +12,13 @@ public class FarmerProfileStore {
     public static String district = "Pune";
     public static String state = "Maharashtra";
     public static String pincode = "411058";
+    public static String profilePic = null;
+
+    // Listeners for credentials change to refresh views dynamically
+    private static final List<Runnable> profileListeners = new ArrayList<>();
+
+    // Listeners for location change to refresh views
+    private static final List<Runnable> locationListeners = new ArrayList<>();
 
     public static synchronized void setCredentials(String newName, String newEmail, String newPhone) {
         if (newName != null && !newName.trim().isEmpty()) {
@@ -23,10 +30,45 @@ public class FarmerProfileStore {
         if (newPhone != null && !newPhone.trim().isEmpty()) {
             phone = newPhone.trim();
         }
+        notifyProfileListeners();
     }
 
-    // Listeners for location change to refresh views
-    private static final List<Runnable> locationListeners = new ArrayList<>();
+    public static synchronized void setFullProfile(String newName, String newEmail, String newPhone, String newTown, String newDistrict, String newState, String newPincode) {
+        if (newName != null && !newName.trim().isEmpty()) {
+            name = newName.trim();
+        }
+        if (newEmail != null && !newEmail.trim().isEmpty()) {
+            email = newEmail.trim();
+        }
+        if (newPhone != null && !newPhone.trim().isEmpty()) {
+            phone = newPhone.trim();
+        }
+        if (newTown != null && !newTown.trim().isEmpty()) {
+            town = newTown.trim();
+        }
+        if (newDistrict != null && !newDistrict.trim().isEmpty()) {
+            district = newDistrict.trim();
+        }
+        if (newState != null && !newState.trim().isEmpty()) {
+            state = newState.trim();
+        }
+        if (newPincode != null && !newPincode.trim().isEmpty()) {
+            pincode = newPincode.trim();
+        }
+        notifyProfileListeners();
+        notifyLocationListeners();
+    }
+
+    public static synchronized void setFullProfile(String newName, String newEmail, String newPhone, String newTown, String newDistrict, String newState, String newPincode, String newProfilePic) {
+        setFullProfile(newName, newEmail, newPhone, newTown, newDistrict, newState, newPincode);
+        profilePic = (newProfilePic != null && !newProfilePic.trim().isEmpty()) ? newProfilePic.trim() : null;
+        notifyProfileListeners();
+    }
+
+    public static synchronized void setProfilePic(String newProfilePic) {
+        profilePic = (newProfilePic != null && !newProfilePic.trim().isEmpty()) ? newProfilePic.trim() : null;
+        notifyProfileListeners();
+    }
 
     public static synchronized void setLocation(String newTown, String newDistrict, String newState, String newPincode) {
         if (newTown != null && !newTown.trim().isEmpty()) {
@@ -42,8 +84,31 @@ public class FarmerProfileStore {
             pincode = newPincode.trim();
         }
 
-        // Notify listeners
-        for (Runnable r : locationListeners) {
+        notifyLocationListeners();
+    }
+
+    public static synchronized void addProfileListener(Runnable r) {
+        if (r != null && !profileListeners.contains(r)) {
+            profileListeners.add(r);
+        }
+    }
+
+    public static synchronized void removeProfileListener(Runnable r) {
+        if (r != null) {
+            profileListeners.remove(r);
+        }
+    }
+
+    private static void notifyProfileListeners() {
+        for (Runnable r : new ArrayList<>(profileListeners)) {
+            try {
+                r.run();
+            } catch (Exception ignored) {}
+        }
+    }
+
+    private static void notifyLocationListeners() {
+        for (Runnable r : new ArrayList<>(locationListeners)) {
             try {
                 r.run();
             } catch (Exception ignored) {}
@@ -53,6 +118,12 @@ public class FarmerProfileStore {
     public static synchronized void addLocationListener(Runnable r) {
         if (r != null && !locationListeners.contains(r)) {
             locationListeners.add(r);
+        }
+    }
+
+    public static synchronized void removeLocationListener(Runnable r) {
+        if (r != null) {
+            locationListeners.remove(r);
         }
     }
 }

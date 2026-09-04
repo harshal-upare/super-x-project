@@ -61,6 +61,11 @@ public class FarmerDashboard {
                 subroot.prefHeightProperty().bind(root.heightProperty());
                 farmerDashboardScene = new Scene(root);
 
+                // Start watching user status in case admin suspends account live
+                if (FarmerProfileStore.email != null && !FarmerProfileStore.email.isEmpty()) {
+                    com.desgin.service.UserStatusWatcher.startWatching(FarmerProfileStore.email, "Farmer", ref);
+                }
+
                 return farmerDashboardScene;
         }
 

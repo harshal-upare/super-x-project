@@ -61,25 +61,26 @@ public class OperatorLeftSideBar {
         logoContainer.setMinSize(42, 42);
         logoContainer.setMaxSize(42, 42);
         logoContainer.setStyle(
-                "-fx-background-color: #E8F5E9;" +
-                "-fx-background-radius: 10px;" +
-                "-fx-border-color: rgba(45, 106, 79, 0.2);" +
-                "-fx-border-radius: 10px;" +
-                "-fx-border-width: 1px;");
+                "-fx-background-color: linear-gradient(to bottom right, rgba(45, 106, 79, 0.7), rgba(82, 183, 136, 0.4));" +
+                "-fx-background-radius: 12px;" +
+                "-fx-border-color: rgba(255, 255, 255, 0.2);" +
+                "-fx-border-radius: 12px;" +
+                "-fx-border-width: 1px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.4), 8, 0, 0, 2);");
 
         Text textName = new Text("FarmEquip");
         textName.setStyle(
                 "-fx-font-size: 19px;" +
                 "-fx-font-weight: bold;" +
                 "-fx-font-family: 'Poppins';" +
-                "-fx-fill: #1B4332;");
+                "-fx-fill: #FFFFFF;");
 
         Text roleBadge = new Text("👷 Operator Portal");
         roleBadge.setStyle(
                 "-fx-font-size: 11px;" +
                 "-fx-font-weight: 600;" +
                 "-fx-font-family: 'Poppins';" +
-                "-fx-fill: #2D6A4F;");
+                "-fx-fill: #74C69D;");
 
         VBox brandBox = new VBox(1, textName, roleBadge);
         brandBox.setAlignment(Pos.CENTER_LEFT);
@@ -87,9 +88,9 @@ public class OperatorLeftSideBar {
         HBox logoTextHBox = new HBox(10, logoContainer, brandBox);
         logoTextHBox.setAlignment(Pos.CENTER_LEFT);
         logoTextHBox.setPadding(new Insets(4, 6, 16, 6));
-        logoTextHBox.setStyle("-fx-border-color: #E2EBE5; -fx-border-width: 0 0 1px 0;");
+        logoTextHBox.setStyle("-fx-border-color: rgba(255, 255, 255, 0.1); -fx-border-width: 0 0 1px 0;");
 
-        dashboardBtn = new Button("🟢  Live Shift Cockpit");
+        dashboardBtn = new Button("⌂  Dashboard");
         styleMenuButton(dashboardBtn);
 
         jobsBtn = new Button("📋  Field Tasks & Schedule");
@@ -98,16 +99,18 @@ public class OperatorLeftSideBar {
         earningsBtn = new Button("💵  Daily Wages & Cashout");
         styleMenuButton(earningsBtn);
 
-        settingsBtn = new Button("⚙   Settings & Support");
+        settingsBtn = new Button("⚙   Settings");
         styleMenuButton(settingsBtn);
+
+        supportBtn = new Button("❓  Help & Support");
+        styleMenuButton(supportBtn);
 
         // Retain references for backward compatibility
         machineryBtn = new Button("🚜  Assigned Machinery");
         fieldLogsBtn = new Button("⏱  Field Logs");
         analyticsBtn = new Button("📊  Performance");
-        supportBtn = new Button("❓  Help");
 
-        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, earningsBtn, settingsBtn);
+        VBox vBoxBtn1 = new VBox(6, dashboardBtn, jobsBtn, earningsBtn);
 
         Button logoutBtn = new Button("↪   Logout");
         logoutBtn.setOnAction(e -> {
@@ -117,7 +120,7 @@ public class OperatorLeftSideBar {
         });
         styleLogoutButton(logoutBtn);
 
-        VBox vBoxBtn2 = new VBox(6, logoutBtn);
+        VBox vBoxBtn2 = new VBox(6, settingsBtn, supportBtn, logoutBtn);
 
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
@@ -133,35 +136,47 @@ public class OperatorLeftSideBar {
         leftVB.setSpacing(16);
         leftVB.setPadding(new Insets(20, 14, 20, 14));
         leftVB.setStyle(
-                "-fx-background-color: #FFFFFF;" +
-                "-fx-border-color: #E2EBE5;" +
-                "-fx-border-width: 0 1px 0 0;");
+                "-fx-background-color: linear-gradient(to bottom, #11281E 0%, #163628 50%, #0F231B 100%);" +
+                "-fx-border-color: rgba(255, 255, 255, 0.08);" +
+                "-fx-border-width: 0 1px 0 0;" +
+                "-fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.18), 12, 0, 3, 0);");
 
         navigationButtons.add(dashboardBtn);
         navigationButtons.add(jobsBtn);
         navigationButtons.add(earningsBtn);
         navigationButtons.add(settingsBtn);
+        navigationButtons.add(supportBtn);
 
         setActiveButton(dashboardBtn, navigationButtons);
 
         dashboardBtn.setOnAction(event -> {
             setActiveButton(dashboardBtn, navigationButtons);
+            OperatorProfileManagement.updateHeaderGreeting();
             OperatorDashboard.borderPane.setCenter(OperatorHome.getPage());
         });
 
         jobsBtn.setOnAction(event -> {
             setActiveButton(jobsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(root));
         });
 
         earningsBtn.setOnAction(event -> {
             setActiveButton(earningsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Daily Wages & Cashout 💵", "Track completed job settlements, incentives & bank withdrawals");
             OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(root));
         });
 
         settingsBtn.setOnAction(event -> {
             setActiveButton(settingsBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Operator Settings ⚙", "Manage operator license, contact profile and security");
             OperatorDashboard.borderPane.setCenter(OperatorSettings.getSettingsSection());
+        });
+
+        supportBtn.setOnAction(event -> {
+            setActiveButton(supportBtn, navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Help & Support Desk 🛟", "24x7 machinery hotline and technical field support");
+            OperatorDashboard.borderPane.setCenter(OperatorHelp.getHelpSection());
         });
 
         return leftVB;
@@ -173,19 +188,19 @@ public class OperatorLeftSideBar {
             if (button == null) continue;
             if (button == selected) {
                 button.setStyle(
-                        "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C);" +
+                        "-fx-background-color: linear-gradient(to right, #2D6A4F, #40916C, #52B788);" +
                         "-fx-background-radius: 10px;" +
                         "-fx-text-fill: #FFFFFF;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13.5px;" +
                         "-fx-font-weight: bold;" +
                         "-fx-cursor: hand;" +
-                        "-fx-effect: dropshadow(gaussian, rgba(45, 106, 79, 0.25), 8, 0, 0, 2);");
+                        "-fx-effect: dropshadow(gaussian, rgba(82, 183, 136, 0.4), 10, 0, 0, 3);");
             } else {
                 button.setStyle(
                         "-fx-background-color: transparent;" +
                         "-fx-background-radius: 10px;" +
-                        "-fx-text-fill: #374151;" +
+                        "-fx-text-fill: #D1E7DD;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13.5px;" +
                         "-fx-font-weight: 500;" +
@@ -207,7 +222,7 @@ public class OperatorLeftSideBar {
         button.setStyle(
                 "-fx-background-color: transparent;" +
                 "-fx-background-radius: 10px;" +
-                "-fx-text-fill: #374151;" +
+                "-fx-text-fill: #D1E7DD;" +
                 "-fx-font-family: 'Poppins';" +
                 "-fx-font-size: 13.5px;" +
                 "-fx-font-weight: 500;" +
@@ -216,16 +231,13 @@ public class OperatorLeftSideBar {
         button.setOnMouseEntered(e -> {
             if (button != activeButton) {
                 button.setStyle(
-                        "-fx-background-color: #F0FDF4;" +
+                        "-fx-background-color: rgba(255, 255, 255, 0.08);" +
                         "-fx-background-radius: 10px;" +
-                        "-fx-text-fill: #1B4332;" +
+                        "-fx-text-fill: #FFFFFF;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13.5px;" +
                         "-fx-font-weight: 600;" +
-                        "-fx-cursor: hand;" +
-                        "-fx-border-color: #D1E7DD;" +
-                        "-fx-border-radius: 10px;" +
-                        "-fx-border-width: 1px;");
+                        "-fx-cursor: hand;");
             }
         });
 
@@ -234,7 +246,7 @@ public class OperatorLeftSideBar {
                 button.setStyle(
                         "-fx-background-color: transparent;" +
                         "-fx-background-radius: 10px;" +
-                        "-fx-text-fill: #374151;" +
+                        "-fx-text-fill: #D1E7DD;" +
                         "-fx-font-family: 'Poppins';" +
                         "-fx-font-size: 13.5px;" +
                         "-fx-font-weight: 500;" +
@@ -254,34 +266,44 @@ public class OperatorLeftSideBar {
         button.setPadding(new Insets(0, 16, 0, 16));
 
         button.setStyle(
-                "-fx-background-color: #FEF2F2;" +
+                "-fx-background-color: rgba(239, 68, 68, 0.12);" +
                 "-fx-background-radius: 10px;" +
-                "-fx-text-fill: #DC2626;" +
+                "-fx-text-fill: #FCA5A5;" +
                 "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13.5px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-cursor: hand;");
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: 600;" +
+                "-fx-cursor: hand;" +
+                "-fx-border-color: rgba(239, 68, 68, 0.3);" +
+                "-fx-border-radius: 10px;" +
+                "-fx-border-width: 1px;");
 
         button.setOnMouseEntered(e -> {
             button.setStyle(
-                    "-fx-background-color: #FEE2E2;" +
+                    "-fx-background-color: rgba(239, 68, 68, 0.25);" +
                     "-fx-background-radius: 10px;" +
-                    "-fx-text-fill: #B91C1C;" +
+                    "-fx-text-fill: #FFFFFF;" +
                     "-fx-font-family: 'Poppins';" +
-                    "-fx-font-size: 13.5px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-cursor: hand;");
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-border-color: rgba(239, 68, 68, 0.6);" +
+                    "-fx-border-radius: 10px;" +
+                    "-fx-border-width: 1px;" +
+                    "-fx-effect: dropshadow(gaussian, rgba(239, 68, 68, 0.25), 8, 0, 0, 2);");
         });
 
         button.setOnMouseExited(e -> {
             button.setStyle(
-                    "-fx-background-color: #FEF2F2;" +
+                    "-fx-background-color: rgba(239, 68, 68, 0.12);" +
                     "-fx-background-radius: 10px;" +
-                    "-fx-text-fill: #DC2626;" +
+                    "-fx-text-fill: #FCA5A5;" +
                     "-fx-font-family: 'Poppins';" +
-                    "-fx-font-size: 13.5px;" +
-                    "-fx-font-weight: bold;" +
-                    "-fx-cursor: hand;");
+                    "-fx-font-size: 13px;" +
+                    "-fx-font-weight: 600;" +
+                    "-fx-cursor: hand;" +
+                    "-fx-border-color: rgba(239, 68, 68, 0.3);" +
+                    "-fx-border-radius: 10px;" +
+                    "-fx-border-width: 1px;");
         });
     }
 }

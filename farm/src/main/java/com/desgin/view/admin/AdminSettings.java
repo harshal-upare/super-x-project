@@ -18,14 +18,6 @@ import javafx.scene.text.Text;
 public class AdminSettings {
 
     public static ScrollPane getPage(StackPane root) {
-        Text title = new Text("Platform Configuration & System Governance");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subtitle = new Text("Configure platform-wide automated escrow rules, telematics sync frequencies, SMS gateway, and emergency controls.");
-        subtitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
-
-        VBox titleBox = new VBox(3, title, subtitle);
-
         // Card 1: Core System Automation Toggles
         VBox autoCard = createAutomationTogglesCard();
 
@@ -35,7 +27,7 @@ public class AdminSettings {
         // Card 3: Security & Database Backup
         VBox backupCard = createSecurityAuditCard();
 
-        VBox content = new VBox(18, titleBox, autoCard, helplineCard, backupCard);
+        VBox content = new VBox(18, autoCard, helplineCard, backupCard);
         content.setPadding(new Insets(20, 25, 35, 25));
         content.setMinWidth(0);
         content.setMaxWidth(Double.MAX_VALUE);

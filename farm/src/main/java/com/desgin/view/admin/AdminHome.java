@@ -1,20 +1,19 @@
 package com.desgin.view.admin;
 
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.chart.AreaChart;
-import javafx.scene.chart.BarChart;
-import javafx.scene.chart.CategoryAxis;
-import javafx.scene.chart.NumberAxis;
-import javafx.scene.chart.PieChart;
-import javafx.scene.chart.XYChart;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
@@ -23,35 +22,26 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-@SuppressWarnings("unchecked")
 public class AdminHome {
 
+    // In-memory instant cache to prevent loading delay / flicker
+    private static String cachedTotalUsers = "23";
+    private static String cachedUsersSub = "4 Farmers • 4 Providers • 9 Operators";
+    private static String cachedTotalFleet = "3";
+    private static String cachedFleetSub = "3 Available • 0 In-Use / Reserved";
+    private static String cachedTotalGmv = "₹22,950";
+    private static String cachedGmvSub = "₹22,950 secured in escrow";
+    private static String cachedCommission = "₹1,606";
+    private static String cachedCommissionSub = "Direct Platform Earnings YTD";
+
     public static ScrollPane getPage(StackPane root) {
-        // Top Welcome Header
-        Text welcomeText = new Text("Platform Master Command & Operations 🛡️");
-        welcomeText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+        // 1. Live Agro-Weather Telemetry Card
+        HBox weatherCard = createWeatherCard("Pune Hub", 18.5204, 73.8567);
 
-        Text subtitleText = new Text("Real-time ecosystem intelligence, multi-district fleet deployment telemetry, escrow liquidity, and system moderation.");
-        subtitleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563;");
-
-        VBox headerBox = new VBox(3, welcomeText, subtitleText);
-
-        // 4 Master KPI Cards in responsive GridPane
+        // 2. Only 4 Clean Master Metric Cards
         GridPane kpiGrid = createMasterKPIGrid(root);
 
-        // Quick Action Command Strip
-        FlowPane quickActionStrip = createAdminActionStrip(root);
-
-        // Charts Row 1: AreaChart (GMV vs Commission) + PieChart (Category Share)
-        GridPane chartsGrid1 = createChartsGrid1();
-
-        // Charts Row 2: BarChart (District Demand) + System Health Audit Matrix
-        GridPane chartsGrid2 = createChartsGrid2();
-
-        // Live System Audit Activity Feed
-        VBox activityFeed = createLiveActivityFeed();
-
-        VBox content = new VBox(20, headerBox, kpiGrid, quickActionStrip, chartsGrid1, chartsGrid2, activityFeed);
+        VBox content = new VBox(22, weatherCard, kpiGrid);
         content.setPadding(new Insets(20, 25, 35, 25));
         content.setStyle("-fx-background-color: transparent;");
         content.setMinWidth(0);
@@ -68,25 +58,99 @@ public class AdminHome {
     }
 
     private static GridPane createMasterKPIGrid(StackPane root) {
-        VBox c1 = createMetricCard("👥 Total Registered Users", "1,284", "▲ +14% MoM", "840 Farmers • 320 Providers • 124 Operators", "#1B4332", "#FFFFFF", () -> {
+        Text v1 = new Text(cachedTotalUsers);
+        Text s1 = new Text(cachedUsersSub);
+        VBox c1 = createMetricCardDynamic("👥 Total Users", v1, s1, "#1B4332", "#FFFFFF", () -> {
             AdminLeftSideBar.setActiveButton(AdminLeftSideBar.usersBtn, AdminLeftSideBar.navigationButtons);
             AdminDashboard.borderPane.setCenter(UserManagement.getPage(root));
         });
 
-        VBox c2 = createMetricCard("🚜 Listed Fleet", "485 Units", "12 Pending", "390 Live Active • 83 In-Shift", "#2E7D32", "#E8F5E9", () -> {
+        Text v2 = new Text(cachedTotalFleet);
+        Text s2 = new Text(cachedFleetSub);
+        VBox c2 = createMetricCardDynamic("🚜 Total Equipment", v2, s2, "#2E7D32", "#E8F5E9", () -> {
             AdminLeftSideBar.setActiveButton(AdminLeftSideBar.approvalsBtn, AdminLeftSideBar.navigationButtons);
             AdminDashboard.borderPane.setCenter(MachineryApprovals.getPage(root));
         });
 
-        VBox c3 = createMetricCard("💳 Total Rental GMV", "₹48.5 Lakh", "▲ +24.5%", "₹6.45L secured in escrow", "#374151", "#FFFFFF", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.escrowBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(EscrowFinancials.getPage(root));
+        Text v3 = new Text(cachedTotalGmv);
+        Text s3 = new Text(cachedGmvSub);
+        VBox c3 = createMetricCardDynamic("💳 Total User Revenue", v3, s3, "#1E3A8A", "#EFF6FF", () -> {
+            AdminLeftSideBar.navigateToPaymentsDetail();
         });
 
-        VBox c4 = createMetricCard("🏦 Platform Net Cut (7%)", "₹3,39,500", "● 100% Realized", "Direct Platform Earnings YTD", "#2E7D32", "#E8F5E9", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.escrowBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(EscrowFinancials.getPage(root));
+        Text v4 = new Text(cachedCommission);
+        Text s4 = new Text(cachedCommissionSub);
+        VBox c4 = createMetricCardDynamic("🏦 Total Tax / Commission Generated", v4, s4, "#15803D", "#DCFCE7", () -> {
+            AdminLeftSideBar.navigateToPaymentsDetail();
         });
+
+        // Query Firestore asynchronously to update values live
+        new Thread(() -> {
+            try {
+                // 1. Users count
+                java.util.Map<String, Integer> userCounts = new com.desgin.dao.AuthDAO().getUserRoleCounts();
+                int fCount = userCounts.getOrDefault("Farmer", 0);
+                int pCount = userCounts.getOrDefault("Provider", 0);
+                int oCount = userCounts.getOrDefault("Operator", 0);
+                int aCount = userCounts.getOrDefault("Admin", 1);
+                int totalUsers = fCount + pCount + oCount + aCount;
+
+                // 2. Equipment count
+                java.util.List<com.desgin.model.MachineryModel> machs = new com.desgin.dao.MachineryDAO().getAllMachinery();
+                int totalFleet = machs.size();
+                long availFleet = machs.stream().filter(m -> "AVAILABLE".equalsIgnoreCase(m.getStatus())).count();
+                long inUseFleet = totalFleet - availFleet;
+
+                // 3. Revenue & Commission from RentalRequests
+                java.util.List<com.desgin.model.RentalRequestModel> reqs = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+                int totalGmv = 0;
+                int escrowSecured = 0;
+                for (com.desgin.model.RentalRequestModel r : reqs) {
+                    int amt = r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays()));
+                    totalGmv += amt;
+                    String pStat = r.getPaymentStatus() != null ? r.getPaymentStatus().toUpperCase() : "";
+                    if ("PAID".equals(pStat) || "ESCROW HELD".equals(pStat)) {
+                        escrowSecured += amt;
+                    }
+                }
+                int netCommission = (int) (totalGmv * 0.07);
+
+                final int fTotalUsers = totalUsers;
+                final int fFCount = fCount;
+                final int fPCount = pCount;
+                final int fOCount = oCount;
+                final int fTotalFleet = totalFleet;
+                final long fAvailFleet = availFleet;
+                final long fInUseFleet = inUseFleet;
+                final int fTotalGmv = totalGmv;
+                final int fEscrow = escrowSecured;
+                final int fNetCommission = netCommission;
+
+                Platform.runLater(() -> {
+                    cachedTotalUsers = String.valueOf(fTotalUsers);
+                    cachedUsersSub = fFCount + " Farmers • " + fPCount + " Providers • " + fOCount + " Operators";
+                    v1.setText(cachedTotalUsers);
+                    s1.setText(cachedUsersSub);
+
+                    cachedTotalFleet = String.valueOf(fTotalFleet);
+                    cachedFleetSub = fAvailFleet + " Available • " + fInUseFleet + " In-Use / Reserved";
+                    v2.setText(cachedTotalFleet);
+                    s2.setText(cachedFleetSub);
+
+                    cachedTotalGmv = "₹" + String.format(Locale.ENGLISH, "%,d", fTotalGmv);
+                    cachedGmvSub = "₹" + String.format(Locale.ENGLISH, "%,d", fEscrow) + " secured in escrow";
+                    v3.setText(cachedTotalGmv);
+                    s3.setText(cachedGmvSub);
+
+                    cachedCommission = "₹" + String.format(Locale.ENGLISH, "%,d", fNetCommission);
+                    cachedCommissionSub = "Direct Platform Earnings YTD";
+                    v4.setText(cachedCommission);
+                    s4.setText(cachedCommissionSub);
+                });
+            } catch (Exception e) {
+                System.err.println("Notice: Could not load dynamic admin stats: " + e.getMessage());
+            }
+        }).start();
 
         GridPane grid = new GridPane();
         grid.setHgap(14);
@@ -120,32 +184,18 @@ public class AdminHome {
         return grid;
     }
 
-    private static VBox createMetricCard(String title, String value, String badge, String sub, String color, String bgColor, Runnable onClick) {
+    private static VBox createMetricCardDynamic(String title, Text v, Text s, String color, String bgColor, Runnable onClick) {
         Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
+        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-fill: #4B5563; -fx-font-weight: 600;");
 
-        Text b = new Text(badge);
-        b.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-fill: " + color + ";");
-        StackPane badgeBox = new StackPane(b);
-        badgeBox.setPadding(new Insets(2, 6, 2, 6));
-        badgeBox.setStyle("-fx-background-color: rgba(255,255,255,0.85); -fx-background-radius: 6; -fx-border-color: #E2EBE5; -fx-border-radius: 6;");
+        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 23px; -fx-font-weight: bold; -fx-fill: " + color + ";");
+        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #374151;");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-        HBox top = new HBox(6, t, spacer, badgeBox);
-        top.setAlignment(Pos.CENTER_LEFT);
-
-        Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: " + color + ";");
-
-        Text s = new Text(sub);
-        s.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #374151;");
-
-        VBox card = new VBox(5, top, v, s);
-        card.setPadding(new Insets(14));
+        VBox card = new VBox(8, t, v, s);
+        card.setPadding(new Insets(18, 16, 18, 16));
         card.setMinWidth(0);
         card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12; -fx-cursor: hand;");
+        card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 8, 0, 0, 2);");
 
         card.setOnMouseEntered(e -> {
             card.setStyle("-fx-background-color: #F0FDF4; -fx-background-radius: 12; -fx-border-color: #2D6A4F; -fx-border-width: 1.5; -fx-border-radius: 12; -fx-effect: dropshadow(gaussian, rgba(27,67,50,0.18), 8, 0.2, 0, 2); -fx-cursor: hand;");
@@ -153,318 +203,305 @@ public class AdminHome {
         });
 
         card.setOnMouseExited(e -> {
-            card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12; -fx-cursor: hand;");
+            card.setStyle("-fx-background-color: " + bgColor + "; -fx-background-radius: 12; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 12; -fx-cursor: hand; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.03), 8, 0, 0, 2);");
             card.setTranslateY(0);
         });
 
         if (onClick != null) {
             card.setOnMouseClicked(e -> onClick.run());
         }
-
         return card;
     }
 
-    private static FlowPane createAdminActionStrip(StackPane root) {
-        Button b1 = createAdminBtn("🚜 Verify Machinery (12)", "#2E7D32", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.approvalsBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(MachineryApprovals.getPage(root));
-        });
-
-        Button b2 = createAdminBtn("👥 Review KYC (5)", "#2D6A4F", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.usersBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(UserManagement.getPage(root));
-        });
-
-        Button b3 = createAdminBtn("💰 Audit Escrow", "#374151", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.escrowBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(EscrowFinancials.getPage(root));
-        });
-
-        Button b4 = createAdminBtn("⚖ Resolve Disputes (2)", "#8B3A3A", () -> {
-            AdminLeftSideBar.setActiveButton(AdminLeftSideBar.disputesBtn, AdminLeftSideBar.navigationButtons);
-            AdminDashboard.borderPane.setCenter(DisputeResolution.getPage(root));
-        });
-
-        FlowPane bar = new FlowPane(10, 10, b1, b2, b3, b4);
-        bar.setAlignment(Pos.CENTER_LEFT);
-        bar.setMinWidth(0);
-        bar.setMaxWidth(Double.MAX_VALUE);
-        return bar;
-    }
-
-    private static Button createAdminBtn(String text, String bg, Runnable action) {
-        Button btn = new Button(text);
-        btn.setPrefHeight(36);
-        btn.setStyle("-fx-background-color: " + bg + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 0 14 0 14;");
-        btn.setOnAction(e -> action.run());
-        return btn;
-    }
-
-    // =========================================================
-    // CHARTS ROW 1: AreaChart (GMV vs Commission) + PieChart (Category Distribution)
-    // =========================================================
-    private static GridPane createChartsGrid1() {
-        VBox chart1 = createGMVAreaChart();
-        VBox chart2 = createCategoryPieChart();
-
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setMinWidth(0);
-        grid.setMaxWidth(Double.MAX_VALUE);
-
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(55);
-        col1.setHgrow(Priority.ALWAYS);
-
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(45);
-        col2.setHgrow(Priority.ALWAYS);
-
-        grid.getColumnConstraints().addAll(col1, col2);
-
-        grid.add(chart1, 0, 0);
-        grid.add(chart2, 1, 0);
-        return grid;
-    }
-
-    private static VBox createGMVAreaChart() {
-        Text cardTitle = new Text("📈 Platform Booking Volume & Net Commission");
-        cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text cardSub = new Text("Gross Booking Volume (₹k) vs 7% Platform Commission (₹k)");
-        cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
-
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Operating Month (2026)");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Amount (₹ in Thousands)");
-
-        AreaChart<String, Number> areaChart = new AreaChart<>(xAxis, yAxis);
-        areaChart.setAnimated(false);
-        areaChart.setLegendVisible(true);
-        areaChart.setPrefHeight(250);
-        areaChart.setMinHeight(220);
-        areaChart.setMinWidth(0);
-        areaChart.setMaxWidth(Double.MAX_VALUE);
-
-        XYChart.Series<String, Number> seriesGMV = new XYChart.Series<>();
-        seriesGMV.setName("Gross Volume (₹k)");
-        seriesGMV.getData().add(new XYChart.Data<>("Mar", 420));
-        seriesGMV.getData().add(new XYChart.Data<>("Apr", 580));
-        seriesGMV.getData().add(new XYChart.Data<>("May", 720));
-        seriesGMV.getData().add(new XYChart.Data<>("Jun", 650));
-        seriesGMV.getData().add(new XYChart.Data<>("Jul", 890));
-        seriesGMV.getData().add(new XYChart.Data<>("Aug", 1140));
-
-        XYChart.Series<String, Number> seriesComm = new XYChart.Series<>();
-        seriesComm.setName("Platform Cut (₹k)");
-        seriesComm.getData().add(new XYChart.Data<>("Mar", 29.4));
-        seriesComm.getData().add(new XYChart.Data<>("Apr", 40.6));
-        seriesComm.getData().add(new XYChart.Data<>("May", 50.4));
-        seriesComm.getData().add(new XYChart.Data<>("Jun", 45.5));
-        seriesComm.getData().add(new XYChart.Data<>("Jul", 62.3));
-        seriesComm.getData().add(new XYChart.Data<>("Aug", 79.8));
-
-        areaChart.getData().addAll(seriesGMV, seriesComm);
-
-        VBox card = new VBox(6, new VBox(2, cardTitle, cardSub), areaChart);
-        card.setPadding(new Insets(16));
-        card.setMinWidth(0);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createCategoryPieChart() {
-        Text cardTitle = new Text("🥧 Fleet Category Distribution");
-        cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text cardSub = new Text("485 units across Western Maharashtra clusters");
-        cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
-
-        ObservableList<PieChart.Data> pieData = FXCollections.observableArrayList(
-            new PieChart.Data("Tractors (42%)", 204),
-            new PieChart.Data("Harvesters (26%)", 126),
-            new PieChart.Data("Tillers (18%)", 87),
-            new PieChart.Data("Drones (14%)", 68)
+    private static HBox createWeatherCard(String location, double latitude, double longitude) {
+        HBox weatherCard = new HBox(20);
+        weatherCard.setAlignment(Pos.CENTER_LEFT);
+        weatherCard.setPadding(new Insets(14, 22, 14, 22));
+        weatherCard.setMaxWidth(Double.MAX_VALUE);
+        weatherCard.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1B5E20, #2E7D32, #388E3C);" +
+                "-fx-background-radius: 14px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);"
         );
 
-        PieChart pieChart = new PieChart(pieData);
-        pieChart.setAnimated(false);
-        pieChart.setLegendVisible(true);
-        pieChart.setPrefHeight(250);
-        pieChart.setMinHeight(220);
-        pieChart.setMinWidth(0);
-        pieChart.setMaxWidth(Double.MAX_VALUE);
+        // Left: Current Weather Icon, Temperature & Details
+        Text weatherIcon = new Text("☀");
+        weatherIcon.setStyle("-fx-font-size: 34px; -fx-fill: #FFF9C4;");
 
-        VBox card = new VBox(6, new VBox(2, cardTitle, cardSub), pieChart);
-        card.setPadding(new Insets(16));
-        card.setMinWidth(0);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
+        Text temperature = new Text("Loading...");
+        temperature.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 26px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-fill: white;"
+        );
 
-    // =========================================================
-    // CHARTS ROW 2: BarChart (District Demand) + Security Matrix
-    // =========================================================
-    private static GridPane createChartsGrid2() {
-        VBox barCard = createDistrictDemandBarChart();
-        VBox securityCard = createSystemSecurityCard();
+        Text condition = new Text("Loading weather...");
+        condition.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-fill: #E8F5E9;"
+        );
 
-        GridPane grid = new GridPane();
-        grid.setHgap(16);
-        grid.setVgap(16);
-        grid.setMinWidth(0);
-        grid.setMaxWidth(Double.MAX_VALUE);
+        Text locationText = new Text("📍 " + location + ", Maharashtra");
+        locationText.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 11px;" +
+                "-fx-fill: #C8E6C9;"
+        );
 
-        ColumnConstraints col1 = new ColumnConstraints();
-        col1.setPercentWidth(50);
-        col1.setHgrow(Priority.ALWAYS);
+        VBox currentDetails = new VBox(2, condition, locationText);
+        currentDetails.setAlignment(Pos.CENTER_LEFT);
 
-        ColumnConstraints col2 = new ColumnConstraints();
-        col2.setPercentWidth(50);
-        col2.setHgrow(Priority.ALWAYS);
+        HBox leftCurrentBox = new HBox(12, weatherIcon, temperature, currentDetails);
+        leftCurrentBox.setAlignment(Pos.CENTER_LEFT);
 
-        grid.getColumnConstraints().addAll(col1, col2);
-
-        grid.add(barCard, 0, 0);
-        grid.add(securityCard, 1, 0);
-        return grid;
-    }
-
-    private static VBox createDistrictDemandBarChart() {
-        Text cardTitle = new Text("📊 District-Wise Rental Velocity");
-        cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text cardSub = new Text("Active rental days logged across top agricultural clusters");
-        cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
-
-        CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("District");
-
-        NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Rental Days");
-
-        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
-        barChart.setAnimated(false);
-        barChart.setLegendVisible(false);
-        barChart.setPrefHeight(250);
-        barChart.setMinHeight(220);
-        barChart.setMinWidth(0);
-        barChart.setMaxWidth(Double.MAX_VALUE);
-
-        XYChart.Series<String, Number> series = new XYChart.Series<>();
-        series.setName("Rental Days");
-        series.getData().add(new XYChart.Data<>("Pune", 380));
-        series.getData().add(new XYChart.Data<>("Baramati", 495));
-        series.getData().add(new XYChart.Data<>("Indapur", 310));
-        series.getData().add(new XYChart.Data<>("Satara", 240));
-        series.getData().add(new XYChart.Data<>("A'nagar", 290));
-
-        barChart.getData().add(series);
-
-        VBox card = new VBox(6, new VBox(2, cardTitle, cardSub), barChart);
-        card.setPadding(new Insets(16));
-        card.setMinWidth(0);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createSystemSecurityCard() {
-        Text cardTitle = new Text("🛡️ Platform Integrity & Escrow Matrix");
-        cardTitle.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 15px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text cardSub = new Text("System-wide compliance and nodal trust status");
-        cardSub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #4B5563;");
-
-        VBox i1 = createAuditItem("🔒 RBI-Compliant Escrow", "₹6,45,000 in 100% nodal trust", "OPTIMAL", "#2E7D32");
-        VBox i2 = createAuditItem("🚜 Machinery RC Verification", "98.4% of active fleet verified", "COMPLIANT", "#2E7D32");
-        VBox i3 = createAuditItem("👨‍✈️ Operator License Audit", "124 operators certified", "VERIFIED", "#1976D2");
-        VBox i4 = createAuditItem("📡 Telematics Stream", "390 machines syncing live", "ACTIVE", "#388E3C");
-
-        VBox list = new VBox(6, i1, i2, i3, i4);
-        list.setMinWidth(0);
-
-        VBox card = new VBox(8, new VBox(2, cardTitle, cardSub), list);
-        card.setPadding(new Insets(16));
-        card.setMinWidth(0);
-        card.setMaxWidth(Double.MAX_VALUE);
-        card.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 14; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 14;");
-        return card;
-    }
-
-    private static VBox createAuditItem(String title, String desc, String badgeText, String badgeColor) {
-        Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text d = new Text(desc);
-        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: #4B5563;");
-
-        VBox left = new VBox(1, t, d);
-        left.setMinWidth(0);
+        // Middle: Platform farming advisory badge
+        Text agriTip = new Text("🌱 Field Status: Favorable conditions for farming operations");
+        agriTip.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 11.5px;" +
+                "-fx-font-weight: 500;" +
+                "-fx-fill: #E8F5E9;"
+        );
+        HBox agriChip = new HBox(agriTip);
+        agriChip.setAlignment(Pos.CENTER);
+        agriChip.setPadding(new Insets(6, 14, 6, 14));
+        agriChip.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.15);" +
+                "-fx-background-radius: 20px;"
+        );
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Text badge = new Text(badgeText);
-        badge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 9px; -fx-font-weight: bold; -fx-fill: white;");
+        // Right: 4-Day Forecast in individual mini column cards
+        HBox forecastBox = new HBox(10);
+        forecastBox.setAlignment(Pos.CENTER_RIGHT);
 
-        StackPane badgeContainer = new StackPane(badge);
-        badgeContainer.setPadding(new Insets(2, 6, 2, 6));
-        badgeContainer.setStyle("-fx-background-color: " + badgeColor + "; -fx-background-radius: 8;");
+        Text[] dayNames = new Text[4];
+        Text[] dayIcons = new Text[4];
+        Text[] dayTemps = new Text[4];
 
-        HBox row = new HBox(6, left, spacer, badgeContainer);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(6, 8, 6, 8));
-        row.setMinWidth(0);
-        row.setStyle("-fx-background-color: #FFFDFC; -fx-background-radius: 8; -fx-border-color: #E2D7CB; -fx-border-radius: 8; -fx-border-width: 1;");
+        for (int i = 0; i < 4; i++) {
+            dayNames[i] = new Text("Day");
+            dayNames[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #E8F5E9;");
 
-        return new VBox(row);
+            dayIcons[i] = new Text("☀");
+            dayIcons[i].setStyle("-fx-font-size: 13px; -fx-fill: #FFF9C4;");
+
+            dayTemps[i] = new Text("--° / --°");
+            dayTemps[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: white;");
+
+            HBox dayHeader = new HBox(4, dayNames[i], dayIcons[i]);
+            dayHeader.setAlignment(Pos.CENTER);
+
+            VBox dayCard = new VBox(2, dayHeader, dayTemps[i]);
+            dayCard.setAlignment(Pos.CENTER);
+            dayCard.setPadding(new Insets(4, 10, 4, 10));
+            dayCard.setStyle("-fx-background-color: rgba(255, 255, 255, 0.12); -fx-background-radius: 8px;");
+
+            forecastBox.getChildren().add(dayCard);
+        }
+
+        weatherCard.getChildren().addAll(leftCurrentBox, agriChip, spacer, forecastBox);
+
+        // Load live weather asynchronously
+        loadWeather(
+                latitude,
+                longitude,
+                weatherIcon,
+                temperature,
+                condition,
+                dayNames,
+                dayIcons,
+                dayTemps
+        );
+
+        return weatherCard;
     }
 
-    private static VBox createLiveActivityFeed() {
-        Text title = new Text("⚡ Real-Time Platform Event Feed");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 16px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    private static void loadWeather(
+            double latitude,
+            double longitude,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
 
-        HBox e1 = createFeedRow("🚜 New Machinery Submitted", "Provider Rajesh Patil submitted 'Swaraj 855 FE 52HP' for verification.", "2 mins ago", "PENDING", "#E65100");
-        HBox e2 = createFeedRow("💰 Escrow Payout Released", "₹12,600 released to Provider (Balasaheb completed 5-day harvest).", "14 mins ago", "SETTLED", "#2E7D32");
-        HBox e3 = createFeedRow("👨‍✈️ Operator KYC Submitted", "Operator Ramesh Chavan uploaded Commercial Driving License.", "45 mins ago", "VERIFIED", "#1976D2");
-        HBox e4 = createFeedRow("🌾 New Booking Confirmed", "Farmer Anand Kadam booked Harvester for ₹14,000 (Escrow Locked).", "1 hr ago", "ACTIVE", "#2E7D32");
+        Task<String> weatherTask = new Task<>() {
+            @Override
+            protected String call() throws Exception {
+                String url = "https://api.open-meteo.com/v1/forecast"
+                        + "?latitude=" + latitude
+                        + "&longitude=" + longitude
+                        + "&current=temperature_2m,weather_code"
+                        + "&daily=weather_code,temperature_2m_max,temperature_2m_min"
+                        + "&timezone=auto"
+                        + "&forecast_days=4";
 
-        VBox box = new VBox(8, title, e1, e2, e3, e4);
-        box.setMinWidth(0);
-        return box;
+                HttpClient client = HttpClient.newHttpClient();
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString());
+
+                if (response.statusCode() != 200) {
+                    throw new RuntimeException("API returned HTTP " + response.statusCode());
+                }
+
+                return response.body();
+            }
+        };
+
+        weatherTask.setOnSucceeded(e -> {
+            updateWeatherUI(
+                    weatherTask.getValue(),
+                    weatherIcon,
+                    temperature,
+                    condition,
+                    dayNames,
+                    dayIcons,
+                    dayTemps);
+        });
+
+        weatherTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Weather unavailable");
+                weatherIcon.setText("☀");
+                for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                    dayNames[i].setText("Day");
+                    dayIcons[i].setText("☀");
+                    dayTemps[i].setText("--°");
+                }
+            });
+        });
+
+        Thread thread = new Thread(weatherTask);
+        thread.setDaemon(true);
+        thread.start();
     }
 
-    private static HBox createFeedRow(String title, String desc, String time, String status, String statusColor) {
-        Text t = new Text(title);
-        t.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-fill: #1B4332;");
+    private static void updateWeatherUI(
+            String json,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
 
-        Text d = new Text(desc);
-        d.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-fill: #374151;");
+        try {
+            // Current Weather
+            int currentStart = json.indexOf("\"current\":{");
+            if (currentStart == -1) throw new RuntimeException("Current weather data not found");
 
-        VBox left = new VBox(1, t, d);
-        left.setMinWidth(0);
+            int currentEnd = json.indexOf("}", currentStart);
+            String currentData = json.substring(currentStart, currentEnd);
 
-        Text tm = new Text("⏱ " + time);
-        tm.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: #4B5563;");
+            String currentTemperature = extractNumberFromSection(currentData, "\"temperature_2m\":");
+            String currentCode = extractNumberFromSection(currentData, "\"weather_code\":");
 
-        Label badge = new Label(status);
-        badge.setStyle("-fx-background-color: " + statusColor + "; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 9.5px; -fx-font-weight: bold; -fx-padding: 2 6 2 6; -fx-background-radius: 4;");
+            double temperatureValue = Double.parseDouble(currentTemperature);
+            int weatherCode = Integer.parseInt(currentCode);
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+            temperature.setText(Math.round(temperatureValue) + "°C");
+            condition.setText(getWeatherDescription(weatherCode));
+            weatherIcon.setText(getWeatherIcon(weatherCode));
 
-        HBox row = new HBox(10, left, spacer, tm, badge);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 14, 10, 14));
-        row.setMinWidth(0);
-        row.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 10; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 10;");
+            // Daily Weather Forecast
+            int dailyStart = json.indexOf("\"daily\":{");
+            if (dailyStart == -1) return;
 
-        return row;
+            String dailyData = json.substring(dailyStart);
+
+            String datesPart = extractArray(dailyData, "\"time\":[");
+            String maxPart = extractArray(dailyData, "\"temperature_2m_max\":[");
+            String minPart = extractArray(dailyData, "\"temperature_2m_min\":[");
+            String codePart = extractArray(dailyData, "\"weather_code\":[");
+
+            String[] dateArray = datesPart.split(",");
+            String[] maxArray = maxPart.split(",");
+            String[] minArray = minPart.split(",");
+            String[] codeArray = codePart.split(",");
+
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
+
+            for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                String date = dateArray[i].replace("\"", "").trim();
+                LocalDate localDate = LocalDate.parse(date);
+
+                double maxTemperature = Double.parseDouble(maxArray[i].trim());
+                double minTemperature = Double.parseDouble(minArray[i].trim());
+                int dailyWeatherCode = Integer.parseInt(codeArray[i].trim());
+
+                String dayName = localDate.format(formatter);
+                String max = Math.round(maxTemperature) + "°";
+                String min = Math.round(minTemperature) + "°";
+
+                dayNames[i].setText(dayName);
+                dayIcons[i].setText(getWeatherIcon(dailyWeatherCode));
+                dayTemps[i].setText(max + "/" + min);
+            }
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Unable to load weather");
+            });
+        }
+    }
+
+    private static String extractNumberFromSection(String section, String key) {
+        int start = section.indexOf(key);
+        if (start == -1) throw new RuntimeException("Key not found: " + key);
+        start += key.length();
+        int end = start;
+        while (end < section.length() && section.charAt(end) != ',' && section.charAt(end) != '}') {
+            end++;
+        }
+        return section.substring(start, end).trim();
+    }
+
+    private static String extractArray(String json, String key) {
+        int start = json.indexOf(key);
+        if (start == -1) return "";
+        start += key.length();
+        int end = json.indexOf("]", start);
+        if (end == -1) return "";
+        return json.substring(start, end);
+    }
+
+    private static String getWeatherIcon(int code) {
+        if (code == 0) return "☀";
+        if (code >= 1 && code <= 3) return "⛅";
+        if (code >= 45 && code <= 48) return "🌫";
+        if (code >= 51 && code <= 67) return "🌧";
+        if (code >= 71 && code <= 77) return "❄";
+        if (code >= 80 && code <= 82) return "🌦";
+        if (code >= 95 && code <= 99) return "⛈";
+        return "☀";
+    }
+
+    private static String getWeatherDescription(int code) {
+        if (code == 0) return "Clear Sky";
+        if (code == 1) return "Mainly Clear";
+        if (code == 2) return "Partly Cloudy";
+        if (code == 3) return "Overcast";
+        if (code == 45 || code == 48) return "Foggy";
+        if (code >= 51 && code <= 55) return "Drizzle";
+        if (code >= 61 && code <= 65) return "Rain";
+        if (code >= 80 && code <= 82) return "Rain Showers";
+        if (code >= 95) return "Thunderstorm";
+        return "Pleasant Weather";
     }
 }

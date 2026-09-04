@@ -43,6 +43,12 @@ public class OperatorDashboard {
         subroot.prefHeightProperty().bind(root.heightProperty());
         operatorDashboardScene = new Scene(root);
 
+        // Start watching user status in case admin suspends account live
+        String opKey = (OperatorProfileStore.email != null && !OperatorProfileStore.email.isEmpty()) ? OperatorProfileStore.email : OperatorProfileStore.phone;
+        if (opKey != null && !opKey.isEmpty()) {
+            com.desgin.service.UserStatusWatcher.startWatching(opKey, "Operator", ref);
+        }
+
         return operatorDashboardScene;
     }
 }

@@ -138,8 +138,7 @@ public class Dashboard {
                                 FarmerDashboard.borderPane.setCenter(obj.getProfile(FarmerDashboard.root));
                         } else if (q.contains("weath") || q.contains("temp") || q.contains("rain") || q.contains("pune") || q.contains("clim")) {
                                 LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
-                                String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
-                                ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+                                ProfileManagement.updateHeaderGreeting();
                                 FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                         } else {
                                 // Equipment keyword, category, or general machinery search
@@ -244,6 +243,11 @@ public class Dashboard {
                                                 "-fx-font-size: 20px;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-fill: #1B4332;");
+
+                try {
+                    List<com.desgin.model.MachineryModel> firestoreList = new com.desgin.dao.MachineryDAO().getAllMachinery();
+                    EquipmentDataStore.syncFromFirestore(firestoreList);
+                } catch (Exception ignored) {}
 
                 List<EquipmentDataStore.EquipmentItem> recommendedList = EquipmentDataStore.getRandomRecommended(5);
                 Node recommendedNode;
@@ -1013,8 +1017,7 @@ public class Dashboard {
                                 imagePath,
                                 () -> {
                                         LeftSideBar.setActiveButton(LeftSideBar.dashboardBtn1, LeftSideBar.navigationButtons);
-                                        String fName = (FarmerProfileStore.name != null && !FarmerProfileStore.name.trim().isEmpty()) ? FarmerProfileStore.name.split(" ")[0] : "Harshal";
-                                        ProfileManagement.setHeaderTitle("Welcome back, " + fName + " 👋", "Farmer Dashboard • Find the right equipment for your farm");
+                                        ProfileManagement.updateHeaderGreeting();
                                         FarmerDashboard.borderPane.setCenter(Dashboard.getPage());
                                 }
                         );

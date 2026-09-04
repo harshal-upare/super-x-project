@@ -1,0 +1,107 @@
+﻿/* =========================================================
+   FarmEquip Admin Chart Styles (PieChart & BarChart)
+   ========================================================= */
+
+/* Pie Chart Leader Lines & Labels */
+.chart-pie-label-line {
+    -fx-stroke: #4B5563;
+    -fx-stroke-width: 1.2px;
+    -fx-fill: transparent;
+}
+
+.chart-pie-label {
+    -fx-font-family: 'Poppins', sans-serif;
+    -fx-font-size: 11px;
+    -fx-fill: #1B4332;
+    -fx-font-weight: bold;
+}
+
+/* Axis Labels & Scales */
+.axis {
+    -fx-tick-label-fill: #374151;
+    -fx-tick-label-font: 10.5px 'Poppins', sans-serif;
+}
+
+.axis-label {
+    -fx-text-fill: #1B4332;
+    -fx-fill: #1B4332;
+    -fx-font-family: 'Poppins', sans-serif;
+    -fx-font-size: 11.5px;
+    -fx-font-weight: bold;
+}
+
+.axis .tick-label {
+    -fx-fill: #374151;
+    -fx-text-fill: #374151;
+    -fx-font-family: 'Poppins', sans-serif;
+    -fx-font-size: 10.5px;
+    -fx-font-weight: 500;
+}
+
+.axis-tick-mark {
+    -fx-stroke: #9CA3AF;
+    -fx-stroke-width: 1.2px;
+}
+
+.axis-minor-tick-mark {
+    -fx-stroke: #D1D5DB;
+    -fx-stroke-width: 0.8px;
+}
+
+/* Chart Grid and Background */
+.chart-plot-background {
+    -fx-background-color: #FBFDFB;
+    -fx-background-radius: 8px;
+}
+
+.chart-vertical-grid-lines {
+    -fx-stroke: #E5E7EB;
+    -fx-stroke-dash-array: 3 3;
+}
+
+.chart-horizontal-grid-lines {
+    -fx-stroke: #E5E7EB;
+    -fx-stroke-dash-array: 3 3;
+}
+
+/* Legend Styling */
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-padding: 6px 12px 6px 12px;
+}
+
+.chart-legend-item {
+    -fx-text-fill: #1F2937;
+    -fx-fill: #1F2937;
+    -fx-font-family: 'Poppins', sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.chart-legend-item .label {
+    -fx-text-fill: #1F2937;
+    -fx-fill: #1F2937;
+    -fx-font-family: 'Poppins', sans-serif;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.chart-legend-item-symbol {
+    -fx-background-radius: 4px;
+}
+
+/* Custom Series Bar Colors */
+.default-color0.chart-bar {
+    -fx-bar-fill: #2D6A4F;
+    -fx-background-radius: 4px 4px 0 0;
+}
+
+.default-color1.chart-bar {
+    -fx-bar-fill: #E65100;
+    -fx-background-radius: 4px 4px 0 0;
+}
+
+.default-color2.chart-bar {
+    -fx-bar-fill: #0284C7;
+    -fx-background-radius: 4px 4px 0 0;
+}

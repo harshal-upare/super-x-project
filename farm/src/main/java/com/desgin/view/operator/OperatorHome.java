@@ -28,43 +28,81 @@ import javafx.scene.text.Text;
 
 public class OperatorHome {
 
-    private static boolean isShiftRunning = true;
-    private static Text shiftStatusBadge;
-    private static Button pauseShiftBtn;
+    private static Text cardMachinesVal;
+    private static Text cardMachinesSub;
+    private static Text cardJobsVal;
+    private static Text cardJobsSub;
+    private static Text cardHoursVal;
+    private static Text cardHoursSub;
+    private static Text cardWagesVal;
+    private static Text cardWagesSub;
+
+    static {
+        OperatorProfileStore.addProfileListener(() -> {
+            Platform.runLater(OperatorHome::refreshDynamicMetrics);
+        });
+    }
+
+    public static void refreshDynamicMetrics() {
+        if (cardMachinesVal != null) cardMachinesVal.setText(OperatorProfileStore.assignedMachinery);
+        if (cardMachinesSub != null) cardMachinesSub.setText(OperatorProfileStore.assignedMachinerySub);
+        if (cardJobsVal != null) cardJobsVal.setText(OperatorProfileStore.activeJobs);
+        if (cardJobsSub != null) cardJobsSub.setText(OperatorProfileStore.activeJobsSub);
+        if (cardHoursVal != null) cardHoursVal.setText(OperatorProfileStore.engineHours);
+        if (cardHoursSub != null) cardHoursSub.setText(OperatorProfileStore.engineHoursSub);
+        if (cardWagesVal != null) cardWagesVal.setText(OperatorProfileStore.wagesEarned);
+        if (cardWagesSub != null) cardWagesSub.setText(OperatorProfileStore.wagesEarnedSub);
+    }
+
+    public static void loadOperatorMetricsFromFirestore() {
+        new Thread(() -> {
+            try {
+                String opEmail = OperatorProfileStore.email;
+                if (opEmail == null || opEmail.trim().isEmpty()) return;
+                java.util.List<com.desgin.model.RentalRequestModel> list = new com.desgin.dao.RentalRequestDAO().getRequestsByOperator(opEmail);
+                int totalJobs = list.size();
+                int activeJobsCount = 0;
+                int completedJobsCount = 0;
+                int totalWages = 0;
+                java.util.Set<String> machines = new java.util.HashSet<>();
+
+                for (com.desgin.model.RentalRequestModel r : list) {
+                    if (r.getMachineryName() != null) machines.add(r.getMachineryName());
+                    String st = r.getStatus() != null ? r.getStatus().toUpperCase() : "";
+                    int wage = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
+                    if ("ACTIVE".equals(st) || "CONFIRMED".equals(st) || "ACCEPTED".equals(st)) {
+                        activeJobsCount++;
+                        totalWages += wage;
+                    } else if ("COMPLETED".equals(st)) {
+                        completedJobsCount++;
+                        totalWages += wage;
+                    }
+                }
+
+                final int finalActive = activeJobsCount;
+                final int finalMach = machines.size();
+                final int finalWages = totalWages;
+                final int finalCompleted = completedJobsCount;
+
+                javafx.application.Platform.runLater(() -> {
+                    OperatorProfileStore.assignedMachinery = finalMach + " Units";
+                    OperatorProfileStore.assignedMachinerySub = finalActive + " In Shift • " + Math.max(0, finalMach - finalActive) + " Ready";
+                    OperatorProfileStore.activeJobs = finalActive + " Active";
+                    OperatorProfileStore.activeJobsSub = finalCompleted + " Completed • " + totalJobs + " Total";
+                    OperatorProfileStore.wagesEarned = "₹" + String.format("%,d", finalWages);
+                    OperatorProfileStore.wagesEarnedSub = "Secured via Platform Escrow";
+                    refreshDynamicMetrics();
+                });
+            } catch (Exception ignored) {}
+        }).start();
+    }
 
     public static ScrollPane getPage() {
-        String operatorName = "Ramesh Chavan";
-
-        Text welcomeText = new Text("Welcome back, " + operatorName + " 👨‍🌾");
-        welcomeText.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 26px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #1B4332;");
-
-        Text dashboardText = new Text("Machinery Operator Cockpit & Field Command");
-        dashboardText.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 16px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-fill: #374151;");
-
-        Text descriptionText = new Text("Monitor active machine telemetry, field work orders, engine hours & instant wage payouts");
-        descriptionText.setStyle(
-                "-fx-font-family: 'Poppins';" +
-                "-fx-font-size: 13px;" +
-                "-fx-fill: #4B5563;");
-
-        VBox headerText = new VBox(4, welcomeText, dashboardText, descriptionText);
-        headerText.setAlignment(Pos.TOP_LEFT);
+        OperatorProfileManagement.updateHeaderGreeting();
+        loadOperatorMetricsFromFirestore();
 
         // Weather Card
-        VBox weatherCard = createWeatherCard("Pune Agri Zone", 18.5204, 73.8567);
-        weatherCard.setAlignment(Pos.TOP_RIGHT);
-
-        HBox topRow = new HBox(20, headerText, weatherCard);
-        HBox.setHgrow(headerText, Priority.ALWAYS);
-        topRow.setAlignment(Pos.CENTER_LEFT);
+        HBox weatherCard = createWeatherCard("Pune Agri Zone", 18.5204, 73.8567);
 
         // Search Bar & Filter
         TextField searchField = new TextField();
@@ -100,50 +138,54 @@ public class OperatorHome {
         HBox searchBox = new HBox(10, searchIcon, searchField, searchButton);
         searchBox.setAlignment(Pos.CENTER_LEFT);
 
-        // 4 KPI Operator Metric Cards
-        VBox cardMachines = createDashboardCard("🚜", "Assigned Machinery", "4 Units", "2 Field Ready • 1 In Shift", "#2E7D32", () -> {
+        // 4 Dynamic KPI Operator Metric Cards
+        cardMachinesVal = new Text(OperatorProfileStore.assignedMachinery);
+        cardMachinesSub = new Text(OperatorProfileStore.assignedMachinerySub);
+        VBox cardMachines = createDynamicDashboardCard("🚜", "Assigned Machinery", cardMachinesVal, cardMachinesSub, "#2E7D32", () -> {
             OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
-        VBox cardActiveJobs = createDashboardCard("📋", "Active Field Jobs", "2 Assigned", "1 Running • 1 Scheduled", "#E65100", () -> {
+        cardJobsVal = new Text(OperatorProfileStore.activeJobs);
+        cardJobsSub = new Text(OperatorProfileStore.activeJobsSub);
+        VBox cardActiveJobs = createDynamicDashboardCard("📋", "Active Field Jobs", cardJobsVal, cardJobsSub, "#E65100", () -> {
             OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
-        VBox cardHours = createDashboardCard("⏱", "Engine Hours (Month)", "148.5 hrs", "+18.2 hrs this week ↑", "#1976D2", () -> {
+        cardHoursVal = new Text(OperatorProfileStore.engineHours);
+        cardHoursSub = new Text(OperatorProfileStore.engineHoursSub);
+        VBox cardHours = createDynamicDashboardCard("⏱", "Engine Hours (Month)", cardHoursVal, cardHoursSub, "#1976D2", () -> {
             OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Field Tasks & Schedule 📋", "Manage active assignments, shift timesheets & field plots");
             OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
         });
 
-        VBox cardEarnings = createDashboardCard("💰", "Wages Earned (Month)", "₹28,400", "₹4,200 pending settlement", "#2E7D32", () -> {
+        cardWagesVal = new Text(OperatorProfileStore.wagesEarned);
+        cardWagesSub = new Text(OperatorProfileStore.wagesEarnedSub);
+        VBox cardEarnings = createDynamicDashboardCard("💰", "Wages Earned (Month)", cardWagesVal, cardWagesSub, "#2E7D32", () -> {
             OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.earningsBtn, OperatorLeftSideBar.navigationButtons);
+            OperatorProfileManagement.setHeaderTitle("Daily Wages & Cashout 💵", "Track completed job settlements, incentives & bank withdrawals");
             OperatorDashboard.borderPane.setCenter(OperatorEarnings.getEarningsSection(OperatorDashboard.root));
         });
 
         HBox cards = new HBox(15, cardMachines, cardActiveJobs, cardHours, cardEarnings);
         cards.setAlignment(Pos.CENTER_LEFT);
 
-        // Live Shift Cockpit Panel
-        VBox liveShiftCard = createLiveCockpitCard();
-
         // Upcoming Work Orders Section
         VBox scheduleSection = createUpcomingScheduleSection();
-
-        // Daily Safety Checklist
-        VBox safetyChecklistCard = createSafetyChecklistCard();
 
         // Recent Work Logs
         VBox recentLogsSection = createRecentLogsSection();
 
         VBox centerContent = new VBox(
-                22,
-                topRow,
+                20,
+                weatherCard,
                 searchBox,
                 cards,
-                liveShiftCard,
                 scheduleSection,
-                safetyChecklistCard,
                 recentLogsSection
         );
         centerContent.setPadding(new Insets(20, 30, 35, 30));
@@ -156,150 +198,6 @@ public class OperatorHome {
 
         OperatorDashboard.borderPane.setCenter(scrollPane);
         return scrollPane;
-    }
-
-    private static VBox createLiveCockpitCard() {
-        shiftStatusBadge = new Text("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
-        shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
-
-        Label gpsPill = new Label("● GPS LIVE TRACKING (Sector 4 Baramati)");
-        gpsPill.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-font-weight: bold; -fx-padding: 3 8 3 8; -fx-background-radius: 4;");
-
-        HBox badgeRow = new HBox(12, shiftStatusBadge, new Region(), gpsPill);
-        HBox.setHgrow(badgeRow.getChildren().get(1), Priority.ALWAYS);
-        badgeRow.setAlignment(Pos.CENTER_LEFT);
-
-        Text title = new Text("John Deere 5310 4WD (55 HP) • Heavy Duty Rotavator (7ft)");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subInfo = new Text("Client: Balasaheb Shirole (📞 +91 98220 12345)  |  Location: Plot B, Sector 4 - Baramati (14.0 Acres)  |  Crop: Sugarcane Seedbed Tillage");
-        subInfo.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #374151;");
-
-        // 4 Telemetry Dials
-        VBox tel1 = createTelemetryStat("⛽ Fuel Level", "78% (42 Liters Left)", 0.78, "#2E7D32");
-        VBox tel2 = createTelemetryStat("⚡ Engine Speed", "1,850 RPM (Optimal)", 0.74, "#2E7D32");
-        VBox tel3 = createTelemetryStat("🌡 Coolant Temp", "84°C (Normal)", 0.55, "#2D6A4F");
-        VBox tel4 = createTelemetryStat("⏱ Shift Duration", "3h 45m (7.5 Acres Done)", 0.65, "#1976D2");
-
-        HBox telRow = new HBox(14, tel1, tel2, tel3, tel4);
-        telRow.setAlignment(Pos.CENTER_LEFT);
-
-        // Action Buttons
-        pauseShiftBtn = new Button("⏸  Pause Shift");
-        pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        pauseShiftBtn.setOnAction(e -> {
-            isShiftRunning = !isShiftRunning;
-            if (isShiftRunning) {
-                pauseShiftBtn.setText("⏸  Pause Shift");
-                pauseShiftBtn.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #1B4332; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-                shiftStatusBadge.setText("🔴  LIVE SHIFT COCKPIT • RUNNING IN FIELD");
-                shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #2E7D32; -fx-letter-spacing: 1px;");
-            } else {
-                pauseShiftBtn.setText("▶  Resume Shift");
-                pauseShiftBtn.setStyle("-fx-background-color: #6B8E23; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-                shiftStatusBadge.setText("🟡  SHIFT PAUSED • IDLE IN FIELD");
-                shiftStatusBadge.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-fill: #D97706; -fx-letter-spacing: 1px;");
-            }
-        });
-
-        Button otpVerifyBtn = new Button("🔢  Verify Job OTP");
-        otpVerifyBtn.setStyle("-fx-background-color: #374151; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        otpVerifyBtn.setOnAction(e -> showOtpModal(OperatorDashboard.root));
-
-        Button completeBtn = new Button("✓  Complete Shift & Payout");
-        completeBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-        completeBtn.setOnAction(e -> {
-            OperatorLeftSideBar.setActiveButton(OperatorLeftSideBar.jobsBtn, OperatorLeftSideBar.navigationButtons);
-            OperatorDashboard.borderPane.setCenter(OperatorJobs.getJobsSection(OperatorDashboard.root));
-        });
-
-        Button callFarmerBtn = new Button("📞  Call Farmer (+91 98220 12345)");
-        callFarmerBtn.setStyle("-fx-background-color: #2D6A4F; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-font-weight: bold; -fx-background-radius: 8; -fx-cursor: hand; -fx-padding: 8 16 8 16;");
-
-        HBox btnRow = new HBox(12, pauseShiftBtn, otpVerifyBtn, completeBtn, callFarmerBtn);
-        btnRow.setAlignment(Pos.CENTER_LEFT);
-
-        VBox card = new VBox(14, badgeRow, title, subInfo, telRow, btnRow);
-        card.setPadding(new Insets(20));
-        card.setStyle(
-                "-fx-background-color: #FFFFFF;" +
-                "-fx-background-radius: 14;" +
-                "-fx-border-color: #2E7D32;" +
-                "-fx-border-width: 1.5;" +
-                "-fx-border-radius: 14;" +
-                "-fx-effect: dropshadow(gaussian, rgba(46,125,50,0.15), 10, 0.2, 0, 4);");
-
-        return card;
-    }
-
-    private static void showOtpModal(StackPane root) {
-        if (root == null) return;
-        StackPane overlay = new StackPane();
-        overlay.setStyle("-fx-background-color: rgba(0,0,0,0.55);");
-
-        VBox modal = new VBox(14);
-        modal.setPrefWidth(420);
-        modal.setMaxWidth(420);
-        modal.setPadding(new Insets(24));
-        modal.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 16; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 16;");
-
-        Text title = new Text("Farmer Job Completion OTP");
-        title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 18px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text sub = new Text("Ask farmer Balasaheb Shirole for the 4-digit completion code to verify job finish and unlock instant wage payout.");
-        sub.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
-        sub.setWrappingWidth(370);
-
-        TextField otpField = new TextField();
-        otpField.setPromptText("Enter 4-Digit OTP (e.g. 7421)");
-        otpField.setPrefHeight(40);
-        otpField.setStyle("-fx-background-color: #FFFFFF; -fx-border-color: #E2EBE5; -fx-border-radius: 6; -fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-alignment: center;");
-
-        Label statusMsg = new Label("");
-        statusMsg.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-text-fill: #2E7D32; -fx-font-weight: bold;");
-
-        Button verifyBtn = new Button("Verify & Unlock Wage");
-        verifyBtn.setStyle("-fx-background-color: #2E7D32; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        verifyBtn.setPrefHeight(36);
-
-        Button cancelBtn = new Button("Cancel");
-        cancelBtn.setStyle("-fx-background-color: #8B3A3A; -fx-text-fill: white; -fx-font-family: 'Poppins'; -fx-font-size: 12.5px; -fx-font-weight: bold; -fx-background-radius: 6; -fx-cursor: hand;");
-        cancelBtn.setPrefHeight(36);
-
-        verifyBtn.setOnAction(e -> {
-            if (!otpField.getText().trim().isEmpty()) {
-                statusMsg.setText("✔ OTP Verified! ₹1,200 Wage Credited Instantly to Balance.");
-                verifyBtn.setDisable(true);
-            }
-        });
-
-        cancelBtn.setOnAction(e -> root.getChildren().remove(overlay));
-
-        HBox btns = new HBox(10, verifyBtn, cancelBtn);
-        btns.setAlignment(Pos.CENTER_RIGHT);
-
-        modal.getChildren().addAll(title, sub, otpField, statusMsg, btns);
-        overlay.getChildren().add(modal);
-        root.getChildren().add(overlay);
-    }
-
-    private static VBox createTelemetryStat(String label, String value, double progress, String barColor) {
-        Text l = new Text(label);
-        l.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: #4B5563;");
-
-        Text v = new Text(value);
-        v.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 14px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        ProgressBar pb = new ProgressBar(progress);
-        pb.setPrefWidth(210);
-        pb.setPrefHeight(6);
-        pb.setStyle("-fx-accent: " + barColor + ";");
-
-        VBox b = new VBox(4, l, v, pb);
-        b.setPrefWidth(225);
-        b.setPadding(new Insets(10, 12, 10, 12));
-        b.setStyle("-fx-background-color: #FFFFFF; -fx-background-radius: 8; -fx-border-color: #E2EBE5; -fx-border-width: 1; -fx-border-radius: 8;");
-        return b;
     }
 
     private static VBox createUpcomingScheduleSection() {
@@ -318,9 +216,9 @@ public class OperatorHome {
         HBox header = new HBox(title, spacer, viewAll);
         header.setAlignment(Pos.CENTER_LEFT);
 
-        HBox job1 = createScheduleRow("🌾 Wheat Harvesting (18 Acres)", "Farmer: Vikas More • Preet 987 Harvester", "Tomorrow, 07:00 AM", "₹450 / Acre", "CONFIRMED", "Wheat Crop");
-        HBox job2 = createScheduleRow("🚜 Laser Land Leveling (8 Acres)", "Farmer: Kiran Bhosale • Mahindra 575 DI + Laser Unit", "16 Aug 2026, 08:30 AM", "₹700 / Hour", "SCHEDULED", "Cotton Land");
-        HBox job3 = createScheduleRow("🚁 Micronutrient Foliar Spraying (12 Acres)", "Farmer: Ganesh Jadhav • Hexacopter Agri-Drone", "17 Aug 2026, 06:00 AM", "₹350 / Acre", "PENDING_ACCEPT", "Soybean Crop");
+        HBox job1 = createScheduleRow("🌾 Wheat Harvesting (18.0 Acres)", "Farmer: Vikas More (📞 +91 98502 11234) • Gat No. 112, Daund Road, Pune", "Tomorrow, 07:00 AM", "₹450 / Acre (₹8,100)", "CONFIRMED", "Wheat Crop");
+        HBox job2 = createScheduleRow("🚜 Laser Land Leveling (8.0 Acres)", "Farmer: Kiran Bhosale (📞 +91 94220 89761) • Shiraswadi Farm, Baramati", "16 Aug 2026, 08:30 AM", "₹700 / Hour (₹4,200)", "SCHEDULED", "Cotton Land");
+        HBox job3 = createScheduleRow("🚁 Micronutrient Foliar Spraying (12.0 Acres)", "Farmer: Ganesh Jadhav (📞 +91 97631 55670) • Hol Village, Baramati", "17 Aug 2026, 06:00 AM", "₹350 / Acre (₹4,200)", "PENDING_ACCEPT", "Soybean Crop");
 
         VBox list = new VBox(10, header, job1, job2, job3);
         return list;
@@ -447,7 +345,7 @@ public class OperatorHome {
         return row;
     }
 
-    private static VBox createDashboardCard(String icon, String title, String value, String subtitle, String color, Runnable onClick) {
+    private static VBox createDynamicDashboardCard(String icon, String title, Text valueText, Text subText, String color, Runnable onClick) {
         Text iconText = new Text(icon);
         iconText.setStyle("-fx-font-size: 24px;");
 
@@ -458,10 +356,7 @@ public class OperatorHome {
         Text titleText = new Text(title);
         titleText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 12px; -fx-fill: #4B5563;");
 
-        Text valueText = new Text(value);
         valueText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 20px; -fx-font-weight: bold; -fx-fill: #1B4332;");
-
-        Text subText = new Text(subtitle);
         subText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10px; -fx-fill: " + color + "; -fx-font-weight: bold;");
 
         HBox topH = new HBox(10, iconHolder, new VBox(2, titleText, valueText));
@@ -498,44 +393,129 @@ public class OperatorHome {
         return card;
     }
 
-    private static VBox createWeatherCard(String location, double latitude, double longitude) {
-        VBox weatherCard = new VBox(8);
-        weatherCard.setPrefWidth(430);
-        weatherCard.setPrefHeight(125);
-        weatherCard.setPadding(new Insets(12, 18, 12, 18));
-        weatherCard.setStyle("-fx-background-color: #6F91D5; -fx-background-radius: 18;");
+    private static VBox createDashboardCard(String icon, String title, String value, String subtitle, String color, Runnable onClick) {
+        Text v = new Text(value);
+        Text s = new Text(subtitle);
+        return createDynamicDashboardCard(icon, title, v, s, color, onClick);
+    }
 
-        HBox topBox = new HBox(12);
+    private static HBox createWeatherCard(
+            String location,
+            double latitude,
+            double longitude) {
+
+        HBox weatherCard = new HBox(20);
+        weatherCard.setAlignment(Pos.CENTER_LEFT);
+        weatherCard.setPadding(new Insets(14, 22, 14, 22));
+        weatherCard.setMaxWidth(Double.MAX_VALUE);
+        weatherCard.setStyle(
+                "-fx-background-color: linear-gradient(to right, #1B4332, #2D6A4F, #40916C);" +
+                "-fx-background-radius: 16px;" +
+                "-fx-effect: dropshadow(gaussian, rgba(27, 94, 32, 0.22), 12, 0.15, 0, 4);"
+        );
+
+        // Left: Current Weather Icon, Temperature & Details
         Text weatherIcon = new Text("☀");
-        weatherIcon.setStyle("-fx-font-size: 38px;");
+        weatherIcon.setStyle("-fx-font-size: 34px; -fx-fill: #FFF9C4;");
 
-        VBox currentInfo = new VBox(2);
-        Text temperature = new Text("28°C");
-        temperature.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 26px; -fx-font-weight: bold; -fx-fill: white;");
+        Text temperature = new Text("Loading...");
+        temperature.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 26px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-fill: white;");
 
-        Text condition = new Text("Good for Harvesting & Tillage");
-        condition.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11.5px; -fx-fill: white;");
+        Text condition = new Text("Loading weather...");
+        condition.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-fill: #E8F5E9;");
 
-        Text locationText = new Text("⌖ " + location);
-        locationText.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: white;");
+        Text locationText = new Text("📍 " + location + ", Maharashtra");
+        locationText.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 11px;" +
+                "-fx-fill: #C8E6C9;");
 
-        currentInfo.getChildren().addAll(temperature, condition, locationText);
-        topBox.getChildren().addAll(weatherIcon, currentInfo);
+        VBox currentDetails = new VBox(2, condition, locationText);
+        currentDetails.setAlignment(Pos.CENTER_LEFT);
 
-        HBox forecastBox = new HBox(15);
-        Text[] days = new Text[4];
+        HBox leftCurrentBox = new HBox(12, weatherIcon, temperature, currentDetails);
+        leftCurrentBox.setAlignment(Pos.CENTER_LEFT);
+
+        // Middle: Field operations advisory badge
+        Text agriTip = new Text("🌱 Field Status: Favorable conditions for farming operations");
+        agriTip.setStyle(
+                "-fx-font-family: 'Poppins';" +
+                "-fx-font-size: 11.5px;" +
+                "-fx-font-weight: 500;" +
+                "-fx-fill: #E8F5E9;");
+        HBox agriChip = new HBox(agriTip);
+        agriChip.setAlignment(Pos.CENTER);
+        agriChip.setPadding(new Insets(6, 14, 6, 14));
+        agriChip.setStyle(
+                "-fx-background-color: rgba(255, 255, 255, 0.15);" +
+                "-fx-background-radius: 20px;");
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        // Right: 4-Day Forecast in individual mini column cards
+        HBox forecastBox = new HBox(10);
+        forecastBox.setAlignment(Pos.CENTER_RIGHT);
+
+        Text[] dayNames = new Text[4];
+        Text[] dayIcons = new Text[4];
+        Text[] dayTemps = new Text[4];
+
         for (int i = 0; i < 4; i++) {
-            days[i] = new Text("Loading...");
-            days[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 10.5px; -fx-fill: white;");
-            forecastBox.getChildren().add(days[i]);
+            dayNames[i] = new Text("Day");
+            dayNames[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: #E8F5E9;");
+
+            dayIcons[i] = new Text("☀");
+            dayIcons[i].setStyle("-fx-font-size: 13px; -fx-fill: #FFF9C4;");
+
+            dayTemps[i] = new Text("--° / --°");
+            dayTemps[i].setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 11px; -fx-font-weight: bold; -fx-fill: white;");
+
+            HBox dayHeader = new HBox(4, dayNames[i], dayIcons[i]);
+            dayHeader.setAlignment(Pos.CENTER);
+
+            VBox dayCard = new VBox(2, dayHeader, dayTemps[i]);
+            dayCard.setAlignment(Pos.CENTER);
+            dayCard.setPadding(new Insets(4, 10, 4, 10));
+            dayCard.setStyle("-fx-background-color: rgba(255, 255, 255, 0.12); -fx-background-radius: 8px;");
+
+            forecastBox.getChildren().add(dayCard);
         }
 
-        weatherCard.getChildren().addAll(topBox, forecastBox);
-        loadWeather(latitude, longitude, weatherIcon, temperature, condition, days);
+        weatherCard.getChildren().addAll(leftCurrentBox, agriChip, spacer, forecastBox);
+
+        // Load live weather
+        loadWeather(
+                latitude,
+                longitude,
+                weatherIcon,
+                temperature,
+                condition,
+                dayNames,
+                dayIcons,
+                dayTemps);
+
         return weatherCard;
     }
 
-    private static void loadWeather(double latitude, double longitude, Text weatherIcon, Text temperature, Text condition, Text[] days) {
+    private static void loadWeather(
+            double latitude,
+            double longitude,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
+
         Task<String> weatherTask = new Task<>() {
             @Override
             protected String call() throws Exception {
@@ -548,50 +528,87 @@ public class OperatorHome {
                         + "&forecast_days=4";
 
                 HttpClient client = HttpClient.newHttpClient();
-                HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).GET().build();
-                HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+                HttpRequest request = HttpRequest.newBuilder()
+                        .uri(URI.create(url))
+                        .GET()
+                        .build();
+
+                HttpResponse<String> response = client.send(
+                        request,
+                        HttpResponse.BodyHandlers.ofString());
+
                 if (response.statusCode() != 200) {
-                    throw new RuntimeException("HTTP " + response.statusCode());
+                    throw new RuntimeException("API returned HTTP " + response.statusCode());
                 }
+
                 return response.body();
             }
         };
 
-        weatherTask.setOnSucceeded(e -> updateWeatherUI(weatherTask.getValue(), weatherIcon, temperature, condition, days));
-        weatherTask.setOnFailed(e -> Platform.runLater(() -> {
-            temperature.setText("28°C");
-            condition.setText("Clear field weather");
-            weatherIcon.setText("☀");
-            days[0].setText("Thu ☀ 31°/22°");
-            days[1].setText("Fri 🌤 30°/21°");
-            days[2].setText("Sat ⛅ 29°/20°");
-            days[3].setText("Sun 🌧 27°/19°");
-        }));
+        weatherTask.setOnSucceeded(e -> {
+            updateWeatherUI(
+                    weatherTask.getValue(),
+                    weatherIcon,
+                    temperature,
+                    condition,
+                    dayNames,
+                    dayIcons,
+                    dayTemps);
+        });
+
+        weatherTask.setOnFailed(e -> {
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Weather unavailable");
+                weatherIcon.setText("☀");
+                for (int i = 0; i < 4 && i < dayNames.length; i++) {
+                    dayNames[i].setText("Day");
+                    dayIcons[i].setText("☀");
+                    dayTemps[i].setText("--°");
+                }
+            });
+        });
 
         Thread thread = new Thread(weatherTask);
         thread.setDaemon(true);
         thread.start();
     }
 
-    private static void updateWeatherUI(String json, Text weatherIcon, Text temperature, Text condition, Text[] days) {
+    private static void updateWeatherUI(
+            String json,
+            Text weatherIcon,
+            Text temperature,
+            Text condition,
+            Text[] dayNames,
+            Text[] dayIcons,
+            Text[] dayTemps) {
+
         try {
+            // ---------------- CURRENT WEATHER ----------------
             int currentStart = json.indexOf("\"current\":{");
-            if (currentStart == -1) return;
+            if (currentStart == -1) {
+                throw new RuntimeException("Current weather data not found");
+            }
+
             int currentEnd = json.indexOf("}", currentStart);
             String currentData = json.substring(currentStart, currentEnd);
 
             String currentTemperature = extractNumberFromSection(currentData, "\"temperature_2m\":");
             String currentCode = extractNumberFromSection(currentData, "\"weather_code\":");
 
-            double tempVal = Double.parseDouble(currentTemperature);
-            int code = Integer.parseInt(currentCode);
+            double temperatureValue = Double.parseDouble(currentTemperature);
+            int weatherCode = Integer.parseInt(currentCode);
 
-            temperature.setText(Math.round(tempVal) + "°C");
-            condition.setText(getWeatherDescription(code));
-            weatherIcon.setText(getWeatherIcon(code));
+            temperature.setText(Math.round(temperatureValue) + "°C");
+            condition.setText(getWeatherDescription(weatherCode));
+            weatherIcon.setText(getWeatherIcon(weatherCode));
 
+            // ---------------- DAILY WEATHER ----------------
             int dailyStart = json.indexOf("\"daily\":{");
-            if (dailyStart == -1) return;
+            if (dailyStart == -1) {
+                return;
+            }
+
             String dailyData = json.substring(dailyStart);
 
             String datesPart = extractArray(dailyData, "\"time\":[");
@@ -606,22 +623,37 @@ public class OperatorHome {
 
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEE", Locale.ENGLISH);
 
-            for (int i = 0; i < 4 && i < days.length && i < dateArray.length; i++) {
+            for (int i = 0; i < 4 && i < dayNames.length; i++) {
                 String date = dateArray[i].replace("\"", "").trim();
                 LocalDate localDate = LocalDate.parse(date);
-                double maxT = Double.parseDouble(maxArray[i].trim());
-                double minT = Double.parseDouble(minArray[i].trim());
-                int dayCode = Integer.parseInt(codeArray[i].trim());
+
+                double maxTemperature = Double.parseDouble(maxArray[i].trim());
+                double minTemperature = Double.parseDouble(minArray[i].trim());
+                int dailyWeatherCode = Integer.parseInt(codeArray[i].trim());
 
                 String dayName = localDate.format(formatter);
-                days[i].setText(dayName + " " + getWeatherIcon(dayCode) + " " + Math.round(maxT) + "°/" + Math.round(minT) + "°");
+                String max = Math.round(maxTemperature) + "°";
+                String min = Math.round(minTemperature) + "°";
+
+                dayNames[i].setText(dayName);
+                dayIcons[i].setText(getWeatherIcon(dailyWeatherCode));
+                dayTemps[i].setText(max + "/" + min);
             }
-        } catch (Exception ignored) {}
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            Platform.runLater(() -> {
+                temperature.setText("--°C");
+                condition.setText("Unable to load weather");
+            });
+        }
     }
 
     private static String extractNumberFromSection(String section, String key) {
         int start = section.indexOf(key);
-        if (start == -1) return "0";
+        if (start == -1) {
+            throw new RuntimeException("Key not found: " + key);
+        }
         start += key.length();
         int end = start;
         while (end < section.length() && section.charAt(end) != ',' && section.charAt(end) != '}') {
@@ -632,31 +664,70 @@ public class OperatorHome {
 
     private static String extractArray(String json, String key) {
         int start = json.indexOf(key);
-        if (start == -1) return "";
+        if (start == -1) {
+            return "";
+        }
         start += key.length();
         int end = json.indexOf("]", start);
-        if (end == -1) return "";
+        if (end == -1) {
+            return "";
+        }
         return json.substring(start, end);
     }
 
     private static String getWeatherIcon(int code) {
-        if (code == 0) return "☀";
-        if (code == 1 || code == 2) return "🌤";
-        if (code == 3) return "☁";
-        if (code >= 45 && code <= 48) return "🌫";
-        if (code >= 51 && code <= 67) return "🌧";
-        if (code >= 71 && code <= 77) return "❄";
-        if (code >= 80 && code <= 82) return "🌦";
-        if (code >= 95) return "⛈";
+        if (code == 0) {
+            return "☀";
+        }
+        if (code == 1 || code == 2) {
+            return "🌤";
+        }
+        if (code == 3) {
+            return "☁";
+        }
+        if (code >= 45 && code <= 48) {
+            return "🌫";
+        }
+        if (code >= 51 && code <= 67) {
+            return "🌧";
+        }
+        if (code >= 71 && code <= 77) {
+            return "❄";
+        }
+        if (code >= 80 && code <= 82) {
+            return "🌦";
+        }
+        if (code >= 95 && code <= 99) {
+            return "⛈";
+        }
         return "☁";
     }
 
     private static String getWeatherDescription(int code) {
-        if (code == 0) return "Clear Sky • Good Field Work";
-        if (code == 1 || code == 2) return "Partly Cloudy • Ideal Operation";
-        if (code == 3) return "Overcast • Normal Tillage";
-        if (code >= 51 && code <= 67) return "Rain Expected • Caution in Field";
-        if (code >= 95) return "Thunderstorm • Cease Machinery Operation";
-        return "Normal Operating Conditions";
+        if (code == 0) {
+            return "Clear sky";
+        }
+        if (code == 1 || code == 2) {
+            return "Partly cloudy";
+        }
+        if (code == 3) {
+            return "Cloudy";
+        }
+        if (code >= 45 && code <= 48) {
+            return "Foggy";
+        }
+        if (code >= 51 && code <= 67) {
+            return "Rain likely";
+        }
+        if (code >= 71 && code <= 77) {
+            return "Snow";
+        }
+        if (code >= 80 && code <= 82) {
+            return "Rain showers";
+        }
+        if (code >= 95 && code <= 99) {
+            return "Thunderstorm";
+        }
+        return "Unknown";
     }
 }

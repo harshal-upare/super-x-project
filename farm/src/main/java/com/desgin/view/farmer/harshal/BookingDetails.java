@@ -120,84 +120,56 @@ public class BookingDetails {
                                 createInfoRow("Price Per Day", dRate != null ? dRate : "₹2,500/day"),
                                 createInfoRow("Total Amount", tAmt != null ? tAmt : "₹7,500"));
 
-                Label ownerTitle = new Label("Equipment Owner");
-                ownerTitle.setStyle(
-                                "-fx-font-size: 17px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #1B4332;");
-
-                VBox ownerBox = new VBox(8);
-                ownerBox.setPadding(new Insets(15));
-                ownerBox.setStyle(
-                                "-fx-background-color: #F8FAF9;" +
-                                                "-fx-background-radius: 10;" +
-                                                "-fx-border-color: #E2E8E4;" +
-                                                "-fx-border-radius: 10;");
-
-                Label ownerName = new Label("Verified Equipment Provider");
-                ownerName.setStyle(
-                                "-fx-font-size: 15px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #374151;");
-
-                Label phone = new Label("Phone: +91 98901 44552");
-                phone.setStyle(
-                                "-fx-font-size: 13px;" +
-                                                "-fx-text-fill: #6B7280;");
-                ownerBox.getChildren().addAll(
-                                ownerName,
-                                phone);
-
-                HBox statusBox = new HBox();
+                HBox statusBox = new HBox(8);
                 statusBox.setAlignment(Pos.CENTER_LEFT);
 
-                String currentStatus = stat != null ? stat : "ACTIVE";
+                String currentStatus = stat != null ? stat : "PENDING";
                 Label status = new Label(currentStatus);
-                status.setPadding(
-                                new Insets(7, 14, 7, 14));
+                status.setPadding(new Insets(7, 14, 7, 14));
                 String stStyle = "COMPLETED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #EDE3D5; -fx-text-fill: #1B4332;" :
-                                ("ACTIVE".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DCFCE7; -fx-text-fill: #166534;" :
-                                "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C;");
+                                ("ACTIVE".equalsIgnoreCase(currentStatus) || "CONFIRMED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DCFCE7; -fx-text-fill: #166534;" :
+                                ("ACCEPTED".equalsIgnoreCase(currentStatus) ? "-fx-background-color: #DBEAFE; -fx-text-fill: #1E40AF;" :
+                                "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C;"));
                 status.setStyle(stStyle +
                                                 "-fx-background-radius: 20;" +
                                                 "-fx-font-weight: bold;" +
                                                 "-fx-font-size: 12px;");
-                statusBox.getChildren().add(status);
+
+                com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem matched = null;
+                for (com.desgin.view.farmer.Swapnil.BookingDataStore.BookingItem b : com.desgin.view.farmer.Swapnil.BookingDataStore.getAllBookings()) {
+                    if (bId != null && bId.equalsIgnoreCase(b.bookingId)) {
+                        matched = b;
+                        break;
+                    }
+                }
+
+                String paySt = (matched != null && matched.paymentStatus != null) ? matched.paymentStatus : "PENDING";
+                Label payBadge = new Label("💳 Payment: " + paySt);
+                payBadge.setPadding(new Insets(7, 14, 7, 14));
+                payBadge.setStyle("PAID".equalsIgnoreCase(paySt) ?
+                        "-fx-background-color: #DCFCE7; -fx-text-fill: #166534; -fx-background-radius: 20; -fx-font-weight: bold; -fx-font-size: 12px;" :
+                        "-fx-background-color: #FEF3C7; -fx-text-fill: #92400E; -fx-background-radius: 20; -fx-font-weight: bold; -fx-font-size: 12px;");
+
+                statusBox.getChildren().addAll(status, payBadge);
 
                 HBox actions = new HBox(10);
                 actions.setAlignment(Pos.CENTER_RIGHT);
 
-                Button contactButton = new Button("Contact Owner");
-
-                contactButton.setOnAction(e -> {
-                        showContactOwnerPopup();
-                });
-                contactButton.setPrefHeight(38);
-
-                contactButton.setStyle(
-                                "-fx-background-color: #52796F;" +
-                                                "-fx-text-fill: white;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                Button cancelButton = new Button("Cancel Booking");
-                cancelButton.setOnAction(e -> {
+                if (!("CANCELLED".equalsIgnoreCase(currentStatus) || "COMPLETED".equalsIgnoreCase(currentStatus))) {
+                    Button cancelButton = new Button("Cancel Booking");
+                    cancelButton.setOnAction(e -> {
                         if (bId != null) {
-                                com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(bId);
+                            com.desgin.view.farmer.Swapnil.BookingDataStore.cancelBooking(bId);
                         }
                         showCancelConfirmation(cancelAction);
-                });
-                cancelButton.setPrefHeight(38);
-
-                cancelButton.setStyle(
-                                "-fx-background-color: #FEE2E2;" +
-                                                "-fx-text-fill: #B91C1C;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-                if (!"CANCELLED".equalsIgnoreCase(currentStatus) && !"COMPLETED".equalsIgnoreCase(currentStatus)) {
-                        actions.getChildren().addAll(contactButton, cancelButton);
-                } else {
-                        actions.getChildren().addAll(contactButton);
+                    });
+                    cancelButton.setPrefHeight(38);
+                    cancelButton.setStyle(
+                            "-fx-background-color: #FEE2E2;" +
+                            "-fx-text-fill: #B91C1C;" +
+                            "-fx-background-radius: 7;" +
+                            "-fx-font-weight: bold;");
+                    actions.getChildren().add(cancelButton);
                 }
 
                 mainBox.getChildren().addAll(
@@ -205,8 +177,6 @@ public class BookingDetails {
                                 equipmentBox,
                                 rentalTitle,
                                 rentalBox,
-                                ownerTitle,
-                                ownerBox,
                                 statusBox,
                                 actions);
 
@@ -242,75 +212,6 @@ public class BookingDetails {
                 return row;
         }
 
-        private void showContactOwnerPopup() {
-
-                VBox contactBox = new VBox(15);
-
-                contactBox.setPadding(new Insets(25));
-                contactBox.setPrefWidth(400);
-
-                contactBox.setStyle(
-                                "-fx-background-color: white;" +
-                                                "-fx-background-radius: 15;" +
-                                                "-fx-border-color: #D8C7B5;" +
-                                                "-fx-border-radius: 15;");
-
-                Label title = new Label("Contact Equipment Owner");
-
-                title.setStyle(
-                                "-fx-font-size: 22px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #1B4332;");
-
-                Label owner = new Label("Rahul Patil");
-
-                owner.setStyle(
-                                "-fx-font-size: 16px;" +
-                                                "-fx-font-weight: bold;" +
-                                                "-fx-text-fill: #374151;");
-
-                Label phone = new Label("📞  +91 XXXXX XXXXX");
-
-                phone.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-text-fill: #6B7280;");
-
-                Label email = new Label("✉  rahul@example.com");
-
-                email.setStyle(
-                                "-fx-font-size: 14px;" +
-                                                "-fx-text-fill: #6B7280;");
-
-                Button closeButton = new Button("Close");
-
-                closeButton.setStyle(
-                                "-fx-background-color: #52796F;" +
-                                                "-fx-text-fill: white;" +
-                                                "-fx-background-radius: 7;" +
-                                                "-fx-font-weight: bold;");
-
-                contactBox.getChildren().addAll(
-                                title,
-                                owner,
-                                phone,
-                                email,
-                                closeButton);
-
-                Stage popup = new Stage();
-
-                popup.setTitle("Contact Owner");
-
-                Scene scene = new Scene(
-                                contactBox,
-                                400,
-                                280);
-
-                popup.setScene(scene);
-
-                closeButton.setOnAction(e -> popup.close());
-
-                popup.show();
-        }
 
         private void showCancelConfirmation(Runnable cancelAction) {
 
@@ -388,18 +289,7 @@ public class BookingDetails {
 
                 popup.setScene(scene);
 
-                keepButton.setOnAction(e -> {
-                        popup.close();
-                });
-
-                cancelButton.setOnAction(e -> {
-
-                        System.out.println(
-                                        "Booking cancelled");
-
-                        popup.close();
-                });
-
+                keepButton.setOnAction(e -> popup.close());
                 popup.show();
         }
 }

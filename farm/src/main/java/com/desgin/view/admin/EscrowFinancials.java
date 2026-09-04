@@ -46,13 +46,42 @@ public class EscrowFinancials {
     }
 
     private static void initPayouts() {
-        if (!payoutList.isEmpty()) return;
-        payoutList.add(new PayoutRequest("PO-902", "Rajesh Patil (Agro Services)", "PROVIDER", 25000, "HDFC Bank (•••• 8842, IFSC: HDFC0001024)", "PENDING"));
-        payoutList.add(new PayoutRequest("PO-905", "Vikas More (AgriFleet Indapur)", "PROVIDER", 40000, "State Bank of India (•••• 4120, IFSC: SBIN0004512)", "PENDING"));
-        payoutList.add(new PayoutRequest("PO-908", "Ramesh Chavan", "OPERATOR", 15000, "UPI Direct: ramesh.operator@okhdfcbank", "PENDING"));
+        payoutList.clear();
+        payoutList.clear();
+        try {
+            java.util.List<com.desgin.model.RentalRequestModel> reqs = new com.desgin.dao.RentalRequestDAO().getAllRequests();
+            for (com.desgin.model.RentalRequestModel r : reqs) {
+                if ("COMPLETED".equalsIgnoreCase(r.getStatus()) || "PAID".equalsIgnoreCase(r.getPaymentStatus())) {
+                    String bAcc = r.getProviderAccountNumber() != null ? r.getProviderAccountNumber() : "Registered A/C";
+                    String bBank = r.getProviderBankName() != null ? r.getProviderBankName() : "Primary Bank";
+                    int amt = r.getEquipmentAmount() > 0 ? r.getEquipmentAmount() : (r.getTotalAmount() > 0 ? r.getTotalAmount() : (r.getDailyRate() * Math.max(1, r.getDays())));
+                    payoutList.add(new PayoutRequest(
+                            "PO-" + (r.getRequestId() != null ? r.getRequestId().replace("REQ_", "") : String.valueOf(System.currentTimeMillis())),
+                            (r.getProviderName() != null ? r.getProviderName() : "Equipment Provider"),
+                            "PROVIDER",
+                            (int)(amt * 0.93),
+                            bBank + " (A/C: " + bAcc + ")",
+                            "COMPLETED".equalsIgnoreCase(r.getStatus()) ? "SETTLED" : "IN_ESCROW"
+                    ));
+                    if (r.isOperatorRequired() && r.getOperatorName() != null) {
+                        int opAmt = r.getOperatorAmount() > 0 ? r.getOperatorAmount() : (500 * Math.max(1, r.getDays()));
+                        payoutList.add(new PayoutRequest(
+                                "PO-OP-" + (r.getRequestId() != null ? r.getRequestId().replace("REQ_", "") : String.valueOf(System.currentTimeMillis())),
+                                r.getOperatorName(),
+                                "OPERATOR",
+                                opAmt,
+                                "Direct Payout (Wages)",
+                                "COMPLETED".equalsIgnoreCase(r.getStatus()) ? "SETTLED" : "IN_ESCROW"
+                        ));
+                    }
+                }
+            }
+        } catch (Exception ignored) {}
     }
 
     public static ScrollPane getPage(StackPane root) {
+        initPayouts();
+
         Text title = new Text("Escrow Vault & Platform Commission Control");
         title.setStyle("-fx-font-family: 'Poppins'; -fx-font-size: 24px; -fx-font-weight: bold; -fx-fill: #1B4332;");
 
@@ -85,10 +114,28 @@ public class EscrowFinancials {
     }
 
     private static GridPane createEscrowKPIGrid() {
-        VBox c1 = createMetricCard("🔒 Escrow Vault", "₹6,45,000", "100% Nodal", "Held across 28 active rentals", "#1976D2", "#E0F2FE");
-        VBox c2 = createMetricCard("💰 Realized Commission", "₹3,39,500", "7.0% Take", "Net platform earnings YTD", "#2E7D32", "#E8F5E9");
-        VBox c3 = createMetricCard("⏳ Pending Payouts", "₹80,000", "3 Requests", "Awaiting admin authorization", "#E65100", "#FFF3E0");
-        VBox c4 = createMetricCard("💳 Total Settled", "₹42.1 Lakh", "520+ IMPS", "Direct bank settlements", "#374151", "#FFFFFF");
+        int escrowHold = 0;
+        int totalGmv = 0;
+        int pendingPayoutAmt = 0;
+        int pendingPayoutCount = 0;
+        int settledAmt = 0;
+
+        for (PayoutRequest p : payoutList) {
+            if ("IN_ESCROW".equals(p.status)) {
+                escrowHold += p.amount;
+                pendingPayoutAmt += p.amount;
+                pendingPayoutCount++;
+            } else if ("SETTLED".equals(p.status)) {
+                settledAmt += p.amount;
+            }
+            totalGmv += p.amount;
+        }
+        int realizedComm = (int) (totalGmv * 0.07);
+
+        VBox c1 = createMetricCard("🔒 Escrow Vault", "₹" + String.format("%,d", escrowHold), "100% Nodal", "Held in secure platform escrow", "#1976D2", "#E0F2FE");
+        VBox c2 = createMetricCard("💰 Realized Commission", "₹" + String.format("%,d", realizedComm), "7.0% Take", "Net platform earnings YTD", "#2E7D32", "#E8F5E9");
+        VBox c3 = createMetricCard("⏳ Pending Payouts", "₹" + String.format("%,d", pendingPayoutAmt), pendingPayoutCount + " Requests", "Awaiting job completion", "#E65100", "#FFF3E0");
+        VBox c4 = createMetricCard("💳 Total Settled", "₹" + String.format("%,d", settledAmt), "IMPS / UPI", "Direct bank settlements", "#374151", "#FFFFFF");
 
         GridPane grid = new GridPane();
         grid.setHgap(14);
